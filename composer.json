@@ -1,6 +1,6 @@
 {
-    "name": "mauritskorse/flux-icons",
-    "description": "A package to provide icons from different vendors for Flux.",
+    "name": "ympact/flux-icons",
+    "description": "A package to provide icons from different vendors for Livewire Flux.",
     "type": "library",
     "autoload": {
         "psr-4": {
@@ -12,6 +12,9 @@
             "providers": [
                 "FluxIcons\\FluxIconsServiceProvider"
             ]
+        },
+        "aliases": {
+            "FluxIcons": "Ympact\\FluxIcons"
         }
     },
     "require": {
