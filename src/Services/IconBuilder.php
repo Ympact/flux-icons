@@ -1,6 +1,6 @@
 <?php
 
-namespace FluxIcons\Services;
+namespace Ympact\FluxIcons\Services;
 
 use DOMDocument;
 use DOMXPath;

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace FluxIcons\Console;
+namespace Ympact\FluxIcons\Console;
 
 use Composer\InstalledVersions;
 use Illuminate\Console\Command;

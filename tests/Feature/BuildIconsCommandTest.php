@@ -1,12 +1,12 @@
 <?php
 
-namespace FluxIcons\Tests\Feature;
+namespace Ympact\FluxIcons\Tests\Feature;
 
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\File;
 use Orchestra\Testbench\TestCase;
-use FluxIcons\FluxIconsServiceProvider;
-use FluxIcons\Services\IconBuilder;
+use Ympact\FluxIcons\FluxIconsServiceProvider;
+use Ympact\FluxIcons\Services\IconBuilder;
 use Mockery;
 
 class BuildIconsCommandTest extends TestCase

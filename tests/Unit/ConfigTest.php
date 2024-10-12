@@ -1,6 +1,6 @@
 <?php
 
-namespace FluxIcons\Tests\Unit;
+namespace Ympact\FluxIcons\Tests\Unit;
 
 use PHPUnit\Framework\TestCase;
 

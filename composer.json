@@ -4,17 +4,14 @@
     "type": "library",
     "autoload": {
         "psr-4": {
-            "FluxIcons\\": "src/"
+            "Ympact\\FluxIcons\\": "src/"
         }
     },
     "extra": {
         "laravel": {
             "providers": [
-                "FluxIcons\\FluxIconsServiceProvider"
+                "Ympact\\FluxIcons\\FluxIconsServiceProvider"
             ]
-        },
-        "aliases": {
-            "FluxIcons": "Ympact\\FluxIcons"
         }
     },
     "require": {
