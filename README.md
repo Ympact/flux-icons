@@ -4,6 +4,9 @@ This is a laravel package to use icons from different vendors than the default H
 
 ## Installation
 
+```cmd
+composer require mauritskorse/flux-icons
+```
 
 ## Building icons
 
