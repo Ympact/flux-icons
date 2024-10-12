@@ -1,16 +1,21 @@
 {
     "name": "ympact/flux-icons",
     "description": "A package to provide icons from different vendors for Livewire Flux.",
-    "type": "library",
+    "authors": [
+        {
+            "name": "Maurits Korse",
+            "homepage": "https://mauritskorse.nl"
+        }
+    ],
     "autoload": {
         "psr-4": {
-            "Ympact\\FluxIcons\\": "src/"
+            "FluxIcons\\": "src/"
         }
     },
     "extra": {
         "laravel": {
             "providers": [
-                "Ympact\\FluxIcons\\FluxIconsServiceProvider"
+                "FluxIcons\\FluxIconsServiceProvider"
             ]
         }
     },

@@ -1,6 +1,6 @@
 <?php
 
-use Ympact\FluxIcons\Helpers\FluxIconHelper;
+use FluxIcons\Helpers\FluxIconHelper;
 
 return [
     'tabler' => [
