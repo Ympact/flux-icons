@@ -1,11 +1,11 @@
 # Flux icons
 
-This is a laravel package to use icons from different vendors than the default Heroicons.
+This is a laravel package to customize the icons for [Livewire Flux](https://github.com/livewire/flux). It builds the icons from various vendors into a `flux:icon` component.
 
 ## Installation
 
 ```cmd
-composer require mauritskorse/flux-icons
+composer require ympact/flux-icons
 ```
 
 ## Building icons
