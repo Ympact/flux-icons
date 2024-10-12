@@ -52,7 +52,24 @@ php artisan vendor:publish --tag=flux-icons-config
 ## Advanced configuration
 
 The configuration file provides two callbacks to allow for adjustments on the paths of specific icons.
-For example for the tabler outline icons, an outline path should be removed. 
+For example for the tabler outline icons, an outline path should be removed.
+
+| Callback Method         | Description                                                                 |
+|-------------------------|-----------------------------------------------------------------------------|
+| `transform_svg_path`    | A callback to transform the SVG path data. Takes a single parameter: the SVG path string. |
+| `change_stroke_width`   | A callback to determine the whether the stroke width should be changed on this icon. |
+
+```php
+'transform_svg_path' => function($variant, $iconName, $svgPaths) {
+    // Your transformation logic here
+},
+
+'change_stroke_width' => function($iconName, $defaultStrokeWidth, $svgPaths) {
+    // Your filtering logic here
+},
 ```
+
+```
+'transform_svg_path' => function()
 
 ```
