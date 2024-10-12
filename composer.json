@@ -1,0 +1,32 @@
+{
+    "name": "mauritskorse/flux-icons",
+    "description": "A package to provide icons from different vendors for Flux.",
+    "type": "library",
+    "autoload": {
+        "psr-4": {
+            "FluxIcons\\": "src/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "FluxIcons\\FluxIconsServiceProvider"
+            ]
+        }
+    },
+    "require": {
+        "php": "^8.1",
+        "illuminate/support": "^10.0|^11.0",
+        "livewire/flux": "^1.0",
+        "illuminate/console": "^10.0|^11.0",
+        "illuminate/view": "^10.0|^11.0",
+        "symfony/console": "^6.0|^7.0",
+        "livewire/livewire": "^3.5",
+        "laravel/prompts": "^0.1|^0.2|^0.3"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^9.0|^10.0|^11.0",
+        "mockery/mockery": "^1.6",
+        "orchestra/testbench": "^9.5"
+    }
+}

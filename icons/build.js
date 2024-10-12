@@ -1,12 +1,12 @@
 const fs = require('fs');
 const path = require('path');
-const config = require('./config');
-const { count } = require('console');
+const config = require('../config');
 
-const outlineIconsDir = path.join(__dirname, 'node_modules', '@tabler', 'icons', 'icons', 'outline');
-const filledIconsDir = path.join(__dirname, 'node_modules', '@tabler', 'icons', 'icons', 'filled');
-const outputDir = path.join(__dirname, 'dist');
-const bladeStubPath = path.join(__dirname, 'icon.blade.stub');
+const rootDir = path.join(__dirname, '..');
+const outlineIconsDir = path.join(rootDir, 'node_modules', '@tabler', 'icons', 'icons', 'outline');
+const filledIconsDir = path.join(rootDir, 'node_modules', '@tabler', 'icons', 'icons', 'filled');
+const outputDir = path.join(rootDir, 'dist');
+const bladeStubPath = path.join(rootDir, 'stubs', 'icon.blade.stub');
 
 if (!fs.existsSync(outputDir)) {
   fs.mkdirSync(outputDir);

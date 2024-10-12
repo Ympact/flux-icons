@@ -1,6 +1,6 @@
 const fs = require('fs');
 const path = require('path');
-const buildScript = require('./build');
+const buildScript = require('../build');
 
 test('build script generates blade files', () => {
   const outputDir = path.join(__dirname, 'dist');

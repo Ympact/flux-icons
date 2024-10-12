@@ -1,4 +1,4 @@
-{{-- credits tabler --}}
+{{-- {INFO_CREDITS} --}}
 
 @props([
     'variant' => 'outline',
