@@ -5,7 +5,7 @@ This is a laravel package to customize the icons for [Livewire Flux](https://git
 ## Installation
 
 ```cmd
-composer require ympact/flux-icons
+composer require-dev ympact/flux-icons
 ```
 
 ## Building icons
