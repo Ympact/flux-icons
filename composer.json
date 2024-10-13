@@ -1,7 +1,6 @@
 {
     "name": "ympact/flux-icons",
     "description": "A package to provide icons from different vendors for Livewire Flux.",
-    "type": "library",
     "keywords": ["flux", "laravel", "livewire", "components", "ui", "icons"],
     "license": "proprietary",
     "authors": [
@@ -10,18 +9,6 @@
             "homepage": "https://mauritskorse.nl"
         }
     ],
-    "autoload": {
-        "psr-4": {
-            "FluxIcons\\": "src/"
-        }
-    },
-    "extra": {
-        "laravel": {
-            "providers": [
-                "FluxIcons\\FluxIconsServiceProvider"
-            ]
-        }
-    },
     "require": {
         "php": "^8.1",
         "illuminate/support": "^10.0|^11.0",
@@ -36,5 +23,17 @@
         "phpunit/phpunit": "^9.0|^10.0|^11.0",
         "mockery/mockery": "^1.6",
         "orchestra/testbench": "^9.5"
+    },
+    "autoload": {
+        "psr-4": {
+            "FluxIcons\\": "src/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "FluxIcons\\FluxIconsServiceProvider"
+            ]
+        }
     }
 }
