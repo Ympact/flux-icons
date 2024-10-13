@@ -1,6 +1,9 @@
 {
     "name": "ympact/flux-icons",
     "description": "A package to provide icons from different vendors for Livewire Flux.",
+    "type": "library",
+    "keywords": ["flux", "laravel", "livewire", "components", "ui", "icons"],
+    "license": "proprietary",
     "authors": [
         {
             "name": "Maurits Korse",
