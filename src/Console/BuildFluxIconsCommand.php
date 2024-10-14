@@ -1,8 +1,8 @@
 <?php
 
-namespace FluxIcons\Console;
+namespace Ympact\FluxIcons\Console;
 
-use FluxIcons\Services\IconBuilder;
+use Ympact\FluxIcons\Services\IconBuilder;
 use Illuminate\Console\Command;
 use Illuminate\Filesystem\Filesystem;
 

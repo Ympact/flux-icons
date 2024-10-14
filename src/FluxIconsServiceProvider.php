@@ -1,6 +1,6 @@
 <?php
 
-namespace FluxIcons;
+namespace Ympact\FluxIcons;
 
 use Illuminate\Support\ServiceProvider;
 
