@@ -49,8 +49,6 @@ php artisan vendor:publish --tag=flux-icons-config
 ## Support
 
 - Tabler Icons (smaller icons are scaled, in case a solid verion is not available, it is not exported)
-- Fluent Icons
-- Material Design
 
 ## Advanced configuration
 
@@ -76,3 +74,9 @@ For example for the tabler outline icons, an outline path should be removed.
 'transform_svg_path' => function()
 
 ```
+
+## Roadmap
+
+- Add support for defining default icons
+- Add command for updating/rebuilding icons
+- Adding more vendors
