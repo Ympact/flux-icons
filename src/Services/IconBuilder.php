@@ -5,27 +5,48 @@ namespace Ympact\FluxIcons\Services;
 use DOMDocument;
 use DOMXPath;
 use Illuminate\Filesystem\Filesystem;
+use Illuminate\Support\Arr;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Fluent;
 use Illuminate\Support\Str;
 use Symfony\Component\Console\Helper\ProgressBar;
 use Symfony\Component\Console\Output\ConsoleOutput;
+use Ympact\FluxIcons\DataTypes\Icon;
 
 class IconBuilder
 {
-    protected $vendorConfig;
     
+    protected $vendor;
+
+    protected $icons;
+    
+    protected $sourceDirs;
+
+    protected $outputDir;
+
     protected $files;
 
-    public function __construct(protected $vendor, Filesystem $files, protected $icons = null)
+    protected $config = 'flux-icons';
+    protected $vendorConfig;
+
+    public function __construct($vendor, Filesystem $files, $icons = null)
     {
-        $this->vendorConfig = config("flux-icons.$vendor");
+        $this->vendor = $vendor;
+        if(config()->has("{$this->config}.vendors.{$vendor}")){
+            $this->vendorConfig = "{$this->config}.vendors.{$vendor}";
+        }
+        else{
+            throw new \Exception("Vendor $vendor not found in config file");
+        }
+        $this->icons = $icons;
         $this->files = $files;
     }
 
     public function installPackage()
     {
-        $packageName = $this->vendorConfig['package_name'];
+        $packageName = config("{$this->vendorConfig}.package_name");
         exec("npm install $packageName --save");
     }
 
@@ -33,118 +54,99 @@ class IconBuilder
     {
         $output = new ConsoleOutput();
 
+        $this->setupDirs();
 
-        $sourceDirs = $this->vendorConfig['source_directories'];
-        $outputDir = resource_path("views/flux/icon/{$this->vendor}");
-
-        if (!File::exists($outputDir)) {
-            File::makeDirectory($outputDir, 0755, true);
-        }
-        $outlineFiles = is_string($sourceDirs['outline']) ? $this->files->files(base_path($sourceDirs['outline'])) : $this->files->files(base_path($sourceDirs['outline']['dir']));
+        $files = is_string($this->sourceDirs['outline']) 
+                        ? $this->files->files(base_path($this->sourceDirs['outline'])) 
+                        : $this->files->files(base_path($this->sourceDirs['outline']['dir']));
+       
         // intersect the outlineFiles with the icons argument if it was passed. The icons argument can be a comma separated list of icon names without the file extension or the prefix/suffix
         if ($this->icons) {
             $icons = explode(',', $this->icons);
-            $outlineFiles = array_filter($outlineFiles, function ($file) use ($icons, $sourceDirs) {
-                // remove the file extension and the prefix/suffix from the icon name to be ableto compare it with the icons argument
-                $iconName = $this->baseIconName(pathinfo($file, PATHINFO_FILENAME),$sourceDirs);
-                //$iconName = isset($sourceDirs['outline']['prefix']) ? Str::after($filename, $sourceDirs['outline']['prefix']) : $filename;
-                //$iconName = isset($sourceDirs['outline']['suffix']) ? Str::before($iconName, $sourceDirs['outline']['suffix']) : $iconName;
-
-                return in_array($iconName, $icons);
+            
+            // map the files into a new collection as Icon() and by intersecting with $icons
+            $outlineIcons = collect($files)->map(function($file){
+                return new Icon(config($this->vendorConfig), $file);
+            })->filter(function(Icon $icon) use ($icons){
+                return in_array($icon->getName(), $icons);
             });
         }
 
-        $progressBar = new ProgressBar($output, count($outlineFiles));
+        $progressBar = new ProgressBar($output, count( $outlineIcons));
         $progressBar->start();
+        $infoCredits = $this->getPackageCredits();
+        $infoUsage = config("{$this->config}.usage");
+        $infoFluxVersion = $this->getPackageCredits(true);
 
-        foreach ($outlineFiles as $file) {
-            $baseIconName = $this->baseIconName(pathinfo($file, PATHINFO_FILENAME),$sourceDirs);
-            // set baseIconName by removing prefix or suffic from iconName in case that was set in config ($sourceDirs['outline']['prefix'] or $sourceDirs['outline']['suffix'])
-            //$baseIconName = isset($sourceDirs['outline']['prefix']) ? Str::after($iconName, $sourceDirs['outline']['prefix']) : $iconName;
-            //$baseIconName = isset($sourceDirs['outline']['suffix']) ? Str::before($baseIconName, $sourceDirs['outline']['suffix']) : $baseIconName;
+        foreach ($outlineIcons as $outlineIcon) {
+            // in case there are no solid icons, use the preprocessed outline icon
+            $baseIcon = $outlineIcon;
 
-            // outline icons
-            $outlineSvgPaths = $this->extractPaths(File::get($file));
+            $basename = $outlineIcon->process()->getName();
             
             // in case there is a transform_svg_path function in the vendor config file, apply it
-            if (isset($this->vendorConfig['transform_svg_path'])) {
-                $outlineSvgPaths = $this->vendorConfig['transform_svg_path']('outline', $baseIconName, $outlineSvgPaths);
-            }
-            // in case there is a change_stroke_width function in the vendor config file, apply it
-            // get all path tags from the svg content set it to $svgPaths
-            $outlineStroke = 1.5;
+            $outlineIcon->transform('outline');
 
-            if (isset($this->vendorConfig['change_stroke_width'])) {
-                $outlineStroke = $this->vendorConfig['change_stroke_width']($baseIconName, $outlineStroke, $outlineSvgPaths );
-            }
-            $outlinePath = $this->mergeSvgPaths($outlineSvgPaths);
+            $outlineIcon->changeStrokeWidth(config("{$this->config}.default_stroke_wdith", null));
+
+            $outlinePath = $outlineIcon->getMergedD();
 
             // solid icons
             // in case there are different sizes for solid icons, $sourceDirs['solid'] is an array, otherwise it's a string
-            if (is_string($sourceDirs['solid'])) {
-                $filledFile = base_path($sourceDirs['solid']) . "/$baseIconName.svg";
-                $filledSvgPaths = File::exists($filledFile) ? $this->extractPaths(File::get($filledFile)) : $outlineSvgPaths;
+            if (is_string($this->sourceDirs['solid'])) {
+                $solidFile = base_path($this->sourceDirs['solid']) . "/$basename.svg";
+                $solidIcon = new Icon(config($this->vendorConfig), $solidFile);
                 
-                if (isset($this->vendorConfig['transform_svg_path'])) {
-                    $filledSvgPaths = $this->vendorConfig['transform_svg_path']('solid', $baseIconName, $filledSvgPaths);
+                if(! $solidIcon->fileExists()){
+                    $solidIcon = $baseIcon;
                 }
-                $filledMergedPath = $this->mergeSvgPaths($filledSvgPaths);
-                $filledPath[24] = $filledMergedPath;
-                $filledPath[20] = $filledMergedPath;
-                $filledPath[16] = $filledMergedPath;
+                
+                $solidIcon->process()->transform('solid');
+
+                $solidPath[24] = $solidIcon->getMergedD();
+                $solidPath[20] = $solidIcon->getMergedD();
+                $solidPath[16] = $solidIcon->getMergedD();
 
             } else {
                 // sizes 24,20,26
                 foreach([24, 20, 16] as $size) {
                     // add prefix or suffic to iconName in case set in config ($sourceDirs['solid'][$size]['prefix'] or $sourceDirs['solid'][$size]['suffix'])
-
-                    $iconName = isset($sourceDirs['solid'][$size]['prefix']) ? $sourceDirs['solid'][$size]['prefix'] . $baseIconName : $baseIconName;
-                    $iconName = isset($sourceDirs['solid'][$size]['suffix']) ? $baseIconName . $sourceDirs['solid'][$size]['suffix'] : $iconName;
-
-                    $filledFile = base_path($sourceDirs['solid'][$size]['dir']) . "/$iconName.svg";
-                    // if the icon doesn't exist in the current size,
-                    if (!File::exists($filledFile)) {
-                        // first try a size larger than the current size if that exists,
-                        if ($size + 4 > 24) {
-                            $filledFile = base_path($sourceDirs['solid'][24]) . "/$iconName.svg";
-                        } else {
-                            $filledFile = base_path($sourceDirs['solid'][$size + 4]) . "/$iconName.svg";
-                        }
-                        //  otherwise use the outline icon
-                        if (!File::exists($filledFile)) {
-                            $filledFile = base_path($sourceDirs['outline']) . "/$iconName.svg";
-                        }
+                    $solidFile = $this->getSizedFile($basename, $size, 'solid');
+                   
+                    $solidIcon = new Icon(config($this->vendorConfig), $solidFile, );
+                    if(!$solidIcon->fileExists()){
+                        $solidIcon = $outlineIcon;
                     }
-
-                    if(File::exists($filledFile)){
-                        $filledSvgPaths = $this->extractPaths(File::get($filledFile));
-
-                        if (isset($this->vendorConfig['transform_svg_path'])) {
-                            $filledSvgPaths = $this->vendorConfig['transform_svg_path']('solid', $baseIconName, $filledSvgPaths);
-                        }
-                        $filledPath[$size] = $this->mergeSvgPaths($filledSvgPaths);
-                    }
-                    else{
-                        $filledPath[$size] = $outlineSvgPaths;
-                    }
+                    
+                    $solidIcon->process()->transform('solid');
+    
+                    $solidPath[$size] = $solidIcon->resize($size)->getMergedD();
                 }
             }
 
-            // get npm package details
-            $packageDetails = json_decode(Storage::get("node_modules/{$this->vendorConfig['package_name']}/package.json"), true);
-            $infoCredits = $packageDetails 
-                        ? $packageDetails['name'] . ' (v'.$packageDetails['version'].') by ' . $packageDetails['author']
-                        : '';
-
-            $bladeTemplate = Str::of(File::get(resource_path('stubs/icon.blade.stub')))
+            $bladeTemplate = Str::of(File::get(__DIR__.'/../../stubs/icon.blade.stub'))
+                ->replace('{INFO_ICON_NAME}', $basename)
+                ->replace('{INFO_USAGE}', $infoUsage)
+                ->replace('{INFO_BUILD_DATE}', now()->format('Y-m-d H:i:s'))
                 ->replace('{INFO_CREDITS}', $infoCredits)
-                ->replace('{SVG_OUTLINE_STROKE}', $outlineStroke)
+                ->replace('{INFO_FLUX_VERSION}', $infoFluxVersion)
+                
+                ->replace('{SVG_OUTLINE_STROKE}', $outlineIcon->getStrokeWidth())
                 ->replace('{SVG_PATH_OUTLINE_24}', $outlinePath)
-                ->replace('{SVG_PATH_SOLID_24}', $filledPath[24])
-                ->replace('{SVG_PATH_SOLID_20}', $filledPath[20])
-                ->replace('{SVG_PATH_SOLID_16}', $filledPath[16]);
+                ->replace('{SVG_PATH_SOLID_24}', $solidPath[24])
+                ->replace('{SVG_PATH_SOLID_20}', $solidPath[20])
+                ->replace('{SVG_PATH_SOLID_16}', $solidPath[16])
+                ->replace('{SVG_OUTLINE_24_SIZE}', 24)
+                ->replace('{SVG_SOLID_24_SIZE}', 24)
+                ->replace('{SVG_SOLID_20_SIZE}', 20)
+                ->replace('{SVG_SOLID_16_SIZE}', 16);
 
-            File::put("$outputDir/$baseIconName.blade.php", $bladeTemplate);
+            $put = File::put("{$this->outputDir}/{$basename}.blade.php", $bladeTemplate);
+            if (!$put) {
+                $output->writeln("<error>Failed to write {$basename}.blade.php</error>");
+            } else {
+                $output->writeln("<info>Wrote {$basename}.blade.php</info>");
+            }
             // Update the progress bar
             $progressBar->advance();
         }
@@ -153,20 +155,100 @@ class IconBuilder
         $progressBar->finish();
     }
 
-    public function extractPaths($content, $tagName = 'path')
+    public function setupDirs(){
+        $this->sourceDirs = config("{$this->vendorConfig}.source_directories");
+        $this->outputDir = resource_path("views/flux/icon/{$this->vendor}");
+
+        if (!File::exists($this->outputDir)) {
+            File::makeDirectory($this->outputDir, 0755, true);
+        }
+    }
+
+    public function getPackageCredits($flux = false){
+        $packageDetails = null;
+
+        // if we want to get the credits for the flux package
+        if($flux){
+            // get datails from composer.lock
+            $composerLock = json_decode(File::get(base_path('composer.lock')), true);
+            $packageDetails = collect($composerLock['packages'])->firstWhere('name', 'livewire/flux');
+            return $packageDetails 
+                    ? $packageDetails['name'] . ' (v'.$packageDetails['version'].') by ' . $packageDetails['authors'][0]['name']
+                    : '';
+        }
+        else{
+            // get npm package details
+            $packageDir = config("{$this->vendorConfig}.package_name");
+            $packageFile = base_path("node_modules/{$packageDir}/package.json");
+            if(File::exists($packageFile)){
+                $packageDetails = json_decode(File::get($packageFile), true);
+            }
+
+            return $packageDetails 
+                    ? $packageDetails['name'] . ' (v'.$packageDetails['version'].') by ' . $packageDetails['author']
+                    : '';
+        }
+    }
+
+    public function getSizedFile($basename, $size, $variant = 'solid'): string
+    {       
+        if($prefix = Arr::get($this->sourceDirs, "{$variant}.{$size}.prefix")){
+            $iconName = $prefix . $basename;
+        }
+        if($suffix = Arr::get($this->sourceDirs, "{$variant}.{$size}.suffix")){
+            $iconName = $suffix . $basename;
+        }
+
+        $file = base_path(Arr::get($this->sourceDirs, "{$variant}.{$size}.dir")) . "/$iconName.svg";
+       
+        // if the icon doesn't exist in the current size,
+        if (!File::exists($file)) {
+            // then try a size larger than the current size if that exists,
+            if ($size + 4 > 24) {
+                $file = base_path($this->sourceDirs[$variant][24]) . "/$iconName.svg";
+            } else {
+                $file = base_path($this->sourceDirs[$variant][$size + 4]) . "/$iconName.svg";
+            }
+            //  otherwise use the outline icon
+            if (!File::exists($file)) {
+                $file = base_path($this->sourceDirs[$variant]) . "/$iconName.svg";
+            }
+        }
+        return $file;
+    }
+
+
+    public static function getAvailableVendors(): array
+    {
+        return array_keys( config("flux-icons.vendors" ));
+    }
+
+
+    /*
+    public static function getDom($content): Fluent
     {
         $dom = new DOMDocument();
         // Suppress errors due to malformed HTML
         libxml_use_internal_errors(true);
         $dom->loadHTML($content, LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD);
         libxml_clear_errors();
-    
         $xpath = new DOMXPath($dom);
-        $tags = $xpath->query("//{$tagName}");
-    
+
+        return fluent([
+            'dom' => $dom,
+            'xpath' => $xpath
+        ]);
+    }
+
+
+    public function extractPaths($content, $tagName = 'path')
+    {
+        $dom = $this->getDom($content);
+        $tags = $dom->xpath->query("//{$tagName}");
+
         $result = [];
         foreach ($tags as $tag) {
-            $result[] = $dom->saveHTML($tag);
+            $result[] = $dom->dom->saveHTML($tag);
         }
     
         return $result;
@@ -192,5 +274,5 @@ class IconBuilder
         }
         return $baseIconName;
     }
-
+*/
 }

@@ -4,17 +4,33 @@ namespace Ympact\FluxIcons\Console;
 
 use Ympact\FluxIcons\Services\IconBuilder;
 use Illuminate\Console\Command;
+use Illuminate\Contracts\Console\PromptsForMissingInput;
 use Illuminate\Filesystem\Filesystem;
 
-class BuildFluxIconsCommand extends Command
+class BuildFluxIconsCommand extends Command implements PromptsForMissingInput
 {
-    protected $signature = 'flux-icons:build {vendor?} {icons?}';
+    protected $signature = 'flux-icons:build
+                             {vendor? : The vendor icon package to use} 
+                             {--icons=? : The icons to build (single or comma separated list)}';
+                             //{--all? : All icons from the vendor}';
     protected $description = 'Build icons for Flux using a specific icon package';
+
+    /**
+     * Prompt for missing input arguments using the returned questions.
+     *
+     * @return array<string, string>
+     */
+    protected function promptForMissingArgumentsUsing(): array
+    {
+        return [
+            'vendor' => 'Which vendor icon package should be used?',
+        ];
+    }
 
     public function handle()
     {
-        $vendor = $this->argument('vendor') ?? $this->ask('Which vendor icon package should be used?');
-        $icons = $this->argument('vendor') ?? null;
+        $vendor = $this->argument('vendor') ?? $this->ask('Which vendor icon package should be used ('.implode(', ',IconBuilder::getAvailableVendors()).')?');
+        $icons = $this->option('icons') ?? null;
 
         // if icons is null, confirm that the user wants to build all icons
         if (!$icons && !$this->confirm("Are you sure you want to build all icons for vendor: $vendor?")) {
@@ -25,6 +41,9 @@ class BuildFluxIconsCommand extends Command
             $this->error("Vendor configuration for '$vendor' not found.");
             return 1;
         }
+
+        // in case no icons are defined, use config("{$this->config}.icons")
+
         $files = app(Filesystem::class);
         $iconBuilder = new IconBuilder($vendor, $files, $icons);
 

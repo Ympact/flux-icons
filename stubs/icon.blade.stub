@@ -1,4 +1,10 @@
-{{-- {INFO_CREDITS} --}}
+{{-- 
+  Icon:   {INFO_ICON_NAME} 
+  Usage:  {INFO_ICON_USAGE} 
+  Credit: {INFO_CREDITS} 
+  Build:  {INFO_BUILD_DATE} 
+--}}
+
 
 @props([
     'variant' => 'outline',
