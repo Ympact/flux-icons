@@ -57,7 +57,7 @@ return [
              */
             'transform_svg_path' => function ($variant, $iconName, $svgPaths) {
                 // remove the first $svgPath from the array that has a d attribute of 'M0 0h24v24H0z'
-                $svgPaths = $svgPaths->filter(function($svgPath){
+                $svgPaths = $svgPaths->filter(function(SvgPath $svgPath){
                     return $svgPath->getD() !== 'M0 0h24v24H0z';
                 });
 
@@ -72,7 +72,7 @@ return [
             'change_stroke_width' => function ($iconName, $defaultStrokeWidth, $svgPaths) {
                 // icons that have a small circular shape should have a stroke width of 2 otherwise you may see a gap in the icon when using 1.5
                 // ie icons such as dots, dots-vertical, grip-horizontal, grip-vertical, etc
-                return $svgPaths->filter(function($svgPath){
+                return $svgPaths->filter(function(SvgPath $svgPath){
                     return strpos($svgPath->getD(), 'a1 1 0 1 0') !== false;
                 })->count() > 0 ? 2 : $defaultStrokeWidth;
             },
