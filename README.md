@@ -23,10 +23,10 @@ php artisan flux-icons:build tabler --icons=confetti
 
 | Option          | Description                                                                                        |
 |-----------------|----------------------------------------------------------------------------------------------------|
-| `--icons=`      | The icons to build (single or comma separated list). . Cannot be used in combination with `--all`. |
+| `--icons=`      | The icons to build (single or comma separated list). Cannot be used in combination with `--all`. |
 | `-m\|--merge`   | Merge the icons listed in the `--icons` options with the icons defined in the config. Cannot be used in combination with `--all`. |
 | `-a\|--all`     | Build all icons from the vendor. Note: this might generate over thousands of files.                |
-| `-v\|--verbose` | Show additional messages during build |
+| `-v\|--verbose` | Show additional messages during build. |
 
 The artisan script will try to install the icon package using `npm install`. Right after it will try to convert all icons into a flux icon blade component.
 
@@ -41,21 +41,21 @@ Since this package publishes all icons to `resources/views/flux/icon/{vendor}/` 
 or
 
 ```html
-<flux:icon name="tabler.confetti-off"/>
+<flux:icon name="tabler.confett"/>
 ```
 
 ## Note on icon variants
 
 Due to the way the flux icon component is made, it requires 4 variants: an outline and a solid of three sizes (24, 20, 16).
-For the first version of this Flux Icons package, it treats the source icon as follows:
+For the first version of this Flux Icons package the source icons are treated as follows:
 
 - In case there is only one solid size variant in the source package, it will use the same svg for all three size variants. Generally the svg will be scaled by the browser.
-- In case there is no solid variant, it will use the outline variant as the solid variant. 
+- In case there is no solid variant, it will use the outline variant as the solid variant.
 - In case the solid variant does not have an outline variant, the icon is not exported at all.
 
 ## Publish config
 
-You can publish the config file to adjust settings for a specific vendor or add your own vendor. In case you add your own vendo, please share so others can use it too!
+You can publish the config file to adjust settings for a specific vendor or add your own vendor. In case you add your own vendor, please share or make a PR so others can use it too!
 
 ```cmd
 php artisan vendor:publish --tag=flux-icons-config
@@ -155,3 +155,4 @@ See the configuration for the Tabler icons as example how to use this.
 
 - Add/Improve command for updating/rebuilding icons
 - Adding more vendors
+- Improve the way source icons are treated (solid only)
