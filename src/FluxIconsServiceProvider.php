@@ -19,6 +19,10 @@ class FluxIconsServiceProvider extends ServiceProvider
             __DIR__.'/../config/flux-icons.php' => config_path('flux-icons.php'),
         ], 'flux-icons-config');
 
+        $this->publishes([
+            __DIR__.'/../resources/views' => resource_path('views/flux/icon/flux-icons'),
+        ], 'flux-icons-icons');
+
         // Register the commands
         $this->bootCommands();
     }
