@@ -135,7 +135,7 @@ class IconBuilder
 
             $bladeTemplate = Str::of(File::get(__DIR__.'/../../stubs/icon.blade.stub'))
                 ->replace('{INFO_ICON_NAME}', $basename)
-                ->replace('{INFO_USAGE}', $infoUsage)
+                ->replace('{INFO_ICON_USAGE}', $infoUsage)
                 ->replace('{INFO_CREDITS}', $infoCredits)
                 ->replace('{INFO_FLUX_VERSION}', $infoFluxVersion)
                 ->replace('{INFO_BUILD_DATE}', now()->format('Y-m-d H:i:s'))
@@ -197,7 +197,7 @@ class IconBuilder
             $composerLock = json_decode(File::get(base_path('composer.lock')), true);
             $packageDetails = collect($composerLock['packages'])->firstWhere('name', 'livewire/flux');
             return $packageDetails 
-                    ? $packageDetails['name'] . ' (v'.$packageDetails['version'].') by ' . $packageDetails['authors'][0]['name']
+                    ? $packageDetails['name'] . ' ('.$packageDetails['version'].') by ' . $packageDetails['authors'][0]['name']
                     : '';
         }
         else{
@@ -209,7 +209,7 @@ class IconBuilder
             }
 
             return $packageDetails 
-                    ? $packageDetails['name'] . ' (v'.$packageDetails['version'].') by ' . $packageDetails['author']
+                    ? $packageDetails['name'] . ' ('.$packageDetails['version'].') by ' . $packageDetails['author']
                     : '';
         }
     }
