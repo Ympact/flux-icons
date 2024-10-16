@@ -63,7 +63,9 @@ php artisan vendor:publish --tag=flux-icons-config
 
 ## Support
 
-- Tabler Icons (smaller icons are scaled, in case a solid verion is not available, it is not exported)
+- Fluent UI Icons
+- Google Material Design Icons
+- Tabler Icons
 
 ## Advanced configuration
 
@@ -91,6 +93,7 @@ The vendor specific configuration sits within the `vendors` key. Each vendor sho
 | Option     | Value     | Description                                                                 |
 |------------|-----------|-----------------------------------------------------------------------------|
 | `vendor_name`    |  `string` | Human readable name of the vendor.  |
+| `namespace`      | `string`  | The namespace for the Flux icon, in case omitted, the key of the vendor array will be used. |
 | `package_name` | `string` | The npm package that should be installed to retrieve the icons. |
 | `source_directories.outline` | `array\|string` | The directory in which the vendors outline icons reside. For specific options see below. |
 | `source_directories.solid` | `array\|string` | The directory in which the vendors solid icons reside. For specific options see below. |

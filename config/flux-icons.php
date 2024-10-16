@@ -31,6 +31,7 @@ return [
     'vendors' => [
         'tabler' => [
             'vendor_name' => 'Tabler',
+            'namespace' => 'tabler',
             'package_name' => '@tabler/icons',
             'source_directories' => [
                 'outline' => 'node_modules/@tabler/icons/icons/outline', 
@@ -63,7 +64,7 @@ return [
                 return $svgPaths;
             },
 
-             /**
+            /**
              * @param string $iconName
              * @param float $defaultStrokeWidth
              * @param collection<SvgPath> $svgPaths
@@ -76,6 +77,76 @@ return [
                 })->count() > 0 ? 2 : $defaultStrokeWidth;
             },
         ],
+
+        // Google Material Design Icons
+        'google' => [
+            'vendor_name' => 'Material Design Icons',
+            'namespace' => 'google',
+            'package_name' => '@material-design-icons/svg',
+            'source_directories' => [
+                'outline' => 'node_modules/@material-design-icons/svg/outlined',
+                'solid' => 'node_modules/@material-design-icons/svg/filled',
+            ],
+            'transform_svg_path' => null, 
+            'change_stroke_width' => null
+        ],
+
+        // Fluent ui 
+        'fluent' => [
+            'vendor_name' => 'Fluent UI',
+            'namespace' => 'fluent',
+            'package_name' => '@fluentui/svg-icons',
+            'source_directories' => [
+                'outline' => [
+                    'dir' => 'node_modules/@fluentui/svg-icons/icons',
+                    'prefix' => null,
+                    'suffix' => '_24_regular',
+                ],
+                'solid' => [
+                    '24' => ['dir' => 'node_modules/@fluentui/svg-icons/icons', 'prefix' => null, 'suffix' => '_24_filled'],
+                    '20' => ['dir' => 'node_modules/@fluentui/svg-icons/icons', 'prefix' => null, 'suffix' => '_20_filled'],
+                    '16' => ['dir' => 'node_modules/@fluentui/svg-icons/icons', 'prefix' => null, 'suffix' => '_16_filled'],
+                ],
+            ],
+            'transform_svg_path' => null, 
+            'change_stroke_width' => null
+        ],
+
+        /*
+        // Flowbite icons - requires additional configuration to work properly
+        // requires support for subdirectories
+        'flowbite' => [
+            'vendor_name' => 'Flowbite',
+            'namespace' => 'fluent',
+            'package_name' => 'flowbite/icons',
+            'source_directories' => [
+                'outline' => 'node_modules/flowbite-icons/src/outline/ /',
+                'solid' => 'node_modules/flowbite-icons/src/solid/ /',
+            ],
+            'transform_svg_path' => null, 
+            'change_stroke_width' => null
+        ],
+        */
+
+        /*
+         * MDI - requires additional configuration to work properly
+         * Icons are outlines by default, but in case there is an -outline variant the normal variant is solid
+        'mdi' => [
+            'vendor_name' => 'MDI',
+            'namespace' => 'mdi',
+            'package_name' => '@mdi/svg',
+            'source_directories' => [
+                'outline' => [
+                    'dir' => 'node_modules/@mdi/svg',
+                    'prefix' => null,
+                    'suffix' => '-outline',
+                ],
+                'solid' => 'node_modules/@mdi/svg',
+            ],
+            'transform_svg_path' => null, 
+            'change_stroke_width' => null
+        ],
+        */
         // Add other vendors here...
 
     ],
