@@ -12,25 +12,29 @@ use Ympact\FluxIcons\DataTypes\Icon;
 
 class IconBuilder
 {
-    protected $vendor;
+    protected string $vendor;
 
     protected array|null $icons;
     
-    protected $sourceDirs;
+    protected string|array $sourceDirs;
 
-    protected $outputDir;
+    protected string $outputDir;
 
     protected $files;
 
-    protected $config = 'flux-icons';
+    protected string $config = 'flux-icons';
 
-    protected $vendorConfig;
+    protected string $vendorConfig;
 
-    protected $verbose;
+    protected bool $verbose;
 
-    public function __construct($vendor, Filesystem $files, array $icons = null, $verbose = false)
+    protected ConsoleOutput $output;
+
+    public function __construct(string $vendor, Filesystem $files, array $icons = null, $verbose = false)
     {
         $this->verbose = $verbose;
+        $this->output = new ConsoleOutput();
+
         $this->vendor = $vendor;
         if(config()->has("{$this->config}.vendors.{$vendor}")){
             $this->vendorConfig = "{$this->config}.vendors.{$vendor}";
@@ -58,8 +62,6 @@ class IconBuilder
      */
     public function buildIcons()
     {
-        $output = new ConsoleOutput();
-
         $this->setupDirs();
 
         $files = is_string($this->sourceDirs['outline']) 
@@ -78,10 +80,10 @@ class IconBuilder
             });
         }
 
-        $progressBar = new ProgressBar($output, count( $outlineIcons));
+        $progressBar = new ProgressBar($this->output, count( $outlineIcons));
         $progressBar->start();
+
         $infoCredits = $this->getPackageCredits();
-        $infoUsage = config("{$this->config}.usage");
         $infoFluxVersion = $this->getPackageCredits(true);
 
         foreach ($outlineIcons as $outlineIcon) {
@@ -89,7 +91,8 @@ class IconBuilder
             $baseIcon = $outlineIcon;
 
             $basename = $outlineIcon->process()->getName();
-            
+            $infoUsage = "<flux:icon.{$this->vendor}.{$basename} /> or <flux:icon name=\"{$this->vendor}.{$basename}\" />";
+
             // in case there is a transform_svg_path function in the vendor config file, apply it
             $outlineIcon->transform('outline');
 
@@ -133,26 +136,26 @@ class IconBuilder
             $bladeTemplate = Str::of(File::get(__DIR__.'/../../stubs/icon.blade.stub'))
                 ->replace('{INFO_ICON_NAME}', $basename)
                 ->replace('{INFO_USAGE}', $infoUsage)
-                ->replace('{INFO_BUILD_DATE}', now()->format('Y-m-d H:i:s'))
                 ->replace('{INFO_CREDITS}', $infoCredits)
                 ->replace('{INFO_FLUX_VERSION}', $infoFluxVersion)
+                ->replace('{INFO_BUILD_DATE}', now()->format('Y-m-d H:i:s'))
                 
                 ->replace('{SVG_OUTLINE_STROKE}', $outlineIcon->getStrokeWidth())
                 ->replace('{SVG_PATH_OUTLINE_24}', $outlinePath)
                 ->replace('{SVG_PATH_SOLID_24}', $solidPath[24])
                 ->replace('{SVG_PATH_SOLID_20}', $solidPath[20])
-                ->replace('{SVG_PATH_SOLID_16}', $solidPath[16])
-                ->replace('{SVG_OUTLINE_24_SIZE}', 24)
-                ->replace('{SVG_SOLID_24_SIZE}', 24)
-                ->replace('{SVG_SOLID_20_SIZE}', 20)
-                ->replace('{SVG_SOLID_16_SIZE}', 16);
+                ->replace('{SVG_PATH_SOLID_16}', $solidPath[16]);
+                //->replace('{SVG_OUTLINE_24_SIZE}', 24)
+                //->replace('{SVG_SOLID_24_SIZE}', 24)
+                //->replace('{SVG_SOLID_20_SIZE}', 20)
+                //->replace('{SVG_SOLID_16_SIZE}', 16);
 
             $put = File::put("{$this->outputDir}/{$basename}.blade.php", $bladeTemplate);
             if($this->verbose){
                 if (!$put) {
-                    $output->writeln("<error>Failed to write {$basename}.blade.php</error>");
+                    $this->output->writeln("<error>Failed to write {$basename}.blade.php</error>");
                 } else {
-                    $output->writeln("<info>Wrote {$basename}.blade.php</info>");
+                    $this->output->writeln("<info>Wrote {$basename}.blade.php</info>");
                 }
             }
             // Update the progress bar
@@ -172,6 +175,9 @@ class IconBuilder
         $this->outputDir = resource_path("views/flux/icon/{$this->vendor}");
 
         if (!File::exists($this->outputDir)) {
+            if($this->verbose){
+                $this->output->writeln("<info>Creating directory {$this->outputDir}</info>");
+            }
             File::makeDirectory($this->outputDir, 0755, true);
         }
     }

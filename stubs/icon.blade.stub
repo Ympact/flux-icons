@@ -1,8 +1,9 @@
 {{-- 
-  Icon:   {INFO_ICON_NAME} 
-  Usage:  {INFO_ICON_USAGE} 
-  Credit: {INFO_CREDITS} 
-  Build:  {INFO_BUILD_DATE} 
+  Icon:     {INFO_ICON_NAME} 
+  Usage:    {INFO_ICON_USAGE} 
+  Credits:  {INFO_CREDITS} 
+  Flux:     {INFO_FLUX_VERSION} 
+  Built:    {INFO_BUILD_DATE}
 --}}
 
 
