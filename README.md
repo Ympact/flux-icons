@@ -189,4 +189,4 @@ php artisan vendor:publish --tag=flux-icons-icons
 
 - Add/Improve command for updating/rebuilding icons
 - Adding more vendors
-- Add support for 
+- Improve fallback handling for non-existing solid icons
