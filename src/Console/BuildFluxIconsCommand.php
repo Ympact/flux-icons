@@ -52,9 +52,8 @@ class BuildFluxIconsCommand extends Command
             $icons = explode(',', $icons);
         }
 
-        $files = app(Filesystem::class);
         $verbose = $this->option('verbose');
-        $iconBuilder = new IconBuilder($vendor, $files, $icons, $verbose);
+        $iconBuilder = new IconBuilder($vendor, $icons, $verbose);
 
         $this->info("Installing package for vendor: $vendor");
         $iconBuilder->installPackage();
