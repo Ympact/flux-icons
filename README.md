@@ -68,7 +68,7 @@ php artisan vendor:publish --tag=flux-icons-config
 ## Advanced configuration
 
 | Option     | Valaue     | Description                                                                 |
-|-------------------------|-----------------------------------------------------------------------------|
+|------------|------------|-----------------------------------------------------------------------------|
 | `icons`    |  `null` or `['vendorName' => ['icon-name', ...] ]` | A list of icons that will be build/updated by default in case no icons are passed to `flux-icons:build` command.  |
 | `default_stroke_wdith` | `float` | For outline icons a default stroke width can be configured. The default Flux Heroicons uses a width of 1.5. |
 
@@ -89,7 +89,7 @@ The vendor specific configuration sits within the `vendors` key. Each vendor sho
 ```
 
 | Option     | Value     | Description                                                                 |
-|-------------------------|-----------------------------------------------------------------------------|
+|------------|-----------|-----------------------------------------------------------------------------|
 | `vendor_name`    |  `string` | Human readable name of the vendor.  |
 | `package_name` | `string` | The npm package that should be installed to retrieve the icons. |
 | `source_directories.outline` | `array\|string` | The directory in which the vendors outline icons reside. For specific options see below. |
@@ -122,30 +122,36 @@ For the **solid** icons, optionally directories and suffix/prefices per icon siz
 
 #### Transform icons
 
-The configuration file provides two callbacks to allow for adjustments on the paths and stroke width of specific icons.
+The configuration file provides two callback options to allow for adjustments on the paths and stroke width of specific icons.
 See the configuration for the Tabler icons as example how to use this.
 
 ```php
-/**
- * @param string $variant (solid, outline)
- * @param string $iconName
- * @param collection<SvgPath> $svgPaths
- */
-'transform_svg_path' => function($variant, $iconName, $svgPaths) {
-    // Your transformation logic here
-},
+'vendors' => [
+    'tabler' => [
+        // ...
 
-/**
- * @param string $iconName
- * @param float $defaultStrokeWidth
- * @param collection<SvgPath> $svgPaths
- */
-'change_stroke_width' => function($iconName, $defaultStrokeWidth, $svgPaths) {
-    // Your filtering logic here
-},
+        /**
+         * @param string $variant (solid, outline)
+         * @param string $iconName base name of the icon
+         * @param collection<SvgPath> $svgPaths
+         */
+        'transform_svg_path' => function($variant, $iconName, $svgPaths) {
+        // Your transformation logic here
+        },
+
+        /**
+         * @param string $iconName base name of the icon
+         * @param float $defaultStrokeWidth 1.5 or the default set in config option `default_stroke_wdith`
+         * @param collection<SvgPath> $svgPaths
+         */
+        'change_stroke_width' => function($iconName, $defaultStrokeWidth, $svgPaths) {
+            // Your filtering logic here
+        },
+    ]
+]
 ```
 
 ## Roadmap
 
-- Add command for updating/rebuilding icons
+- Add/Improve command for updating/rebuilding icons
 - Adding more vendors
