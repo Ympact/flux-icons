@@ -30,7 +30,7 @@ class IconBuilder
 
     protected ConsoleOutput $output;
 
-    public function __construct(string $vendor, Filesystem $files, array $icons = null, $verbose = false)
+    public function __construct(string $vendor, array $icons = null, $verbose = false)
     {
         $this->verbose = $verbose;
         $this->output = new ConsoleOutput();
@@ -43,7 +43,7 @@ class IconBuilder
             throw new \Exception("Vendor $vendor not found in config file");
         }
         $this->icons = $icons;
-        $this->files = $files;
+        //$this->files = $files;
     }
 
     /**
@@ -53,7 +53,13 @@ class IconBuilder
     public function installPackage()
     {
         $packageName = config("{$this->vendorConfig}.package_name");
+        // check if package is not yet installed using package-lock.json
+        //$packageLock = json_decode(File::get(base_path('package-lock.json')), true);
+        //$package = collect($packageLock['packages'])->firstWhere('name', $packageName);
+        //if(!$package){
+        //    $this->verbose ? $this->output->writeln("<info>Installing package $packageName</info>") : null;
         exec("npm install $packageName --save");
+        //}
     }
 
     /**
@@ -64,10 +70,27 @@ class IconBuilder
     {
         $this->setupDirs();
 
+        // get all files that match the outline icons config
         $files = is_string($this->sourceDirs['outline']) 
                 ? $this->files->files(base_path($this->sourceDirs['outline'])) 
-                : $this->files->files(base_path($this->sourceDirs['outline']['dir']));
-       
+                : File::glob(
+                    Str::of(base_path($this->sourceDirs['outline']['dir']))->finish('/') .
+                    ($this->sourceDirs['outline']['prefix'] ?? '') . 
+                    '*' . 
+                    ($this->sourceDirs['outline']['suffix'] ?? '') . 
+                    '.svg'
+                );
+        
+        // if $this->sourceDirs['outline'] has a icon key, then filter the files using this callback
+        if (Arr::has($this->sourceDirs, 'outline.filter')) {
+            $files = collect($files)->filter(function($file) {
+                return call_user_func(
+                    $this->sourceDirs['outline']['filter'], 
+                    $file
+                );
+            });
+        }
+
         // intersect the outlineFiles with the icons argument if it was passed. The icons argument can be a comma separated list of icon names without the file extension or the prefix/suffix
         if ($this->icons) {
             $icons = $this->icons;
@@ -89,7 +112,6 @@ class IconBuilder
         foreach ($outlineIcons as $outlineIcon) {
             // in case there are no solid icons, use the preprocessed outline icon
             $baseIcon = $outlineIcon;
-
             $basename = $outlineIcon->process()->getName();
             $infoUsage = "<flux:icon.{$this->vendor}.{$basename} /> or <flux:icon name=\"{$this->vendor}.{$basename}\" />";
 
@@ -98,42 +120,65 @@ class IconBuilder
 
             $outlineIcon->changeStrokeWidth(config("{$this->config}.default_stroke_wdith", null));
 
-            $outlinePath = $outlineIcon->getMergedD();
-
             // solid icons
             // in case there are different sizes for solid icons, $sourceDirs['solid'] is an array, otherwise it's a string
             if (is_string($this->sourceDirs['solid'])) {
                 $solidFile = base_path($this->sourceDirs['solid']) . "/$basename.svg";
+                $solidIcon = $this->buildSolidIcon($solidFile, $baseIcon);
+                /*
                 $solidIcon = new Icon(config($this->vendorConfig), $solidFile);
                 
+                if (Arr::has($this->sourceDirs, 'solid.filter')) {
+                    if(!call_user_func(
+                        $this->sourceDirs['solid']['filter'], 
+                        $solidFile
+                    )){
+                        // the iconFile is not a solid icon, so we use the outline icon
+                        $solidIcon = $baseIcon;
+                    }
+                }
+
                 if(! $solidIcon->fileExists()){
-                    $solidIcon = $baseIcon;
+                    $solidIcon = $outlineIcon;
                 }
                 
                 $solidIcon->process()->transform('solid');
-
-                $solidPath[24] = $solidIcon->getMergedD();
-                $solidPath[20] = $solidIcon->getMergedD();
-                $solidPath[16] = $solidIcon->getMergedD();
+                */
+                $solidIcons[24] = $solidIcon;
+                $solidIcons[20] = $solidIcon;
+                $solidIcons[16] = $solidIcon;
 
             } else {
-                // sizes 24,20,26
+                // we have an array to that specifies how to get the solid icons
                 foreach([24, 20, 16] as $size) {
                     // add prefix or suffic to iconName in case set in config ($sourceDirs['solid'][$size]['prefix'] or $sourceDirs['solid'][$size]['suffix'])
                     $solidFile = $this->getSizedFile($basename, $size, 'solid');
-                   
-                    $solidIcon = new Icon(config($this->vendorConfig), $solidFile, );
+                    $solidIcon = $this->buildSolidIcon($solidFile, $baseIcon);
+                    /*
+                    $solidIcon = new Icon(config($this->vendorConfig), $solidFile );
+
+                    if (Arr::has($this->sourceDirs, 'solid.filter')) {
+                        if(!call_user_func(
+                            $this->sourceDirs['solid']['filter'], 
+                            $solidFile
+                        )){
+                            // the iconFile is not a solid icon, so we use the outline icon
+                            $solidIcon = $baseIcon;
+                        }
+                    }
+    
                     if(!$solidIcon->fileExists()){
-                        $solidIcon = $outlineIcon;
+                        // TODO: better fallback handling
+                        $solidIcon = $baseIcon;
                     }
                     
                     $solidIcon->process()->transform('solid');
-    
-                    $solidPath[$size] = $solidIcon->resize($size)->getMergedD();
+                    */
+                    $solidIcons[$size] = $solidIcon; //->resize($size)
                 }
             }
 
-            $bladeTemplate = Str::of(File::get(__DIR__.'/../../stubs/icon.blade.stub'))
+            $bladeTemplate = Str::of(File::get(__DIR__.'/../../resources/stubs/icon.blade.stub'))
                 ->replace('{INFO_ICON_NAME}', $basename)
                 ->replace('{INFO_ICON_USAGE}', $infoUsage)
                 ->replace('{INFO_CREDITS}', $infoCredits)
@@ -141,14 +186,14 @@ class IconBuilder
                 ->replace('{INFO_BUILD_DATE}', now()->format('Y-m-d H:i:s'))
                 
                 ->replace('{SVG_OUTLINE_STROKE}', $outlineIcon->getStrokeWidth())
-                ->replace('{SVG_PATH_OUTLINE_24}', $outlinePath)
-                ->replace('{SVG_PATH_SOLID_24}', $solidPath[24])
-                ->replace('{SVG_PATH_SOLID_20}', $solidPath[20])
-                ->replace('{SVG_PATH_SOLID_16}', $solidPath[16]);
-                //->replace('{SVG_OUTLINE_24_SIZE}', 24)
-                //->replace('{SVG_SOLID_24_SIZE}', 24)
-                //->replace('{SVG_SOLID_20_SIZE}', 20)
-                //->replace('{SVG_SOLID_16_SIZE}', 16);
+                ->replace('{SVG_PATH_OUTLINE_24}', $outlineIcon->getMergedD())
+                ->replace('{SVG_PATH_SOLID_24}', $solidIcons[24]->getMergedD())
+                ->replace('{SVG_PATH_SOLID_20}', $solidIcons[20]->getMergedD())
+                ->replace('{SVG_PATH_SOLID_16}', $solidIcons[16]->getMergedD())
+                ->replace('{SVG_OUTLINE_24_SIZE}', $outlineIcon->getSize())
+                ->replace('{SVG_SOLID_24_SIZE}', $solidIcons[24]->getSize())
+                ->replace('{SVG_SOLID_20_SIZE}', $solidIcons[20]->getSize())
+                ->replace('{SVG_SOLID_16_SIZE}', $solidIcons[16]->getSize());
 
             $put = File::put("{$this->outputDir}/{$basename}.blade.php", $bladeTemplate);
             if($this->verbose){
@@ -167,12 +212,44 @@ class IconBuilder
     }
 
     /**
+     * buildSolidIcon
+     * TODO: better fallback handling
+     * @param mixed $solidFile
+     * @param mixed $baseIcon
+     * @return mixed
+     */
+    public function buildSolidIcon($solidFile, $baseIcon){
+
+        $solidIcon = new Icon(config($this->vendorConfig), $solidFile );
+
+        if (Arr::has($this->sourceDirs, 'solid.filter')) {
+            if(!call_user_func(
+                $this->sourceDirs['solid']['filter'], 
+                $solidFile
+            )){
+                // the iconFile is not a solid icon, so we use the outline icon
+                $solidIcon = $baseIcon;
+            }
+        }
+
+        if(!$solidIcon->fileExists()){
+            $solidIcon = $baseIcon;
+        }
+        
+        $solidIcon->process()->transform('solid');
+        return $solidIcon;
+    }
+
+
+    /**
      * setupDirs
      * @return void
      */
     public function setupDirs(){
         $this->sourceDirs = config("{$this->vendorConfig}.source_directories");
-        $this->outputDir = resource_path("views/flux/icon/{$this->vendor}");
+        // if we have a namespace in the vendor config, we use that as the output directory, otherwise we use the vendor name
+        $dir = config("{$this->vendorConfig}.namespace") ?? $this->vendor;
+        $this->outputDir = resource_path("views/flux/icon/{$dir}");
 
         if (!File::exists($this->outputDir)) {
             if($this->verbose){
@@ -224,16 +301,27 @@ class IconBuilder
      */
     public function getSizedFile($basename, $size, $variant = 'solid'): string
     {       
-        if($prefix = Arr::get($this->sourceDirs, "{$variant}.{$size}.prefix")){
-            $iconName = $prefix . $basename;
+        if($prefix = Arr::get($this->sourceDirs, "{$variant}.prefix")){
+            // prefix can be either a string or a function
+            $iconName = is_callable($prefix) ? $prefix($size) : $prefix . $basename;
         }
-        if($suffix = Arr::get($this->sourceDirs, "{$variant}.{$size}.suffix")){
-            $iconName = $suffix . $basename;
+        if($suffix = Arr::get($this->sourceDirs, "{$variant}.suffix")){
+            // suffix can be either a string or a function
+            $iconName = is_callable($suffix) ? $suffix($size) : $suffix . $basename;
         }
 
-        $file = base_path(Arr::get($this->sourceDirs, "{$variant}.{$size}.dir")) . "/$iconName.svg";
-       
-        // if the icon doesn't exist in the current size,
+        $dir = Arr::get($this->sourceDirs, "{$variant}.dir");
+        // $dir can be a string or a callable and should finish with a slash
+        $dir = is_callable($dir) ? $dir($size) : $dir;
+        $file = Str::of(base_path($dir))->finish('/') . "{$iconName}.svg";
+
+        return $file;
+    }
+
+    public static function solidFallback($file, $iconName, $size){
+        // the icon doesn't exist in the current size, so we try to find a larger size
+        // 
+        /*
         if (!File::exists($file)) {
             // then try a size larger than the current size if that exists,
             if ($size + 4 > 24) {
@@ -246,7 +334,7 @@ class IconBuilder
                 $file = base_path($this->sourceDirs[$variant]) . "/$iconName.svg";
             }
         }
-        return $file;
+        */
     }
 
     /**
