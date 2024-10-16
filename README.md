@@ -12,11 +12,11 @@ composer require --dev ympact/flux-icons
 
 ## Building icons
 
-You will need to build the icons yourself once the package is installed. This can be done using the artisan command `flux-icons:build` you can optionally pass the vendor name as the first argument. 
+You will need to build the icons yourself once the package is installed. This can be done using the artisan command `flux-icons:build` you can optionally pass the vendor name as the first argument.
 In case you did not provide this, the script will ask you.
 
 ```cmd
-php artisan flux-icons:build tabler --icons=confetti
+php artisan flux-icons:build tabler --icons=confetti,confetti-off
 ```
 
 ### Options
@@ -41,7 +41,7 @@ Since this package publishes all icons to `resources/views/flux/icon/{vendor}/` 
 or
 
 ```html
-<flux:icon name="tabler.confett"/>
+<flux:icon name="tabler.confetti-off"/>
 ```
 
 ## Note on icon variants
@@ -93,7 +93,7 @@ The vendor specific configuration sits within the `vendors` key. Each vendor sho
 | Option     | Value     | Description                                                                 |
 |------------|-----------|-----------------------------------------------------------------------------|
 | `vendor_name`    |  `string` | Human readable name of the vendor.  |
-| `namespace`      | `string`  | The namespace for the Flux icon, in case omitted, the key of the vendor array will be used. |
+| `namespace`      | `string`  | The namespace for the Flux icon, in case omitted, the vendor name will be used. |
 | `package_name` | `string` | The npm package that should be installed to retrieve the icons. |
 | `source_directories.outline` | `array\|string` | The directory in which the vendors outline icons reside. For specific options see below. |
 | `source_directories.solid` | `array\|string` | The directory in which the vendors solid icons reside. For specific options see below. |
@@ -103,23 +103,26 @@ The vendor specific configuration sits within the `vendors` key. Each vendor sho
 #### Source directories
 
 In case the vendor uses a prefix or suffix for the icons, we want to configure it here to determine the basename of the icon and make them more accessible in flux.
+For both source directories (outline and solid), an optional `filter` callback can be defined to indicate whether a file in the directory should be used as outline or solid respectively.
 
 ```php
 [
     'dir' => 'node_modules/vendor/icons/...',
     'prefix' => null,
     'suffix' => null 
+    'filter' => function(){ }
 ]
 ```
 
-For the **solid** icons, optionally directories and suffix/prefices per icon size can be defined:
+For the **solid** icons, optionally callbacks can be defined on `dir`, `prefix` and `suffix` to adjust these according to the icon size.
 
 ```php
 'solid' => [ 
-    // in case there are different sizes of solid icons or they have a prefix or suffix in the name
-    '24' => ['dir' => 'node_modules/vendor/icons/icons/filled', 'prefix' => null, 'suffix' => '-24'],
-    '20' => ['dir' => 'node_modules/vendor/icons/icons/filled', 'prefix' => null, 'suffix' => '-20'],
-    '16' => ['dir' => 'node_modules/vendor/icons/icons/filled/sm', 'prefix' => null, 'suffix' => null],
+    [
+        'dir' => 'node_modules/vendor/icons/icons/filled', 
+        'prefix' => null, 
+        'suffix' => fn($size) => "-{$size}", // adds either -24 -20 and -16 as suffix to the icon
+    ],
 ],
 ```
 
@@ -154,8 +157,36 @@ See the configuration for the Tabler icons as example how to use this.
 ]
 ```
 
+## Additional icons
+
+This package also provide some custom icons that can be published:
+
+They can be published using
+
+```cmd
+php artisan vendor:publish --tag=flux-icons-icons
+```
+
+- An empty icon, can be useful for simple logic in your blade or components:
+  
+  ```html
+  <flux:icon name="{{ $icon ?? 'flux-icons.empty' }}" />
+  ```
+
+- A placeholder avatar icon, usin an icon or initials
+
+  ```html
+  <flux:icon.flux-icons.avatar-placeholder name="Maurits Korse" color="green" />
+  <flux:icon.flux-icons.avatar-placeholder icon color="green" />
+  ```
+
+  This icon has additional properties:
+  - **icon** `(void|string)`: uses the Heroicon user icon as image, optionally a custom icon can be provided.
+  - **name** `(string)`: instead of an icon two initials of a name will be shown. You can pass the full name (Maurits Korse) or just the initials (MK)
+  - **color** `(string)`: colorizing the icon using the same as Flux badges
+
 ## Roadmap
 
 - Add/Improve command for updating/rebuilding icons
 - Adding more vendors
-- Improve the way source icons are treated (solid only)
+- Add support for 
