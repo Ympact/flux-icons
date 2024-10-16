@@ -2,14 +2,9 @@
 
 namespace Ympact\FluxIcons\Services;
 
-use DOMDocument;
-use DOMXPath;
 use Illuminate\Filesystem\Filesystem;
 use Illuminate\Support\Arr;
-use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\File;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Fluent;
 use Illuminate\Support\Str;
 use Symfony\Component\Console\Helper\ProgressBar;
 use Symfony\Component\Console\Output\ConsoleOutput;
@@ -17,10 +12,9 @@ use Ympact\FluxIcons\DataTypes\Icon;
 
 class IconBuilder
 {
-    
     protected $vendor;
 
-    protected $icons;
+    protected array|null $icons;
     
     protected $sourceDirs;
 
@@ -29,10 +23,14 @@ class IconBuilder
     protected $files;
 
     protected $config = 'flux-icons';
+
     protected $vendorConfig;
 
-    public function __construct($vendor, Filesystem $files, $icons = null)
+    protected $verbose;
+
+    public function __construct($vendor, Filesystem $files, array $icons = null, $verbose = false)
     {
+        $this->verbose = $verbose;
         $this->vendor = $vendor;
         if(config()->has("{$this->config}.vendors.{$vendor}")){
             $this->vendorConfig = "{$this->config}.vendors.{$vendor}";
@@ -44,12 +42,20 @@ class IconBuilder
         $this->files = $files;
     }
 
+    /**
+     * installPackage
+     * @return void
+     */
     public function installPackage()
     {
         $packageName = config("{$this->vendorConfig}.package_name");
         exec("npm install $packageName --save");
     }
 
+    /**
+     * buildIcons
+     * @return void
+     */
     public function buildIcons()
     {
         $output = new ConsoleOutput();
@@ -57,13 +63,13 @@ class IconBuilder
         $this->setupDirs();
 
         $files = is_string($this->sourceDirs['outline']) 
-                        ? $this->files->files(base_path($this->sourceDirs['outline'])) 
-                        : $this->files->files(base_path($this->sourceDirs['outline']['dir']));
+                ? $this->files->files(base_path($this->sourceDirs['outline'])) 
+                : $this->files->files(base_path($this->sourceDirs['outline']['dir']));
        
         // intersect the outlineFiles with the icons argument if it was passed. The icons argument can be a comma separated list of icon names without the file extension or the prefix/suffix
         if ($this->icons) {
-            $icons = explode(',', $this->icons);
-            
+            $icons = $this->icons;
+             
             // map the files into a new collection as Icon() and by intersecting with $icons
             $outlineIcons = collect($files)->map(function($file){
                 return new Icon(config($this->vendorConfig), $file);
@@ -142,10 +148,12 @@ class IconBuilder
                 ->replace('{SVG_SOLID_16_SIZE}', 16);
 
             $put = File::put("{$this->outputDir}/{$basename}.blade.php", $bladeTemplate);
-            if (!$put) {
-                $output->writeln("<error>Failed to write {$basename}.blade.php</error>");
-            } else {
-                $output->writeln("<info>Wrote {$basename}.blade.php</info>");
+            if($this->verbose){
+                if (!$put) {
+                    $output->writeln("<error>Failed to write {$basename}.blade.php</error>");
+                } else {
+                    $output->writeln("<info>Wrote {$basename}.blade.php</info>");
+                }
             }
             // Update the progress bar
             $progressBar->advance();
@@ -155,6 +163,10 @@ class IconBuilder
         $progressBar->finish();
     }
 
+    /**
+     * setupDirs
+     * @return void
+     */
     public function setupDirs(){
         $this->sourceDirs = config("{$this->vendorConfig}.source_directories");
         $this->outputDir = resource_path("views/flux/icon/{$this->vendor}");
@@ -164,6 +176,12 @@ class IconBuilder
         }
     }
 
+    /**
+     * getPackageCredits
+     * get the details for the package and its authors to make a credits string
+     * @param mixed $flux
+     * @return string
+     */
     public function getPackageCredits($flux = false){
         $packageDetails = null;
 
@@ -190,6 +208,14 @@ class IconBuilder
         }
     }
 
+    /**
+     * getSizedFile
+     * Determine the file for the icon in the specified size
+     * @param mixed $basename
+     * @param mixed $size
+     * @param mixed $variant
+     * @return string
+     */
     public function getSizedFile($basename, $size, $variant = 'solid'): string
     {       
         if($prefix = Arr::get($this->sourceDirs, "{$variant}.{$size}.prefix")){
@@ -217,62 +243,12 @@ class IconBuilder
         return $file;
     }
 
-
+    /**
+     * getAvailableVendors
+     * @return array
+     */
     public static function getAvailableVendors(): array
     {
         return array_keys( config("flux-icons.vendors" ));
     }
-
-
-    /*
-    public static function getDom($content): Fluent
-    {
-        $dom = new DOMDocument();
-        // Suppress errors due to malformed HTML
-        libxml_use_internal_errors(true);
-        $dom->loadHTML($content, LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD);
-        libxml_clear_errors();
-        $xpath = new DOMXPath($dom);
-
-        return fluent([
-            'dom' => $dom,
-            'xpath' => $xpath
-        ]);
-    }
-
-
-    public function extractPaths($content, $tagName = 'path')
-    {
-        $dom = $this->getDom($content);
-        $tags = $dom->xpath->query("//{$tagName}");
-
-        $result = [];
-        foreach ($tags as $tag) {
-            $result[] = $dom->dom->saveHTML($tag);
-        }
-    
-        return $result;
-    }
-
-    protected function mergeSvgPaths(array $svgPaths): string
-    {
-        // extract the d attribute from each path tag and merge them into a single string
-        return implode(' ', array_map(function ($svgPath) {
-            return isset($svgPath['d']) ? $svgPath['d'] : '';
-        }, $svgPaths));
-
-    }
-
-    protected function baseIconName($iconName, $sourceDirs): string
-    {
-        $baseIconName = $iconName;
-        if (isset($sourceDirs['outline']['prefix'])) {
-            $baseIconName = Str::after($iconName, $sourceDirs['outline']['prefix']);
-        }
-        if (isset($sourceDirs['outline']['suffix'])) {
-            $baseIconName = Str::before($baseIconName, $sourceDirs['outline']['suffix']);
-        }
-        return $baseIconName;
-    }
-*/
 }
