@@ -117,22 +117,6 @@ class Icon{
         return $this;
     }
 
-    public function resize($newSize, $originalSize = null): static
-    {
-        if($newSize == $this->size){
-            return $this;
-        }
-        if(!$originalSize){
-            $originalSize = $this->size;
-        }
-        $scale = $newSize / $originalSize;
-        $this->paths = $this->paths->map(function(SvgPath $path) use ($scale){
-            return $path->scale($scale);
-        });
-
-        return $this;
-    }
-
     public function getD(): Collection{
         return $this->paths->map(function(SvgPath $path){
             return $path->getD();
@@ -227,14 +211,5 @@ class Icon{
         $tags = $this->xpath->query("//path | //circle | //rect | //line | //polyline | //polygon");
         return $tags;
     }
-
-    /**
-     * invoke a static instance of the class
-
-    public static function make($file, $config){
-        $icon = new static($file, $config);
-        return $icon;
-    }
-    */
 
 }

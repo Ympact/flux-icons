@@ -32,16 +32,4 @@ class SvgPath{
         return $this->d;
     }
 
-    /**
-     * Requires testing
-     * @param mixed $scale
-     * @return array|string|null
-     */
-    public function scale($scale){
-        $d = $this->d;
-        $d = preg_replace_callback('/[0-9]+(\.[0-9]+)?/', function($matches) use ($scale){
-            return $matches[0] * $scale;
-        }, $d);
-        return $d;
-    }
 }
