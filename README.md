@@ -63,9 +63,11 @@ php artisan vendor:publish --tag=flux-icons-config
 
 ## Support
 
-- Fluent UI Icons
-- Google Material Design Icons
-- Tabler Icons
+- Flowbite - (testing)
+- Fluent UI Icons - (testing)
+- Google Material Design Icons - (testing)
+- MDI - (testing)
+- Tabler Icons - (testing)
 
 ## Advanced configuration
 
