@@ -2,6 +2,9 @@
 
 This is a laravel package to customize the icons for [Livewire Flux](https://github.com/livewire/flux). It builds the icons from various vendors into a `flux:icon` component.
 
+> [!NOTE]  
+> This package is not in version 1 yet and the config scheme might still change in the next updates to account for different folder and file structures of icon vendors.
+
 ## Installation
 
 Generally you want to install this package only in your local development environment and build and publish the icons you need.
@@ -9,6 +12,19 @@ Generally you want to install this package only in your local development enviro
 ```cmd
 composer require --dev ympact/flux-icons
 ```
+
+## Icon Vendor Support
+
+- Tabler Icons
+- Flowbite
+- Fluent UI Icons
+- Google Material Design Icons
+- MDI
+
+> [!NOTE]  
+> Due to the nature of the Flux Icon component, the original svg paths of the vendor icons are merged into a single path.
+> It can therefore happen that some icons may not look like the original. The config file provides a callback to adjust a single or all icons from a vendor.
+> You may create an issue or make a PR to address this.
 
 ## Building icons
 
@@ -60,16 +76,6 @@ You can publish the config file to adjust settings for a specific vendor or add 
 ```cmd
 php artisan vendor:publish --tag=flux-icons-config
 ```
-
-## Support
-
-- Tabler Icons
-- Flowbite *
-- Fluent UI Icons *
-- Google Material Design Icons *
-- MDI *
-
-\* Not fully tested yet
 
 ## Advanced configuration
 
