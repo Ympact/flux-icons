@@ -41,7 +41,7 @@ php artisan flux-icons:build tabler --icons=confetti,confetti-off
 |-----------------|----------------------------------------------------------------------------------------------------|
 | `--icons=`      | The icons to build (single or comma separated list). Cannot be used in combination with `--all`. |
 | `-m\|--merge`   | Merge the icons listed in the `--icons` options with the icons defined in the config. Cannot be used in combination with `--all`. |
-| `-a\|--all`     | Build all icons from the vendor. Note: this might generate over thousands of files.                |
+| `-a\|--all`     | Build all icons from the vendor. **Note:** this might generate over thousands of files and cause `npm run dev` to crash due to memory issues. |
 | `-v\|--verbose` | Show additional messages during build. |
 
 The artisan script will try to install the icon package using `npm install`.
