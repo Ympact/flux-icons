@@ -28,7 +28,7 @@ php artisan flux-icons:build tabler --icons=confetti,confetti-off
 | `-a\|--all`     | Build all icons from the vendor. Note: this might generate over thousands of files.                |
 | `-v\|--verbose` | Show additional messages during build. |
 
-The artisan script will try to install the icon package using `npm install`. Right after it will try to convert all icons into a flux icon blade component.
+The artisan script will try to install the icon package using `npm install`.
 
 ### Usage
 
@@ -63,11 +63,14 @@ php artisan vendor:publish --tag=flux-icons-config
 
 ## Support
 
-- Flowbite - (testing)
-- Fluent UI Icons - (testing)
-- Google Material Design Icons - (testing)
-- MDI - (testing)
-- Tabler Icons - (testing)
+- Tabler Icons
+
+### Testing
+
+- Flowbite
+- Fluent UI Icons
+- Google Material Design Icons
+- MDI
 
 ## Advanced configuration
 
@@ -104,6 +107,7 @@ The vendor specific configuration sits within the `vendors` key. Each vendor sho
 
 #### Source directories
 
+The source directories specify where the script can find the outline and solid/filled versions of the icons you want to build.
 In case the vendor uses a prefix or suffix for the icons, we want to configure it here to determine the basename of the icon and make them more accessible in flux.
 For both source directories (outline and solid), an optional `filter` callback can be defined to indicate whether a file in the directory should be used as outline or solid respectively.
 
@@ -117,6 +121,7 @@ For both source directories (outline and solid), an optional `filter` callback c
 ```
 
 For the **solid** icons, optionally callbacks can be defined on `dir`, `prefix` and `suffix` to adjust these according to the icon size.
+The sizes passed to these callbacks are 24, 20 and 16 (the defaults of the Flux icon component).
 
 ```php
 'solid' => [ 
@@ -183,7 +188,7 @@ php artisan vendor:publish --tag=flux-icons-icons
   ```
 
   This icon has additional properties:
-  - **icon** `(void|string)`: uses the Heroicon user icon as image, optionally a custom icon can be provided.
+  - **icon** `(void|string)`: uses the Heroicon user icon as image.
   - **name** `(string)`: instead of an icon two initials of a name will be shown. You can pass the full name (Maurits Korse) or just the initials (MK)
   - **color** `(string)`: colorizing the icon using the same as Flux badges
 
