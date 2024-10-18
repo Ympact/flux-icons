@@ -31,7 +31,6 @@ Tabler
 
 - Solid variant for icons that originally do not have a filled version are often not rendered properly.
 
-
 ## Building icons
 
 You will need to build the icons yourself once the package is installed. This can be done using the artisan command `flux-icons:build` you can optionally pass the vendor name as the first argument.
@@ -47,10 +46,13 @@ php artisan flux-icons:build tabler --icons=confetti,confetti-off
 |-----------------|----------------------------------------------------------------------------------------------------|
 | `--icons=`      | The icons to build (single or comma separated list). Cannot be used in combination with `--all`. |
 | `-m\|--merge`   | Merge the icons listed in the `--icons` options with the icons defined in the config. Cannot be used in combination with `--all`. |
-| `-a\|--all`     | Build all icons from the vendor. **Note:** this might generate over thousands of files and cause `npm run dev` to crash due to memory issues. |
+| `-a\|--all`     | Build all icons from the vendor. |
 | `-v\|--verbose` | Show additional messages during build. |
 
 The artisan script will try to install the icon package using `npm install`.
+
+> [!WARNING]  
+> The `--all` option might generate over thousands of files and cause `npm run dev` to crash due to memory issues.
 
 ### Usage
 
