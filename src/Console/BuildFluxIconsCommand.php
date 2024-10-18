@@ -53,6 +53,7 @@ class BuildFluxIconsCommand extends Command
         }
 
         $verbose = $this->option('verbose');
+        $this->info("Start building icons 👀");
         $iconBuilder = new IconBuilder($vendor, $icons, $verbose);
 
         $iconBuilder->requirePackage();

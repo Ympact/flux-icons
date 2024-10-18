@@ -67,11 +67,20 @@ class IconBuilder
 
         if(!$packages->has('node_modules/'.$packageName)){
             $this->verbose ? $this->output->writeln("<info>Package not found. Installing package $packageName</info>") : null;
-            exec("npm install $packageName --save");
+            // in case !$verbose keep npm install silent
+            $arg = $this->verbose ? '' : '-s';
+            exec("npm install $packageName --save {$arg}", $output, $result);
+            //dump($output, $result);
+            if($result == 128){
+                $this->output->writeln("<error>Failed to install package $packageName. Please check if it is set correctly in the config.</error>");
+                // finish the process
+                exit(1);
+            }
         }
         else{
             $this->verbose ? $this->output->writeln("<info>Package $packageName already installed</info>") : null;
         }
+
     }
 
     /**
@@ -284,8 +293,12 @@ class IconBuilder
             // get datails from composer.lock
             $composerLock = json_decode(File::get(base_path('composer.lock')), true);
             $packageDetails = collect($composerLock['packages'])->firstWhere('name', 'livewire/flux');
+            
+            $name = Arr::get($packageDetails, 'name');
+            $version = Arr::get($packageDetails, 'version');
+
             return $packageDetails 
-                    ? $packageDetails['name'] . ' ('.$packageDetails['version'].') by ' . $packageDetails['authors'][0]['name']
+                    ? $name. ' ('.$version.') by ' . $packageDetails['authors'][0]['name']
                     : '';
         }
         else{
@@ -294,13 +307,21 @@ class IconBuilder
             $packageFile = base_path("node_modules/{$packageDir}/package.json");
             if(File::exists($packageFile)){
                 $packageDetails = json_decode(File::get($packageFile), true);
-            }
-
-            return $packageDetails 
-                    ? $packageDetails['name'] . ' ('.$packageDetails['version'].') by ' . $packageDetails['author']
+                
+                $name = Arr::get($packageDetails, 'name');
+                $version = Arr::get($packageDetails, 'version');
+                $author = Arr::get($packageDetails, 'author', null);
+            
+                return $packageDetails 
+                    ? $name . ' ('.$version.') '. ( $author ? 'by ' . $author : '')
                     : '';
-        }
+            }
+            else{
+                return '-- Package details not found --';
+            }
+        }   
     }
+
 
     /**
      * getSizedFile
@@ -312,13 +333,14 @@ class IconBuilder
      */
     public function getSizedFile($basename, $size, $variant = 'solid'): string
     {       
+        $iconName = $basename;
         if($prefix = Arr::get($this->sourceDirs, "{$variant}.prefix")){
             // prefix can be either a string or a function
-            $iconName = is_callable($prefix) ? $prefix($size) : $prefix . $basename;
+            $iconName = is_callable($prefix) ? $prefix($size) : $prefix . $iconName;
         }
         if($suffix = Arr::get($this->sourceDirs, "{$variant}.suffix")){
             // suffix can be either a string or a function
-            $iconName = is_callable($suffix) ? $suffix($size) : $suffix . $basename;
+            $iconName = is_callable($suffix) ? $suffix($size) : $suffix . $iconName;
         }
 
         $dir = Arr::get($this->sourceDirs, "{$variant}.dir");
