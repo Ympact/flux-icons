@@ -76,10 +76,16 @@ class Icon{
         $baseIconName = $this->filename;
         
         if ($prefix = Arr::get($this->config, "source_directories.{$variant}.prefix")) {
-            $baseIconName = Str::after($this->filename, $prefix );
+            //if string contains $prefix, remove it
+            if(Str::contains($baseIconName, $prefix, true)){
+                $baseIconName = Str::after($baseIconName, $prefix );
+            }
         }
         if ($suffix = Arr::get($this->config, "source_directories.{$variant}.suffix")) {
-            $baseIconName = Str::before($baseIconName, $suffix);
+            //if string contains $suffix, remove it
+            if(Str::contains($baseIconName, $suffix)){
+                $baseIconName = Str::before($baseIconName, $suffix);
+            }
         }
         $this->basename = $baseIconName;
 
@@ -132,6 +138,10 @@ class Icon{
 
     // get name of the icon
     public function getName(){
+        return $this->filename;
+    }
+
+    public function getBaseName(){
         return $this->basename;
     }
 

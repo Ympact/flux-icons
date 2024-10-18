@@ -46,7 +46,6 @@ class IconBuilder
             throw new \Exception("Vendor $vendor not found in config file");
         }
         $this->icons = $icons;
-        //$this->files = $files;
     }
 
     /**
@@ -70,7 +69,7 @@ class IconBuilder
             // in case !$verbose keep npm install silent
             $arg = $this->verbose ? '' : '-s';
             exec("npm install $packageName --save {$arg}", $output, $result);
-            //dump($output, $result);
+
             if($result == 128){
                 $this->output->writeln("<error>Failed to install package $packageName. Please check if it is set correctly in the config.</error>");
                 // finish the process
@@ -92,36 +91,63 @@ class IconBuilder
         $this->setupDirs();
 
         // get all files that match the outline icons config
-        $files = is_string($this->sourceDirs['outline']) 
-            ? File::glob(Str::of(base_path($this->sourceDirs['outline']))->finish('/'). '*.svg') 
-            : File::glob(
-                Str::of(base_path($this->sourceDirs['outline']['dir']))->finish('/') .
-                ($this->sourceDirs['outline']['prefix'] ?? '') . 
-                '*' . 
-                ($this->sourceDirs['outline']['suffix'] ?? '') . 
-                '.svg'
-            );
-        
+        $files = [];
+        if(is_string($this->sourceDirs['outline'])){
+           $files = File::glob(
+                Str::of(base_path($this->sourceDirs['outline']))->finish('/'). '*.svg'
+           ); 
+        }
+        else{
+            // if a filter is passed in the config, don't use the prefix and suffix to prefilter the files
+            // the prefix and suffix are still used to determine the basename
+            if(Arr::has($this->sourceDirs, 'outline.filter')) {
+                $files = File::glob(
+                    Str::of(base_path($this->sourceDirs['outline']['dir']))->finish('/') . '*' . '.svg'
+                );
+            }
+            else{
+                $files = File::glob(
+                    Str::of(base_path($this->sourceDirs['outline']['dir']))->finish('/') .
+                    ($this->sourceDirs['outline']['prefix'] ?? '') . 
+                    '*' . 
+                    ($this->sourceDirs['outline']['suffix'] ?? '') . 
+                    '.svg'
+                );
+            }
+        }
+
         // if $this->sourceDirs['outline'] has a icon key, then filter the files using this callback
         if (Arr::has($this->sourceDirs, 'outline.filter')) {
             $files = collect($files)->filter(function($file) {
-                return call_user_func(
-                    $this->sourceDirs['outline']['filter'], 
-                    $file
-                );
+                $icons = &$this->icons;
+                $res = call_user_func_array($this->sourceDirs['outline']['filter'],[
+                    $file,
+                    &$icons
+                ]);
+                return $res;
             });
         }
 
         // intersect the outlineFiles with the icons argument if it was passed. The icons argument can be a comma separated list of icon names without the file extension or the prefix/suffix
         if ($this->icons) {
             $icons = $this->icons;
-             
+            
             // map the files into a new collection as Icon() and by intersecting with $icons
             $outlineIcons = collect($files)->map(function($file){
                 return new Icon(config($this->vendorConfig), $file);
             })->filter(function(Icon $icon) use ($icons){
-                return in_array($icon->getName(), $icons);
+                return in_array($icon->getName(), $icons) || in_array($icon->getBaseName(), $icons);
             });
+
+            if($this->verbose){
+                // get the difference between the icons argument and the outlineIcons and output which icons are not found
+                $diff = collect($icons)->diff($outlineIcons->map(function($icon){
+                    return $icon->getName();
+                }));
+                if($diff->count() > 0){
+                    $this->output->writeln("<error> Icons not found: ". $diff->implode(', ') . " </error>");
+                }
+            }
         }
 
         $progressBar = new ProgressBar($this->output, count( $outlineIcons));
@@ -133,7 +159,7 @@ class IconBuilder
         foreach ($outlineIcons as $outlineIcon) {
             // in case there are no solid icons, use the preprocessed outline icon
             $baseIcon = $outlineIcon;
-            $basename = $outlineIcon->process()->getName();
+            $basename = $outlineIcon->process()->getBaseName();
             $infoUsage = "<flux:icon.{$this->namespace}.{$basename} /> or <flux:icon name=\"{$this->namespace}.{$basename}\" />";
 
             // in case there is a transform_svg_path function in the vendor config file, apply it
@@ -146,25 +172,7 @@ class IconBuilder
             if (is_string($this->sourceDirs['solid'])) {
                 $solidFile = base_path($this->sourceDirs['solid']) . "/$basename.svg";
                 $solidIcon = $this->buildSolidIcon($solidFile, $baseIcon);
-                /*
-                $solidIcon = new Icon(config($this->vendorConfig), $solidFile);
-                
-                if (Arr::has($this->sourceDirs, 'solid.filter')) {
-                    if(!call_user_func(
-                        $this->sourceDirs['solid']['filter'], 
-                        $solidFile
-                    )){
-                        // the iconFile is not a solid icon, so we use the outline icon
-                        $solidIcon = $baseIcon;
-                    }
-                }
-
-                if(! $solidIcon->fileExists()){
-                    $solidIcon = $outlineIcon;
-                }
-                
-                $solidIcon->process()->transform('solid');
-                */
+ 
                 $solidIcons[24] = $solidIcon;
                 $solidIcons[20] = $solidIcon;
                 $solidIcons[16] = $solidIcon;
@@ -175,26 +183,7 @@ class IconBuilder
                     // add prefix or suffic to iconName in case set in config ($sourceDirs['solid'][$size]['prefix'] or $sourceDirs['solid'][$size]['suffix'])
                     $solidFile = $this->getSizedFile($basename, $size, 'solid');
                     $solidIcon = $this->buildSolidIcon($solidFile, $baseIcon);
-                    /*
-                    $solidIcon = new Icon(config($this->vendorConfig), $solidFile );
 
-                    if (Arr::has($this->sourceDirs, 'solid.filter')) {
-                        if(!call_user_func(
-                            $this->sourceDirs['solid']['filter'], 
-                            $solidFile
-                        )){
-                            // the iconFile is not a solid icon, so we use the outline icon
-                            $solidIcon = $baseIcon;
-                        }
-                    }
-    
-                    if(!$solidIcon->fileExists()){
-                        // TODO: better fallback handling
-                        $solidIcon = $baseIcon;
-                    }
-                    
-                    $solidIcon->process()->transform('solid');
-                    */
                     $solidIcons[$size] = $solidIcon; //->resize($size)
                 }
             }

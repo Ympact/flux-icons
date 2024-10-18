@@ -1,5 +1,6 @@
 <?php
 
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
 use Ympact\FluxIcons\DataTypes\Icon;
@@ -97,7 +98,7 @@ return [
         'flowbite' => [
             'vendor_name' => 'Flowbite',
             'namespace' => 'flowbite',
-            'package_name' => 'flowbite/icons',
+            'package_name' => 'flowbite-icons',
             'source_directories' => [
                 'outline' => 'node_modules/flowbite-icons/src/outline/*/',
                 'solid' => 'node_modules/flowbite-icons/src/solid/*/',
@@ -119,9 +120,9 @@ return [
                 'outline' => [
                     'dir' => 'node_modules/@mdi/svg/svg',
                     'prefix' => null,
-                    'suffix' => null,
+                    'suffix' => '-outline',
                     // filter function to determine if the icon is an outline icon
-                    'filter' => function($file){
+                    'filter' => function($file, array &$icons = null){
                         // if the icon name ends with -outline it is an outline icon
                         $filename = pathinfo($file, PATHINFO_FILENAME);
                         if (Str::contains($filename, '-outline')) {
@@ -129,7 +130,16 @@ return [
                         }
                         // if there is an -outline variant of the current icon, then the icon is solid and we return false
                         // insert -outline before .svg extension to $file and check if this file exists
-                        return File::exists(Str::of($file)->before('.svg') . '-outline.svg') ? false : true;
+                        if(File::exists(Str::of($file)->before('.svg') . '-outline.svg')){
+                            // if there is an outline variant of the icon, in case $icons is passed, we add the icon to the icons array and remove $filename from it
+                            if(in_array( $filename, $icons)){
+                                $key = array_search($filename, $icons);
+                                unset($icons[$key]);
+                                $icons[] = $filename.'-outline';
+                            }
+                            return false;
+                        };
+                        return true;
                     }
                 ],
                 'solid' => [
