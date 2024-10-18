@@ -50,16 +50,25 @@ class IconBuilder
      * installPackage
      * @return void
      */
-    public function installPackage()
+    public function requirePackage()
     {
         $packageName = config("{$this->vendorConfig}.package_name");
         // check if package is not yet installed using package-lock.json
-        //$packageLock = json_decode(File::get(base_path('package-lock.json')), true);
-        //$package = collect($packageLock['packages'])->firstWhere('name', $packageName);
-        //if(!$package){
-        //    $this->verbose ? $this->output->writeln("<info>Installing package $packageName</info>") : null;
-        exec("npm install $packageName --save");
-        //}
+        $packageFile = base_path('package-lock.json');
+        if(!File::exists($packageFile)){
+            $this->verbose ? $this->output->writeln("<info>package-lock.json not found. Running npm install</info>") : null;
+            exec("npm install");
+        }
+        $packageLock = json_decode(File::get($packageFile), true);
+        $packages = collect($packageLock['packages']);
+
+        if(!$packages->has('node_modules/'.$packageName)){
+            $this->verbose ? $this->output->writeln("<info>Package not found. Installing package $packageName</info>") : null;
+            exec("npm install $packageName --save");
+        }
+        else{
+            $this->verbose ? $this->output->writeln("<info>Package $packageName already installed</info>") : null;
+        }
     }
 
     /**
@@ -72,14 +81,14 @@ class IconBuilder
 
         // get all files that match the outline icons config
         $files = is_string($this->sourceDirs['outline']) 
-                ? $this->files->files(base_path($this->sourceDirs['outline'])) 
-                : File::glob(
-                    Str::of(base_path($this->sourceDirs['outline']['dir']))->finish('/') .
-                    ($this->sourceDirs['outline']['prefix'] ?? '') . 
-                    '*' . 
-                    ($this->sourceDirs['outline']['suffix'] ?? '') . 
-                    '.svg'
-                );
+            ? File::glob(Str::of(base_path($this->sourceDirs['outline']))->finish('/'). '*.svg') 
+            : File::glob(
+                Str::of(base_path($this->sourceDirs['outline']['dir']))->finish('/') .
+                ($this->sourceDirs['outline']['prefix'] ?? '') . 
+                '*' . 
+                ($this->sourceDirs['outline']['suffix'] ?? '') . 
+                '.svg'
+            );
         
         // if $this->sourceDirs['outline'] has a icon key, then filter the files using this callback
         if (Arr::has($this->sourceDirs, 'outline.filter')) {

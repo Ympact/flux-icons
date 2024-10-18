@@ -55,8 +55,7 @@ class BuildFluxIconsCommand extends Command
         $verbose = $this->option('verbose');
         $iconBuilder = new IconBuilder($vendor, $icons, $verbose);
 
-        $this->info("Installing package for vendor: $vendor");
-        $iconBuilder->installPackage();
+        $iconBuilder->requirePackage();
         
         $this->info("Building icons for vendor: $vendor");
         $iconBuilder->buildIcons();
