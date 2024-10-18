@@ -64,7 +64,7 @@ class IconBuilder
         $packageLock = json_decode(File::get($packageFile), true);
         $packages = collect($packageLock['packages']);
 
-        if(!$packages->has('node_modules/'.$packageName)){
+        if(!($packages->has('node_modules/'.$packageName) && File::exists('node_modules/'.$packageName.'/package.json'))){
             $this->verbose ? $this->output->writeln("<info>Package not found. Installing package $packageName</info>") : null;
             // in case !$verbose keep npm install silent
             $arg = $this->verbose ? '' : '-s';
@@ -128,14 +128,16 @@ class IconBuilder
             });
         }
 
+        // map the files into a new collection as Icon() and by intersecting with $icons
+        $outlineIcons = collect($files)->map(function($file){
+            return new Icon(config($this->vendorConfig), $file);
+        });
+
         // intersect the outlineFiles with the icons argument if it was passed. The icons argument can be a comma separated list of icon names without the file extension or the prefix/suffix
         if ($this->icons) {
             $icons = $this->icons;
-            
-            // map the files into a new collection as Icon() and by intersecting with $icons
-            $outlineIcons = collect($files)->map(function($file){
-                return new Icon(config($this->vendorConfig), $file);
-            })->filter(function(Icon $icon) use ($icons){
+                
+            $outlineIcons->filter(function(Icon $icon) use ($icons){
                 return in_array($icon->getName(), $icons) || in_array($icon->getBaseName(), $icons);
             });
 
