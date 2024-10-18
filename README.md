@@ -64,13 +64,12 @@ php artisan vendor:publish --tag=flux-icons-config
 ## Support
 
 - Tabler Icons
+- Flowbite *
+- Fluent UI Icons *
+- Google Material Design Icons *
+- MDI *
 
-### Testing
-
-- Flowbite
-- Fluent UI Icons
-- Google Material Design Icons
-- MDI
+\* Not fully tested yet
 
 ## Advanced configuration
 
@@ -87,6 +86,7 @@ The vendor specific configuration sits within the `vendors` key. Each vendor sho
 'vendors' => [
     'tabler' => [
         'vendor_name' => 'Tabler',
+        'namespace' => 'tabler',
         'package_name' => '@tabler/icons',
         'source_directories' => [ 
             //...
@@ -109,14 +109,14 @@ The vendor specific configuration sits within the `vendors` key. Each vendor sho
 
 The source directories specify where the script can find the outline and solid/filled versions of the icons you want to build.
 In case the vendor uses a prefix or suffix for the icons, we want to configure it here to determine the basename of the icon and make them more accessible in flux.
-For both source directories (outline and solid), an optional `filter` callback can be defined to indicate whether a file in the directory should be used as outline or solid respectively.
+For both source directories (outline and solid), an optional `filter` callback can be defined to indicate whether a file in the directory should be used as outline or solid respectively. The function passes two params `file` and `icons`. The file is the actual filename that should be filtered out or not. The `icons` is an array of icons that the user wants to build. This is passed by reference in case this array needs to be adjusted. See the MDI config as example.
 
 ```php
 [
     'dir' => 'node_modules/vendor/icons/...',
     'prefix' => null,
     'suffix' => null 
-    'filter' => function(){ }
+    'filter' => function($file, &$icons){ }
 ]
 ```
 
@@ -195,5 +195,5 @@ php artisan vendor:publish --tag=flux-icons-icons
 ## Roadmap
 
 - Add/Improve command for updating/rebuilding icons
-- Adding more vendors
 - Improve fallback handling for non-existing solid icons
+- Adding more vendors
