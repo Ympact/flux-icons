@@ -14,6 +14,8 @@ class IconBuilder
 {
     protected string $vendor;
 
+    protected string $namespace;
+
     protected array|null $icons;
     
     protected string|array $sourceDirs;
@@ -38,6 +40,7 @@ class IconBuilder
         $this->vendor = $vendor;
         if(config()->has("{$this->config}.vendors.{$vendor}")){
             $this->vendorConfig = "{$this->config}.vendors.{$vendor}";
+            $this->namespace = Str::slug(config("{$this->vendorConfig}.namespace") ?? $this->vendor);
         }
         else{
             throw new \Exception("Vendor $vendor not found in config file");
@@ -122,7 +125,7 @@ class IconBuilder
             // in case there are no solid icons, use the preprocessed outline icon
             $baseIcon = $outlineIcon;
             $basename = $outlineIcon->process()->getName();
-            $infoUsage = "<flux:icon.{$this->vendor}.{$basename} /> or <flux:icon name=\"{$this->vendor}.{$basename}\" />";
+            $infoUsage = "<flux:icon.{$this->namespace}.{$basename} /> or <flux:icon name=\"{$this->namespace}.{$basename}\" />";
 
             // in case there is a transform_svg_path function in the vendor config file, apply it
             $outlineIcon->transform('outline');
@@ -257,8 +260,7 @@ class IconBuilder
     public function setupDirs(){
         $this->sourceDirs = config("{$this->vendorConfig}.source_directories");
         // if we have a namespace in the vendor config, we use that as the output directory, otherwise we use the vendor name
-        $dir = config("{$this->vendorConfig}.namespace") ?? $this->vendor;
-        $this->outputDir = resource_path("views/flux/icon/{$dir}");
+        $this->outputDir = resource_path("views/flux/icon/{$this->namespace}");
 
         if (!File::exists($this->outputDir)) {
             if($this->verbose){
