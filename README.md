@@ -22,9 +22,15 @@ composer require --dev ympact/flux-icons
 - MDI
 
 > [!NOTE]  
-> Due to the nature of the Flux Icon component, the original svg paths of the vendor icons are merged into a single path.
-> It can therefore happen that some icons may not look like the original. The config file provides a callback to adjust a single or all icons from a vendor.
-> You may create an issue or make a PR to address this.
+> In the current version of this package, the original svg paths of an icon are merged into a single path.
+> It can therefore happen that some icons may not look like the original. Especially when Flux tries to show a solid variant of an icon that originally does not have a solid or filled version.
+
+### Known issues
+
+Tabler
+
+- Solid variant for icons that originally do not have a filled version are often not rendered properly.
+
 
 ## Building icons
 
