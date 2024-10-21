@@ -1,7 +1,7 @@
 <?php
 
 // class that is a representation of an icon using DomDocument and XPath
-namespace Ympact\FluxIcons\DataTypes;
+namespace Ympact\FluxIcons\Types;
 
 use DOMDocument;
 use DOMXPath;

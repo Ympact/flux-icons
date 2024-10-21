@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
 use Symfony\Component\Console\Helper\ProgressBar;
 use Symfony\Component\Console\Output\ConsoleOutput;
-use Ympact\FluxIcons\DataTypes\Icon;
+use Ympact\FluxIcons\Types\Icon;
 
 class IconBuilder
 {
