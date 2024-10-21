@@ -1,0 +1,73 @@
+<?php
+
+namespace App\Services\FluxIcons\Vendors;
+
+use Ympact\FluxIcons\Types\SvgPath;
+use Illuminate\Support\Collection;
+
+class VendorName{
+    /**
+     * Transform SVG Paths of the icon
+     * @param string $variant (`solid` or `outline`)
+     * @param string $iconName base name of the icon
+     * @param Collection<SvgPath> $svgPaths
+     */
+    function TransformSvgPath (string $variant, string $iconName, Collection $svgPaths): Collection 
+    {
+        // Your transformation logic here
+    }
+
+    /**
+     * Adjust the stroke width of the outline icon
+     * @param string $iconName base name of the icon
+     * @param float $defaultStrokeWidth 1.5 or the default set in config option `default_stroke_wdith`
+     * @param Collection<SvgPath> $svgPaths
+     * @return int|float
+     */
+    function changeStrokeWidth(string $iconName, int|float $defaultStrokeWidth, Collection $svgPaths): int|float 
+    {
+        // logic to determine stroke width
+    }
+
+    /**
+     * Determine the correct suffix for the solid icon
+     * @param int $size size of the resource icon
+     * @return string
+     */
+    public static function sourceSolidPrefix(int $size): string
+    {
+        // your logic here
+    }
+
+    /**
+     * Determine the correct suffix for the solid icon
+     * @param int $size size of the resource icon
+     * @return string
+     */
+    public static function sourceSolidSuffix(int $size): string
+    {
+        // your logic here
+    }
+
+    /**
+     * A filter callback to determine if a file should be processed as outline icon.
+     * Optionally this callback can adjust the $icons array.
+     * @param string $file
+     * @param array|null $icons that are requested to be build
+     * @return boolean
+     */
+    public static function outlineFilter(string $file, array|null &$icons): bool
+    {
+        // your logic here
+    }
+
+    /**
+     * A filter callback to determine if a file should be processed as solid icon
+     * @param $size size of the resource icon
+     * @return boolean
+     */
+    public static function solidFilter($file): bool
+    {
+        // your logic here
+    }
+}

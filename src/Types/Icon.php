@@ -1,7 +1,7 @@
 <?php
 
 // class that is a representation of an icon using DomDocument and XPath
-namespace Ympact\FluxIcons\DataTypes;
+namespace Ympact\FluxIcons\Types;
 
 use DOMDocument;
 use DOMXPath;
@@ -72,7 +72,6 @@ class Icon{
 
     public function determineBaseName($variant = 'outline'): static
     {
-        //$this->filename = pathinfo($this->file, PATHINFO_FILENAME);
         $baseIconName = $this->filename;
         
         if ($prefix = Arr::get($this->config, "source_directories.{$variant}.prefix")) {
@@ -96,8 +95,8 @@ class Icon{
     // we merge paths and execute the transformation as set in the config
     public function transform($variant = 'outline'): static
     {
-        if($transform = Arr::get($this->config, "transform_svg_path")){
-            $this->paths = $transform($variant, $this->basename, $this->paths);
+        if($callback = Arr::get($this->config, "transform_svg_path")){
+            $this->paths = call_user_func_array($callback, [$variant, $this->basename, $this->paths]);
         }
 
         return $this;
@@ -109,8 +108,8 @@ class Icon{
         $this->strokeWidth = $default ?? $this->strokeWidth;
 
         // if there is a change_stroke_width function in the config file, apply it
-        if($changeStrokeWidth = Arr::get($this->config, "change_stroke_width")){
-            $this->strokeWidth = $changeStrokeWidth($this->basename, $this->strokeWidth , $this->paths);
+        if($callback = Arr::get($this->config, "change_stroke_width")){
+            $this->strokeWidth = call_user_func_array($callback, [$this->basename, $this->strokeWidth , $this->paths]);
         }
 
         $this->strokeWidth = round($this->strokeWidth, 2);

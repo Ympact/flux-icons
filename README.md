@@ -85,6 +85,14 @@ You can publish the config file to adjust settings for a specific vendor or add 
 php artisan vendor:publish --tag=flux-icons-config
 ```
 
+### Publish specific vendor callbacks
+
+```cmd
+php artisan flux-icons:publish {vendor}
+```
+
+When adjusting the callback for an vendor, make sure you also publish the config file and reference the correct class.
+
 ## Advanced configuration
 
 | Option     | Valaue     | Description                                                                 |
@@ -116,67 +124,41 @@ The vendor specific configuration sits within the `vendors` key. Each vendor sho
 | `package_name` | `string` | The npm package that should be installed to retrieve the icons. |
 | `source_directories.outline` | `array\|string` | The directory in which the vendors outline icons reside. For specific options see below. |
 | `source_directories.solid` | `array\|string` | The directory in which the vendors solid icons reside. For specific options see below. |
-| `transform_svg_path`    |  `callable` | A callback to transform the SVG path data. Takes a single parameter: the SVG path string. |
-| `change_stroke_width`   |  `callable` | A callback to determine the whether the stroke width should be changed on this icon. |
+| `transform_svg_path`    |  `[class, method]` | A callback to transform the SVG path data. Takes a single parameter: the SVG path string. |
+| `change_stroke_width`   |  `[class, method]` | A callback to determine the whether the stroke width should be changed on this icon. |
 
 #### Source directories
 
 The source directories specify where the script can find the outline and solid/filled versions of the icons you want to build.
 In case the vendor uses a prefix or suffix for the icons, we want to configure it here to determine the basename of the icon and make them more accessible in flux.
-For both source directories (outline and solid), an optional `filter` callback can be defined to indicate whether a file in the directory should be used as outline or solid respectively. The function passes two params `file` and `icons`. The file is the actual filename that should be filtered out or not. The `icons` is an array of icons that the user wants to build. This is passed by reference in case this array needs to be adjusted. See the MDI config as example.
+For both source directories (outline and solid), an optional `filter` callback can be defined to indicate whether a file in the directory should be used as outline or solid respectively.
 
 ```php
 [
     'dir' => 'node_modules/vendor/icons/...',
     'prefix' => null,
     'suffix' => null 
-    'filter' => function($file, &$icons){ }
+    'filter' => [ Ympact\FluxIcons\Services\Vendor\VendorName::class, 'filter']
 ]
 ```
 
-For the **solid** icons, optionally callbacks can be defined on `dir`, `prefix` and `suffix` to adjust these according to the icon size.
-The sizes passed to these callbacks are 24, 20 and 16 (the defaults of the Flux icon component).
+For the **outline** icons, the function passes two params `file` and `icons`. The file is the actual filename that should be filtered out or not. The `icons` is an array of icons that the user requested to build. This is passed by reference in case this array needs to be adjusted. See the [Mdi class](src/Services/Vendors/Mdi.php) as example.
+
+For the **solid** icons, the filter callback passes a single param `file`. Optionally callbacks can be defined on `dir`, `prefix` and `suffix` to adjust these according to the icon size. The sizes passed to these callbacks are 24, 20 and 16 (the defaults of the Flux icon component).
 
 ```php
 'solid' => [ 
     [
         'dir' => 'node_modules/vendor/icons/icons/filled', 
         'prefix' => null, 
-        'suffix' => fn($size) => "-{$size}", // adds either -24 -20 and -16 as suffix to the icon
+        'suffix' => [ Ympact\FluxIcons\Services\Vendor\VendorName::class, 'sourceSolidSuffix']
     ],
 ],
 ```
 
-#### Transform icons
+#### Callbacks
 
-The configuration file provides two callback options to allow for adjustments on the paths and stroke width of specific icons.
-See the configuration for the Tabler icons as example how to use this.
-
-```php
-'vendors' => [
-    'tabler' => [
-        // ...
-
-        /**
-         * @param string $variant (solid, outline)
-         * @param string $iconName base name of the icon
-         * @param collection<SvgPath> $svgPaths
-         */
-        'transform_svg_path' => function($variant, $iconName, $svgPaths) {
-        // Your transformation logic here
-        },
-
-        /**
-         * @param string $iconName base name of the icon
-         * @param float $defaultStrokeWidth 1.5 or the default set in config option `default_stroke_wdith`
-         * @param collection<SvgPath> $svgPaths
-         */
-        'change_stroke_width' => function($iconName, $defaultStrokeWidth, $svgPaths) {
-            // Your filtering logic here
-        },
-    ]
-]
-```
+The configuration file provides various options on which callback can be defined. To keep the config file serializable, the callbacks should be defined in a separate class and referenced as above. See [vendor.php.stub](resources/stubs/vendor.php.stub) for reference of the available callbacks.
 
 ## Additional icons
 
