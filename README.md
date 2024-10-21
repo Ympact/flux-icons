@@ -83,6 +83,14 @@ You can publish the config file to adjust settings for a specific vendor or add 
 php artisan vendor:publish --tag=flux-icons-config
 ```
 
+### Publish specific vendor callbacks
+
+```cmd
+php artisan flux-icons:publish {vendor}
+```
+
+When adjusting the callback for an vendor, make sure you also publish the config file and reference the correct class.
+
 ## Advanced configuration
 
 | Option     | Valaue     | Description                                                                 |
