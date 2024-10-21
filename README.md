@@ -31,7 +31,6 @@ Tabler
 
 - Solid variant for icons that originally do not have a filled version are often not rendered properly.
 
-
 ## Building icons
 
 You will need to build the icons yourself once the package is installed. This can be done using the artisan command `flux-icons:build` you can optionally pass the vendor name as the first argument.

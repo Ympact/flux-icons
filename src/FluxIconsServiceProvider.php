@@ -22,7 +22,7 @@ class FluxIconsServiceProvider extends ServiceProvider
         $this->publishes([
             __DIR__.'/../resources/views' => resource_path('views/flux/icon/flux-icons'),
         ], 'flux-icons-icons');
-        
+
         // Register the commands
         $this->bootCommands();
     }
@@ -35,6 +35,7 @@ class FluxIconsServiceProvider extends ServiceProvider
 
         $this->commands([
             Console\BuildFluxIconsCommand::class,
+            Console\PublishFluxIconsVendorFileCommmand::class,
         ]);
     }
 }

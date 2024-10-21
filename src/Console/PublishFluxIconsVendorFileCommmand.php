@@ -1,12 +1,12 @@
 <?php
 
-namespace App\Console\Commands;
+namespace Ympact\FluxIcons\Console;
 
 use Illuminate\Console\Command;
 use Illuminate\Support\Str;
 use Ympact\FluxIcons\Services\IconBuilder;
 
-class PublishFluxIconsVendorFile extends Command
+class PublishFluxIconsVendorFileCommmand extends Command
 {
     protected $signature = 'flux-icons:publish {vendor?}';
     protected $description = 'Publish a specific Services/Vendor file';
