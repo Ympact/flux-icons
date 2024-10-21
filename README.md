@@ -77,6 +77,8 @@ For the first version of this Flux Icons package the source icons are treated as
 - In case there is no solid variant, it will use the outline variant as the solid variant.
 - In case the solid variant does not have an outline variant, the icon is not exported at all.
 
+If you have suggestions on how to improve this, please join the [discussion](https://github.com/Ympact/flux-icons/discussions/2).
+
 ## Publish config
 
 You can publish the config file to adjust settings for a specific vendor or add your own vendor. In case you add your own vendor, please share or make a PR so others can use it too!
@@ -138,7 +140,7 @@ For both source directories (outline and solid), an optional `filter` callback c
     'dir' => 'node_modules/vendor/icons/...',
     'prefix' => null,
     'suffix' => null 
-    'filter' => [ Ympact\FluxIcons\Services\Vendor\VendorName::class, 'filter']
+    'filter' => [ Ympact\FluxIcons\Services\Vendors\VendorName::class, 'filter']
 ]
 ```
 
@@ -151,7 +153,7 @@ For the **solid** icons, the filter callback passes a single param `file`. Optio
     [
         'dir' => 'node_modules/vendor/icons/icons/filled', 
         'prefix' => null, 
-        'suffix' => [ Ympact\FluxIcons\Services\Vendor\VendorName::class, 'sourceSolidSuffix']
+        'suffix' => [ Ympact\FluxIcons\Services\Vendors\VendorName::class, 'sourceSolidSuffix']
     ],
 ],
 ```
