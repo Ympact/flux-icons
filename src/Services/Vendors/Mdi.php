@@ -10,10 +10,15 @@ class Mdi
 {
     /**
      * 
-     * @param int $size size of the resource icon
-     * @return string
+     * @param string $file
+     * @param array|null $icons
+     * @return boolean
      */
-    public static function outlineFilter($file, array &$icons = null){
+    public static function outlineFilter($file, &$icons): bool
+    {
+        if($icons === null){
+            $icons = [];
+        }
         // if the icon name ends with -outline it is an outline icon
         $filename = pathinfo($file, PATHINFO_FILENAME);
         if (Str::contains($filename, '-outline')) {
@@ -35,10 +40,11 @@ class Mdi
 
     /**
      * 
-     * @param int $size size of the resource icon
-     * @return string
+     * @param $size size of the resource icon
+     * @return boolean
      */
-    public static function solidFilter($file){
+    public static function solidFilter($file): bool
+    {
         $filename = pathinfo($file, PATHINFO_FILENAME);
         if (Str::contains($filename,'-outline')) {
             return false;

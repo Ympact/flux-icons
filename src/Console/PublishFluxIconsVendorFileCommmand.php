@@ -25,8 +25,9 @@ class PublishFluxIconsVendorFileCommmand extends Command
             return 1;
         }
 
-        $file = Str::studly($vendor) . '.php';
-        $sourcePath = __DIR__ . '/../../Services/Vendors/' . $file;
+        $className = Str::studly($vendor);
+        $file = $className . '.php';
+        $sourcePath = __DIR__ . '/../Services/Vendors/' . $file;
         $destinationPath = app_path('Services/FluxIcons/Vendors/' . $file);
 
         if (!file_exists($sourcePath)) {
@@ -39,8 +40,37 @@ class PublishFluxIconsVendorFileCommmand extends Command
         }
 
         copy($sourcePath, $destinationPath);
-        $this->info("The file {$file} has been published to {$destinationPath}.");
 
+        // change the namespace in the file
+        $content = file_get_contents($destinationPath);
+        $oldNamespace = 'Ympact\FluxIcons\Services\Vendors';
+        $newNamespace = 'App\Services\FluxIcons\Vendors';
+
+        $content = str_replace($oldNamespace, $newNamespace, $content);
+        file_put_contents($destinationPath, $content);
+
+        $this->info("The file {$file} has been published to {$destinationPath}.");
+        
+        // check if config file was published
+        if (!file_exists(config_path('flux-icons.php'))) {
+            if ($this->confirm("The configuration file has not been published yet. You need it to use the vendor file. Do you want to publish it now?")) {
+                $this->info(" We will publish it now.");
+                $this->call('vendor:publish', ['--tag' => 'flux-icons-config']); 
+            }
+        }
+
+        if ($this->confirm("To use the vendor file, you will need to adjust the namespace in the config file. Should we do that for you?")) {
+            // replace the namespace in the config file
+            $configPath = config_path('flux-icons.php');
+            $content = file_get_contents($configPath);
+            $content = str_replace(
+                Str::of($oldNamespace)->finish('\\'.$className)->toString(), 
+                Str::of($newNamespace)->finish('\\'.$className)->toString(), 
+                $content
+            );
+            file_put_contents($configPath, $content);
+        }
+        
         return 0;
     }
 }

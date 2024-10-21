@@ -101,7 +101,7 @@ return [
                     'prefix' => null,
                     'suffix' => '-outline',
                     // filter function to determine if the icon is an outline icon
-                    'filter' => [ Ympact\FluxIcons\Services\Vendors\MDI::class, 'outlineFilter' ]
+                    'filter' => [ Ympact\FluxIcons\Services\Vendors\Mdi::class, 'outlineFilter' ]
                 ],
                 'solid' => [
                     'dir' => 'node_modules/@mdi/svg/svg',
@@ -109,7 +109,7 @@ return [
                     'suffix' => null,
                     
                     // inverse of the outline filter
-                    'filter' => [ Ympact\FluxIcons\Services\Vendors\MDI::class, 'solidFilter' ]
+                    'filter' => [ Ympact\FluxIcons\Services\Vendors\Mdi::class, 'solidFilter' ]
                 ]   
             ],
             'transform_svg_path' => null, 

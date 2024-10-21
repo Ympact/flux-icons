@@ -235,9 +235,9 @@ class IconBuilder
         $solidIcon = new Icon(config($this->vendorConfig), $solidFile );
 
         if (Arr::has($this->sourceDirs, 'solid.filter')) {
-            if(!call_user_func(
+            if(!call_user_func_array(
                 $this->sourceDirs['solid']['filter'], 
-                $solidFile
+                [$solidFile]
             )){
                 // the iconFile is not a solid icon, so we use the outline icon
                 $solidIcon = $baseIcon;
