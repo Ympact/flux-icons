@@ -5,7 +5,6 @@ namespace Ympact\FluxIcons\Services\Vendors;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
 
-
 class Mdi
 {
     /**
