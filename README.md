@@ -16,15 +16,14 @@ composer require --dev ympact/flux-icons
 ## Icon Vendor Support
 
 Initial support:
-
-- Tabler Icons
-- Flowbite
+- [Tabler Icons](https://tabler.io/icons)
+- [Flowbite](https://flowbite.com/icons/)
 
 Work in progress **Not production ready!**
 
-- Fluent UI Icons
-- Google Material Design Icons
-- MDI
+- [Fluent UI Icons](https://github.com/microsoft/fluentui-system-icons) and [unofficial viewer](https://fluenticons.co/)
+- [Google Material Design Icons](https://fonts.google.com/icons)
+- [MDI](https://pictogrammers.com/library/mdi/)
 
 > [!NOTE]  
 > In the current version of this package, the original svg paths of an icon are merged into a single path.
