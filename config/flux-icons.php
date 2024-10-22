@@ -19,6 +19,7 @@ return [
      * Heroicons and hence Flux uses by default a stroke width of 1.5 for icons
      */
     'default_stroke_width' => 1.5,
+    'default_stroke_width' => 1.5,
 
     /**
      * Vendors configuration
@@ -31,16 +32,6 @@ return [
             'build_type' => [
                 'outline' =>'outline',
                 'solid' => 'solid',
-            ],
-            'path_attributes'=> [
-                'outline' => [
-                    'stroke-linecap' => 'round',
-                    'stroke-linejoin' => 'round',
-                ],
-                'solid' => [
-                    'fill-rule' => 'evenodd',
-                    'clip-rule' => 'evenodd',
-                ],
             ],
             'source_directories' => [
                 'outline' => 'node_modules/@tabler/icons/icons/outline', 
@@ -59,6 +50,10 @@ return [
                 'outline' => 'solid',
                 'solid' => 'solid',
             ],
+            'build_type' => [
+                'outline' => 'solid',
+                'solid' => 'solid',
+            ],
             'source_directories' => [
                 'outline' => 'node_modules/@material-design-icons/svg/outlined',
                 'solid' => 'node_modules/@material-design-icons/svg/filled',
@@ -72,6 +67,10 @@ return [
             'vendor_name' => 'Fluent UI',
             'namespace' => 'fluent',
             'package_name' => '@fluentui/svg-icons',
+            'build_type' => [
+                'outline' => 'solid',
+                'solid' => 'solid',
+            ],
             'build_type' => [
                 'outline' => 'solid',
                 'solid' => 'solid',
@@ -104,6 +103,10 @@ return [
                 'outline' => 'outline',
                 'solid' => 'solid',
             ],
+            'build_type' => [
+                'outline' => 'outline',
+                'solid' => 'solid',
+            ],
             'source_directories' => [
                 'outline' => 'node_modules/flowbite-icons/src/outline/*/',
                 'solid' => 'node_modules/flowbite-icons/src/solid/*/',
@@ -121,6 +124,10 @@ return [
             'vendor_name' => 'MDI',
             'namespace' => 'mdi',
             'package_name' => '@mdi/svg',
+            'build_type' => [
+                'outline' => 'solid',
+                'solid' => 'solid',
+            ],
             'build_type' => [
                 'outline' => 'solid',
                 'solid' => 'solid',
