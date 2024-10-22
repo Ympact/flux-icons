@@ -3,7 +3,7 @@
 This is a laravel package to customize the icons for [Livewire Flux](https://github.com/livewire/flux). It builds the icons from various vendors into a `flux:icon` component.
 
 > [!NOTE]  
-> This package is not in version 1 yet and the config scheme might still change in the next updates to account for different folder and file structures of icon vendors.
+> This package is still work in progress. Hence icons might not turn out to be as they should and the config scheme might still change in the next updates to account for different folder and file structures of icon vendors.
 
 ## Installation
 
@@ -15,8 +15,13 @@ composer require --dev ympact/flux-icons
 
 ## Icon Vendor Support
 
+Initial support:
+
 - Tabler Icons
 - Flowbite
+
+Work in progress **Not production ready!**
+
 - Fluent UI Icons
 - Google Material Design Icons
 - MDI
@@ -24,12 +29,6 @@ composer require --dev ympact/flux-icons
 > [!NOTE]  
 > In the current version of this package, the original svg paths of an icon are merged into a single path.
 > It can therefore happen that some icons may not look like the original. Especially when Flux tries to show a solid variant of an icon that originally does not have a solid or filled version.
-
-### Known issues
-
-Tabler
-
-- Solid variant for icons that originally do not have a filled version are often not rendered properly.
 
 ## Building icons
 
@@ -46,13 +45,10 @@ php artisan flux-icons:build tabler --icons=confetti,confetti-off
 |-----------------|----------------------------------------------------------------------------------------------------|
 | `--icons=`      | The icons to build (single or comma separated list). Cannot be used in combination with `--all`. |
 | `-m\|--merge`   | Merge the icons listed in the `--icons` options with the icons defined in the config. Cannot be used in combination with `--all`. |
-| `-a\|--all`     | Build all icons from the vendor. |
+| `-a\|--all`     | Build all icons from the vendor. **Note:** this might generate over thousands of files and cause `npm run dev` to crash due to memory issues. |
 | `-v\|--verbose` | Show additional messages during build. |
 
 The artisan script will try to install the icon package using `npm install`.
-
-> [!WARNING]  
-> The `--all` option might generate over thousands of files and cause `npm run dev` to crash due to memory issues.
 
 ### Usage
 
@@ -77,8 +73,6 @@ For the first version of this Flux Icons package the source icons are treated as
 - In case there is no solid variant, it will use the outline variant as the solid variant.
 - In case the solid variant does not have an outline variant, the icon is not exported at all.
 
-If you have suggestions on how to improve this, please join the [discussion](https://github.com/Ympact/flux-icons/discussions/2).
-
 ## Publish config
 
 You can publish the config file to adjust settings for a specific vendor or add your own vendor. In case you add your own vendor, please share or make a PR so others can use it too!
@@ -100,7 +94,7 @@ When adjusting the callback for an vendor, make sure you also publish the config
 | Option     | Valaue     | Description                                                                 |
 |------------|------------|-----------------------------------------------------------------------------|
 | `icons`    |  `null` or `['vendorName' => ['icon-name', ...] ]` | A list of icons that will be build/updated by default in case no icons are passed to `flux-icons:build` command.  |
-| `default_stroke_wdith` | `float` | For outline icons a default stroke width can be configured. The default Flux Heroicons uses a width of 1.5. |
+| `default_stroke_width` | `float` | For outline icons a default stroke width can be configured. The default Flux Heroicons uses a width of 1.5. |
 
 ### Vendor specific configuration
 
@@ -140,7 +134,7 @@ For both source directories (outline and solid), an optional `filter` callback c
     'dir' => 'node_modules/vendor/icons/...',
     'prefix' => null,
     'suffix' => null 
-    'filter' => [ Ympact\FluxIcons\Services\Vendors\VendorName::class, 'filter']
+    'filter' => [ Ympact\FluxIcons\Services\Vendor\VendorName::class, 'filter']
 ]
 ```
 
@@ -153,7 +147,7 @@ For the **solid** icons, the filter callback passes a single param `file`. Optio
     [
         'dir' => 'node_modules/vendor/icons/icons/filled', 
         'prefix' => null, 
-        'suffix' => [ Ympact\FluxIcons\Services\Vendors\VendorName::class, 'sourceSolidSuffix']
+        'suffix' => [ Ympact\FluxIcons\Services\Vendor\VendorName::class, 'sourceSolidSuffix']
     ],
 ],
 ```

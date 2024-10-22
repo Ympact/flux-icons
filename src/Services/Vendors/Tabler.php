@@ -17,12 +17,9 @@ class Tabler
     public static function transformSvgPath($variant, $iconName, $svgPaths): string
     {
         // remove the first $svgPath from the array that has a d attribute of 'M0 0h24v24H0z'
-        if($variant == 'outline')
-        {
-                $svgPaths = $svgPaths->filter(function(SvgPath $svgPath){
-                return $svgPath->getD() !== 'M0 0h24v24H0z';
-            });
-        }
+        $svgPaths = $svgPaths->filter(function(SvgPath $svgPath){
+            return $svgPath->getD() !== 'M0 0h24v24H0z';
+        });
 
         return $svgPaths;
     }
@@ -30,7 +27,7 @@ class Tabler
     /**
      * Adjust the stroke width of the outline icon
      * @param string $iconName base name of the icon
-     * @param float $defaultStrokeWidth 1.5 or the default set in config option `default_stroke_wdith`
+     * @param float $defaultStrokeWidth 1.5 or the default set in config option `default_stroke_width`
      * @param Collection<SvgPath> $svgPaths
      * @return int|float
      */
