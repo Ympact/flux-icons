@@ -1,0 +1,10 @@
+<svg {{ $attributes->class($classes) }} 
+    data-flux-icon 
+    xmlns="http://www.w3.org/2000/svg" 
+    viewBox="0 0 {SVG_SOLID_SIZE} {SVG_SOLID_SIZE}" 
+    fill="currentColor" 
+    aria-hidden="true" 
+    data-slot="icon"
+>
+    {SVG_PATHS_SOLID}
+</svg>

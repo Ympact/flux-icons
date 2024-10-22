@@ -2,6 +2,7 @@
 
 namespace Ympact\FluxIcons\Services;
 
+use Illuminate\Support\Collection;
 use Illuminate\Filesystem\Filesystem;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\File;
@@ -167,7 +168,7 @@ class IconBuilder
             // in case there is a transform_svg_path function in the vendor config file, apply it
             $outlineIcon->transform('outline');
 
-            $outlineIcon->changeStrokeWidth(config("{$this->config}.default_stroke_wdith", null));
+            $outlineIcon->changeStrokeWidth(config("{$this->config}.default_stroke_width", null));
 
             // solid icons
             // in case there are different sizes for solid icons, $sourceDirs['solid'] is an array, otherwise it's a string
@@ -363,10 +364,10 @@ class IconBuilder
 
     /**
      * getAvailableVendors
-     * @return array
+     * @return Collection
      */
-    public static function getAvailableVendors(): array
+    public static function getAvailableVendors(): Collection
     {
-        return array_keys( config("flux-icons.vendors" ));
+        return collect(config("flux-icons.vendors" ));
     }
 }

@@ -17,7 +17,7 @@ class BuildFluxIconsCommand extends Command
 
     public function handle()
     {
-        $vendor = $this->argument('vendor') ?? $this->ask('Which vendor icon package should be used (options: '.implode(', ',IconBuilder::getAvailableVendors()).')?');
+        $vendor = $this->argument('vendor') ?? $this->ask('Which vendor icon package should be used (options: '.implode(', ',IconBuilder::getAvailableVendors()->keys()->toArray()).')?');
         
         if (!config("flux-icons.vendors.$vendor")) {
             $this->error("Vendor configuration for '$vendor' not found.");
