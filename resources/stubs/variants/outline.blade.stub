@@ -7,5 +7,5 @@
     aria-hidden="true" 
     data-slot="icon"
 >
-  {SVG_PATHS_OUTLINE_24}
+  {SVG_PATHS_OUTLINE}
 </svg>

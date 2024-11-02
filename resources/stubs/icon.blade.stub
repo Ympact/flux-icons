@@ -22,31 +22,19 @@ $classes = Flux::classes('shrink-0')
 @endphp
 
 <?php switch ($variant): case ('outline'): ?>
-<svg {{ $attributes->class($classes) }} data-flux-icon xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 {SVG_OUTLINE_24_SIZE} {SVG_OUTLINE_24_SIZE}" stroke-width="{SVG_OUTLINE_STROKE}" stroke="currentColor" aria-hidden="true" data-slot="icon">
-  <path stroke-linecap="round" stroke-linejoin="round" d="{SVG_PATH_OUTLINE_24}"/>
-</svg>
-
+{OUTLINE_SVG}
         <?php break; ?>
 
     <?php case ('solid'): ?>
-<svg {{ $attributes->class($classes) }} data-flux-icon xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {SVG_SOLID_24_SIZE} {SVG_SOLID_24_SIZE}" fill="currentColor" aria-hidden="true" data-slot="icon">
-  <path fill-rule="evenodd" d="{SVG_PATH_SOLID_24}" clip-rule="evenodd"/>
-</svg>
-
+{SOLID_SVG}
         <?php break; ?>
 
     <?php case ('mini'): ?>
-<svg {{ $attributes->class($classes) }} data-flux-icon xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {SVG_SOLID_20_SIZE} {SVG_SOLID_20_SIZE}" fill="currentColor" aria-hidden="true" data-slot="icon">
-  <path fill-rule="evenodd" d="{SVG_PATH_SOLID_20}" clip-rule="evenodd"/>
-</svg>
-
+{MINI_SVG}
         <?php break; ?>
 
     <?php case ('micro'): ?>
-<svg {{ $attributes->class($classes) }} data-flux-icon xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {SVG_SOLID_16_SIZE} {SVG_SOLID_16_SIZE}" fill="currentColor" aria-hidden="true" data-slot="icon">
-  <path fill-rule="evenodd" d="{SVG_PATH_SOLID_16}" clip-rule="evenodd"/>
-</svg>
-
+{MICRO_SVG}
         <?php break; ?>
 
 <?php endswitch; ?>

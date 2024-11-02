@@ -32,4 +32,24 @@ class SvgPath{
         return $this->d;
     }
 
+    // get the attributes on the path
+    public function getAttributes(){
+        $attributes = [];
+        foreach($this->tag->attributes as $key => $value){
+            $attributes[$key] = $value;
+        }
+        return $attributes;
+    }
+
+    // set the attributes on the path
+    public function setAttributes($attributes){
+        foreach($attributes as $key => $value){
+            $this->tag->setAttribute($key, $value);
+        }
+    }
+
+    // toHtml string
+    public function toHtml(){
+        return $this->dom->saveHTML($this->tag);
+    }
 }

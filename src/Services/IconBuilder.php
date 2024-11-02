@@ -190,6 +190,7 @@ class IconBuilder
                     $solidIcons[$size] = $solidIcon; //->resize($size)
                 }
             }
+            
 
             $bladeTemplate = Str::of(File::get(__DIR__.'/../../resources/stubs/icon.blade.stub'))
                 ->replace('{INFO_ICON_NAME}', $basename)
