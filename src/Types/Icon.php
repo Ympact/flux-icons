@@ -117,6 +117,21 @@ class Icon{
         return $this;
     }
 
+    // make sure the paths have the correct attributes
+    public function setAttributes($variant = 'outline'): static
+    {
+        $attributes = Arr::get($this->config, "path_attributes.{$variant}");
+        $this->paths = $this->paths->map(function(SvgPath $path) use ($attributes){
+            return $path->setAttributes($attributes);
+        });
+
+        return $this;
+    }
+
+    /**
+     * @deprecated 0.4.0 - We're no longer merging paths
+     * @return Icon
+     */
     public function merge(): static  {
         $this->mergedD = $this->getD()->implode(' ');
         return $this;
@@ -128,6 +143,18 @@ class Icon{
         });
     }
 
+    // get the final html paths
+    public function toHtml(): string
+    {
+        return $this->paths->map(function(SvgPath $path){
+            return $path->toHtml();
+        })->implode('');
+    }
+
+    /**
+     * @deprecated 0.4.0 - We're no longer merging paths
+     * @return string|null
+     */
     public function getMergedD(){
         if(!$this->mergedD){
             $this->merge();
