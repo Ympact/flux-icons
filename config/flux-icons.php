@@ -33,6 +33,16 @@ return [
                 'outline' =>'outline',
                 'solid' => 'solid',
             ],
+            'path_attributes'=> [
+                'outline' => [
+                    'stroke-linecap' => 'round',
+                    'stroke-linejoin' => 'round',
+                ],
+                'solid' => [
+                    'fill-rule' => 'evenodd',
+                    'clip-rule' => 'evenodd',
+                ],
+            ],
             'source_directories' => [
                 'outline' => 'node_modules/@tabler/icons/icons/outline', 
                 'solid' => 'node_modules/@tabler/icons/icons/filled',
