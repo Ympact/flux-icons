@@ -14,7 +14,7 @@ class Tabler
      * @param Collection<SvgPath> collection of $svgPaths
      * @return string
      */
-    public static function transformSvgPath($variant, $iconName, $svgPaths): string
+    public static function transformSvgPath($variant, $iconName, $svgPaths): Collection
     {
         // remove the first $svgPath from the array that has a d attribute of 'M0 0h24v24H0z'
         if($variant == 'outline')
