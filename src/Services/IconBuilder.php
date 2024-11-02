@@ -138,7 +138,7 @@ class IconBuilder
         if ($this->icons) {
             $icons = $this->icons;
                 
-            $outlineIcons->filter(function(Icon $icon) use ($icons){
+            $outlineIcons = $outlineIcons->filter(function(Icon $icon) use ($icons){
                 return in_array($icon->getName(), $icons) || in_array($icon->getBaseName(), $icons);
             });
 
