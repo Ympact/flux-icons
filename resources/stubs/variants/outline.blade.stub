@@ -1,11 +1,12 @@
 <svg {{ $attributes->class($classes) }} 
     data-flux-icon
-    xmlns="http://www.w3.org/2000/svg" fill="none" 
-    viewBox="0 0 {SVG_OUTLINE_SIZE} {SVG_OUTLINE_SIZE}" 
-    stroke-width="{SVG_OUTLINE_STROKE}" 
+    xmlns="http://www.w3.org/2000/svg" 
+    fill="none" 
+    viewBox="0 0 {SVG_SIZE} {SVG_SIZE}" 
+    stroke-width="{SVG_STROKE_WIDTH}" 
     stroke="currentColor" 
     aria-hidden="true" 
     data-slot="icon"
 >
-  {SVG_PATHS_OUTLINE}
+  {SVG_PATHS}
 </svg>

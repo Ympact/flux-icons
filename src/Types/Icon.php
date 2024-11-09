@@ -24,8 +24,6 @@ class Icon{
 
     protected Collection $paths;
 
-    protected string|null $mergedD = null;
-
     protected string $rawContent;
 
     protected int $size;
@@ -44,32 +42,50 @@ class Icon{
         }
     }
 
-
-    public function setFile($file):static
+    /**
+     * Summary of setFile
+     * @param mixed $file
+     * @return Icon
+     */
+    public function setFile($file): static
     {
         $this->readFile($file);
         return $this;
     }
 
-    public function setContent($content, $filename): static
+    /**
+     * Summary of setContent
+     * @param string $content
+     * @param string $filename
+     * @return Icon
+     */
+    public function setContent(string $content, string $iconName): static
     {
-        $this->readRawContent($content, $filename);
+        $this->readRawContent($content, $iconName);
         return $this;
     }
 
+    /**
+     * Summary of process
+     * @return Icon
+     */
     public function process(): static
     {
         $this->parseDom();
         if($this->dom){
             if($this->xpath){
-                $this->paths = new Collection();
-                $this->getIconSize();
+                $this->determineIconSize();
                 $this->extractTags();
             }
         }
         return $this;
     }
 
+    /**
+     * Summary of determineBaseName
+     * @param mixed $variant
+     * @return Icon
+     */
     public function determineBaseName($variant = 'outline'): static
     {
         $baseIconName = $this->filename;
@@ -91,8 +107,12 @@ class Icon{
         return $this;
     }
 
-    // transform icon and return new instance of the transformed icon
-    // we merge paths and execute the transformation as set in the config
+    /**
+     * transform icon and return new instance of the transformed icon
+     * we merge paths and execute the transformation as set in the config
+     * @param string $variant
+     * @return Icon
+     */
     public function transform($variant = 'outline'): static
     {
         if($callback = Arr::get($this->config, "transform_svg_path")){
@@ -102,8 +122,12 @@ class Icon{
         return $this;
     }
 
-    // change the stroke width of the outline icon
-    public function changeStrokeWidth(float $default = null): static
+    /**
+     * change the stroke width of the icon
+     * @param float|null $default
+     * @return Icon
+     */
+    public function setStrokeWidth(float $default = null): static
     {
         $this->strokeWidth = $default ?? $this->strokeWidth;
 
@@ -117,7 +141,11 @@ class Icon{
         return $this;
     }
 
-    // make sure the paths have the correct attributes
+    /**
+     * make sure the paths have the correct attributes
+     * @param string $variant
+     * @return Icon
+     */
     public function setAttributes($variant = 'outline'): static
     {
         $attributes = Arr::get($this->config, "path_attributes.{$variant}");
@@ -129,21 +157,19 @@ class Icon{
     }
 
     /**
-     * @deprecated 0.4.0 - We're no longer merging paths
-     * @return Icon
+     * Summary of getD
+     * @return \Illuminate\Support\Collection
      */
-    public function merge(): static  {
-        $this->mergedD = $this->getD()->implode(' ');
-        return $this;
-    }
-
     public function getD(): Collection{
         return $this->paths->map(function(SvgPath $path){
             return $path->getD();
         });
     }
 
-    // get the final html paths
+    /**
+     * get the final html paths
+     * @return string
+     */
     public function toHtml(): string
     {
         return $this->paths->map(function(SvgPath $path){
@@ -152,43 +178,56 @@ class Icon{
     }
 
     /**
-     * @deprecated 0.4.0 - We're no longer merging paths
-     * @return string|null
+     * get filename of the icon
      */
-    public function getMergedD(){
-        if(!$this->mergedD){
-            $this->merge();
-        }
-        return $this->mergedD;
-    }
-
-    // get name of the icon
     public function getName(){
         return $this->filename;
     }
 
+    /**
+     * Summary of getBaseName
+     * @return string
+     */
     public function getBaseName(){
         return $this->basename;
     }
 
-    // get the size of the icon
-    public function getSize(){
+    /**
+     * Summary of getSize
+     * @return int
+     */
+    public function getSize()
+    {
         return $this->size;
     }
 
-    // get the stroke width of the icon
+    /**
+     * get the stroke width of the icon
+     */
     public function getStrokeWidth(){
         return $this->strokeWidth;
     }
 
+    /**
+     * Summary of exists
+     * @return bool
+     */
     public function exists(){
         return $this->rawContent ? true : false;
     }
 
+    /**
+     * Summary of fileExists
+     * @return bool
+     */
     public function fileExists(){
         return $this->file ? true : false;
     }
 
+    /**
+     * Summary of parseDom
+     * @return void
+     */
     protected function parseDom(){
         $this->dom = new DOMDocument();
 
@@ -198,7 +237,12 @@ class Icon{
         $this->xpath = new DOMXPath($this->dom);
     }
 
-    protected function readFile($file)
+    /**
+     * Summary of readFile
+     * @param mixed $file
+     * @return void
+     */
+    private function readFile($file)
     {
         if(File::exists($file)){
             $this->file = $file;
@@ -208,15 +252,25 @@ class Icon{
         }
     }
 
-    protected function readRawContent($content, $filename)
+    /**
+     * Summary of readRawContent
+     * @param mixed $content
+     * @param mixed $iconName
+     * @return void
+     */
+    private function readRawContent(string $content, string $iconName)
     {      
-        $this->filename = $filename;
+        $this->filename = $iconName;
         $this->rawContent = $content;
         $this->determineBaseName();
     }
 
-
-    protected function getIconSize(){
+    /**
+     * determine the size of the original icon
+     * @return void
+     */
+    private function determineIconSize()
+    {
         $svg = $this->xpath->query('//svg')->item(0);
         // first try using viewBox attribute, otherwise use height
         if($svg->hasAttribute('viewBox')){
@@ -233,8 +287,13 @@ class Icon{
         $this->size = (int)$height;
     }
 
-    protected function extractTags(){
-        // path, circle, rect, tags
+    /**
+     * extract all paths from the SVG as SvgPath instances
+     * @return void
+     */
+    private function extractTags()
+    {
+        $this->paths = $this->paths ?? new Collection();
         $tags = $this->getPathDefinitions();
 
         foreach ($tags as $tag) {
@@ -242,7 +301,11 @@ class Icon{
         }
     }
 
-    protected function getPathDefinitions()
+    /**
+     * get all path definitions from the svg
+     * @return mixed
+     */
+    private function getPathDefinitions()
     {
         $tags = $this->xpath->query("//path | //circle | //rect | //line | //polyline | //polygon");
         return $tags;

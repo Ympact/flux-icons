@@ -22,19 +22,19 @@ $classes = Flux::classes('shrink-0')
 @endphp
 
 <?php switch ($variant): case ('outline'): ?>
-{OUTLINE_SVG}
+{OUTLINE}
         <?php break; ?>
 
     <?php case ('solid'): ?>
-{SOLID_SVG}
+{SOLID}
         <?php break; ?>
 
     <?php case ('mini'): ?>
-{MINI_SVG}
+{MINI}
         <?php break; ?>
 
     <?php case ('micro'): ?>
-{MICRO_SVG}
+{MICRO}
         <?php break; ?>
 
 <?php endswitch; ?>
