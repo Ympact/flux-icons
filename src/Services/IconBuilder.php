@@ -27,7 +27,7 @@ class IconBuilder
 
     protected bool $verbose;
 
-    protected Collection $variants;
+    protected Collection|null $variants = null;
 
     protected $baseVariant = 'outline';
 
@@ -57,17 +57,19 @@ class IconBuilder
         ],
         // inherits the settings from solid variant
         'mini' => [
+            'base' => 'solid',
             'size' => 20
         ], 
         // inherits the settings from solid variant
         'micro' => [
+            'base' => 'solid',
             'size' => 16
         ]
     ];
 
     protected ConsoleOutput $output;
 
-    public function __construct(string $vendor, array $icons = null, $verbose = false)
+    public function __construct(string $vendor = null, array $icons = null, $verbose = false)
     {
         if($verbose){
             $this->setVerbose($verbose);
@@ -75,7 +77,9 @@ class IconBuilder
 
         $this->output = new ConsoleOutput();
 
-        $this->setVendor($vendor);
+        if($vendor){
+            $this->setVendor($vendor);
+        }
 
         if($icons){
             $this->setIcons($icons);
@@ -95,6 +99,9 @@ class IconBuilder
             $this->vendorConfig = "{$this->config}.vendors.{$vendor}";
             $this->baseVariant = config("{$this->vendorConfig}.baseVariant", 'outline');
             $this->namespace = Str::slug(config("{$this->vendorConfig}.namespace") ?? $this->vendor);
+
+            $this->determineDefaults();
+            //dump($this->variants);
         }
         else{
             throw new \Exception("Vendor $vendor not found in config file");
@@ -167,9 +174,7 @@ class IconBuilder
      */
     public function buildIcons()
     {
-        $this->determineDefaults();
-        //dump($this->variants);
-
+        // only setup the dirs once we're sure we're gonna build some icons
         $this->setupDirs();
 
         // get all files that match the base variant icons config
@@ -287,11 +292,11 @@ class IconBuilder
         // for each variant, we determine the defaults by recursively merging the variantDefaults with the settings in the config into $this->variants
         $settings = config("{$this->vendorConfig}.variants");
         $this->variants = collect($this->variantDefaults)->map(function($variant, $key) use ($settings){
-            // the mini and micro variants inherit the settings from the solid variant
+            // the mini and micro variants inherit the settings from the variant listed in the base key
             if($key == 'mini' || $key == 'micro'){
-                $variant = Arr::merge($variant, Arr::get($settings, 'solid', []));
+                $variant = array_merge($variant, Arr::get($variant, $key.'.base' , []), Arr::get($settings, $key.'.base', []));
             }
-            return Arr::merge($variant, Arr::get($settings, $key, []));
+            return array_merge($variant, Arr::get($settings, $key, []));
         });
     }
 
@@ -406,7 +411,8 @@ class IconBuilder
         }
         else{
             // allow for passing the size to the callbacks
-            $size = Arr::get($this->variants, "{$variant}.size", 24);
+            $size = $this->variantProp($variant, 'size', 24);
+            //$size = Arr::get($this->variants, "{$variant}.size", 24);
 
             if($prefix = $this->variantProp($variant, 'source.prefix')){
                 // prefix can be either a string or a function

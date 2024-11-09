@@ -1,11 +1,12 @@
 <?php
 
-namespace Ympact\FluxIcons\Services\Vendors;
+namespace Ympact\FluxIcons\Tests\Vendor\Alpha;
+
 
 use Ympact\FluxIcons\Types\SvgPath;
 use Illuminate\Support\Collection;
 
-class Tabler
+class Alpha
 {
     /**
      * Transform SVG Paths of the icon
@@ -14,7 +15,7 @@ class Tabler
      * @param Collection<SvgPath> collection of $svgPaths
      * @return string
      */
-    public static function transformSvgPath($variant, $iconName, $svgPaths): Collection
+    public static function transformSvgPath(string $variant, string $iconName, Collection $svgPaths): Collection
     {
         // remove the first $svgPath from the array that has a d attribute of 'M0 0h24v24H0z'
         $svgPaths = $svgPaths->filter(function(SvgPath $svgPath){
