@@ -28,10 +28,40 @@ return [
             'vendor_name' => 'Tabler',
             'namespace' => 'tabler',
             'package_name' => '@tabler/icons',
-            'build_type' => [
-                'outline' =>'outline',
-                'solid' => 'solid',
+            'baseVariant' => 'outline', 
+            'variants' => [
+                'outline' => [
+                    'stub' => 'outline', // default stub for the icon, not necessary to specify
+                    'stroke_width' => 1.5, // default stroke width for the icon, not necessary to specify
+                    'size' => 24, // default size for the icon, not necessary to specify
+                    'path_attributes' => [
+                        'stroke-linecap' => 'round',
+                        'stroke-linejoin' => 'round',
+                    ],
+                    'source' => 'node_modules/@tabler/icons/icons/outline',
+                    // filter => [],
+                ],
+                'solid' => [
+                    'stub' => 'solid',
+                    'stroke_width' => false, // there is no stroke width for solid icons
+                    'size' => 24,
+                    'path_attributes' => [
+                        'fill-rule' => 'evenodd',
+                        'clip-rule' => 'evenodd',
+                    ],
+                    'source' => 'node_modules/@tabler/icons/icons/filled',
+                    // filter => [],
+                ],
+                'mini' => [
+                    'base' => 'solid',
+                    'size' => 20 // default size for the icon, not necessary to specify
+                ], 
+                'micro' => [
+                    'base' => 'solid', 
+                    'size' => 16 // default size for the icon, not necessary to specify
+                ],
             ],
+            /*
             'path_attributes'=> [
                 'outline' => [
                     'stroke-linecap' => 'round',
@@ -44,8 +74,8 @@ return [
             ],
             'source_directories' => [
                 'outline' => 'node_modules/@tabler/icons/icons/outline', 
-                'solid' => 'node_modules/@tabler/icons/icons/filled',
             ],
+            */
             'transform_svg_path' => [ Ympact\FluxIcons\Services\Vendors\Tabler::class, 'transformSvgPath' ],
             'change_stroke_width' => [ Ympact\FluxIcons\Services\Vendors\Tabler::class, 'changeStrokeWidth' ] 
         ],
