@@ -31,10 +31,10 @@ return [
             'baseVariant' => 'outline', 
             'variants' => [
                 'outline' => [
-                    'stub' => 'outline', // default stub for the icon, not necessary to specify
+                    'template' => 'outline', // default stub for the icon, not necessary to specify
                     'stroke_width' => 1.5, // default stroke width for the icon, not necessary to specify
                     'size' => 24, // default size for the icon, not necessary to specify
-                    'path_attributes' => [
+                    'attributes' => [
                         'stroke-linecap' => 'round',
                         'stroke-linejoin' => 'round',
                     ],
@@ -42,13 +42,10 @@ return [
                     // filter => [],
                 ],
                 'solid' => [
-                    'stub' => 'solid',
+                    'template' => 'solid',
                     'stroke_width' => false, // there is no stroke width for solid icons
                     'size' => 24,
-                    'path_attributes' => [
-                        'fill-rule' => 'evenodd',
-                        'clip-rule' => 'evenodd',
-                    ],
+                    'attributes' => [],
                     'source' => 'node_modules/@tabler/icons/icons/filled',
                     // filter => [],
                 ],
@@ -61,22 +58,9 @@ return [
                     'size' => 16 // default size for the icon, not necessary to specify
                 ],
             ],
-            /*
-            'path_attributes'=> [
-                'outline' => [
-                    'stroke-linecap' => 'round',
-                    'stroke-linejoin' => 'round',
-                ],
-                'solid' => [
-                    'fill-rule' => 'evenodd',
-                    'clip-rule' => 'evenodd',
-                ],
-            ],
-            'source_directories' => [
-                'outline' => 'node_modules/@tabler/icons/icons/outline', 
-            ],
-            */
-            'transform_svg_path' => [ Ympact\FluxIcons\Services\Vendors\Tabler::class, 'transformSvgPath' ],
+            // adjust individual icons
+            'attributes' => [ Ympact\FluxIcons\Services\Vendors\Tabler::class, 'attributes' ],
+            'transform' => [ Ympact\FluxIcons\Services\Vendors\Tabler::class, 'transform' ],
             'change_stroke_width' => [ Ympact\FluxIcons\Services\Vendors\Tabler::class, 'changeStrokeWidth' ] 
         ],
 
@@ -93,7 +77,7 @@ return [
                 'outline' => 'node_modules/@material-design-icons/svg/outlined',
                 'solid' => 'node_modules/@material-design-icons/svg/filled',
             ],
-            'transform_svg_path' => null, 
+            'transform' => null, 
             'change_stroke_width' => null
         ],
 
@@ -118,7 +102,7 @@ return [
                     'suffix' => [ Ympact\FluxIcons\Services\Vendors\Fluent::class, 'sourceSolidSuffix' ],
                 ],
             ],
-            'transform_svg_path' => null, 
+            'transform' => null, 
             'change_stroke_width' => null
         ],
 
@@ -138,7 +122,7 @@ return [
                 'outline' => 'node_modules/flowbite-icons/src/outline/*/',
                 'solid' => 'node_modules/flowbite-icons/src/solid/*/',
             ],
-            'transform_svg_path' => null, 
+            'transform' => null, 
             'change_stroke_width' => null
         ],
 
@@ -172,7 +156,7 @@ return [
                     'filter' => [ Ympact\FluxIcons\Services\Vendors\Mdi::class, 'solidFilter' ]
                 ]   
             ],
-            'transform_svg_path' => null, 
+            'transform' => null, 
             'change_stroke_width' => null
         ],
         

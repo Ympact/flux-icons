@@ -5,11 +5,10 @@ namespace Ympact\FluxIcons\Console;
 use Illuminate\Support\Str;
 use Ympact\FluxIcons\Services\IconBuilder;
 use Illuminate\Console\Command;
-use Illuminate\Contracts\Console\PromptsForMissingInput;
-use Illuminate\Filesystem\Filesystem;
 use function Laravel\Prompts\select;
+use function Laravel\Prompts\multisearch;
 
-class BuildFluxIconsCommand extends Command implements PromptsForMissingInput
+class BuildFluxIconsCommand extends Command
 {
     protected $signature = 'flux-icons:build
                             {vendor? : The vendor icon package to use} 
@@ -18,17 +17,17 @@ class BuildFluxIconsCommand extends Command implements PromptsForMissingInput
                             {--M|merge : Merge the icons from the --icons option with the default icons}';
     protected $description = 'Build icons for Flux using a specific icon package';
 
-
     public function handle()
     {
+        $noInteraction = $this->option('no-interaction');
         $verbose = $this->option('verbose');
         
-        $vendor = $this->argument('vendor') ?? 
-            $this->select(
+        $vendor = $this->argument('vendor') ?? ($noInteraction ? null :
+            select(
                 label: 'From which vendor do you want to build icons?',
                 options: IconBuilder::getAvailableVendors()->keys()->toArray(),
                 scroll: 5
-            );
+            ));
         
         if (!config("flux-icons.vendors.$vendor")) {
             $this->error("Vendor configuration for '$vendor' not found.");
@@ -48,44 +47,45 @@ class BuildFluxIconsCommand extends Command implements PromptsForMissingInput
             return 1;
         }
 
+        $configVendorIcons = config("flux-icons.icons.{$vendor}", null);
         $availableIcons = $iconBuilder->getAvailableIcons();
-        // if icons is null, confirm that the user wants to build all icons
-        if (!$icons) {
-            $whichOption = $this->select(
-                label: 'Which icons do you want to build from the vendor?',
-                options: [
-                    'select' => 'Let me choose', 
-                    'all' => 'All '. $availableIcons->count() . ' icons'],
-                default: 'select'
-            );
 
-            $all = $whichOption === 'all';    
-
-        }
-
-        if(!$all && !$icons){
-            $icons = $this->multisearch(
-                label: 'Which icons do you want to build from the vendor?',
-                options: fn (string $value) => $iconBuilder->getAvailableIcons()
-                    ->filter(fn ($name) => Str::contains($name, $value, ignoreCase: true))
-                    ->values()
-                    ->all(),
-                scroll: 10
-            ); 
-        }
-
-        $defaultIcons = config("flux-icons.icons", null);
-
-        if($icons){
-            $icons = explode(',', $icons);
-            if($this->option('merge')){
-                if($defaultIcons){
-                    $icons = array_merge($defaultIcons, $icons);
-                }
-            }   
+        if($noInteraction){
+            $icons = $all ? $availableIcons->all() : ($icons ? $icons : $configVendorIcons);
         }
         else{
-            $icons = $defaultIcons;
+            // adjust select options in case configVendorIcons is set
+            $options = [
+                'select' => 'Let me choose', 
+                'all' => 'All '. $availableIcons->count() . ' icons'
+            ];
+            $options = $configVendorIcons ? array_merge( ['config' => 'Configured icons for '.$vendor], $options) : $options;
+
+            // if icons is null, confirm that the user wants to build all icons
+            if (!$icons) {
+                $whichOption = select(
+                    label: 'Which icons do you want to build from the vendor?',
+                    options: $options,
+                    default: $configVendorIcons ? 'config' : 'select'
+                );
+
+                //$all = $whichOption === 'all';
+
+                if($whichOption === 'config'){
+                    $icons = $configVendorIcons;
+                }
+
+                if($whichOption === 'select'){
+                    $icons = multisearch(
+                        label: 'Which icons do you want to build from the vendor?',
+                        options: fn (string $value) => $iconBuilder->getAvailableIcons()
+                            ->filter(fn ($name) => Str::contains($name, $value, ignoreCase: true))
+                            ->values()
+                            ->all(),
+                        scroll: 10
+                    ); 
+                }
+            }
         }
 
         $this->info("Start building icons 👀");
