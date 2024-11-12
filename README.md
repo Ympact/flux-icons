@@ -77,7 +77,7 @@ For the first version of this Flux Icons package the source icons are treated as
 You can publish the config file to adjust settings for a specific vendor or add your own vendor. In case you add your own vendor, please share or make a PR so others can use it too!
 
 ```cmd
-php artisan vendor:publish --tag=flux-icons-config
+php artisan vendor:publish --tag=config
 ```
 
 ### Publish specific vendor callbacks

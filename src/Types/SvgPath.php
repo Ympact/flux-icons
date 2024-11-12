@@ -3,22 +3,22 @@
 // class that is a representation of an icon using DomDocument and XPath
 namespace Ympact\FluxIcons\Types;
 
-use DOMNameSpaceNode;
 use DOMNode;
 
 class SvgPath{
 
     protected $dom;
 
-    protected DOMNode|DOMNameSpaceNode $tag;
+    protected DOMNode $tag;
 
     protected $type;
 
     protected $d;
 
-    public function __construct(DOMNode|DOMNameSpaceNode $tag)
+    public function __construct(DOMNode $tag)
     {
         $this->tag = $tag;
+        $this->dom = $tag->ownerDocument;
         // get attributes and node type from $tag
         $this->type = $tag->nodeName;
         $this->d = $tag->getAttribute('d');
@@ -48,8 +48,8 @@ class SvgPath{
         }
     }
 
-    // toHtml string
-    public function toHtml(){
-        return $this->dom->saveHTML($this->tag);
+    public function getNode(){
+        return $this->tag;
     }
+
 }

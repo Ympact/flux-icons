@@ -3,13 +3,13 @@
 namespace Ympact\FluxIcons\Services;
 
 use Illuminate\Support\Collection;
-use Illuminate\Filesystem\Filesystem;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
 use Symfony\Component\Console\Helper\ProgressBar;
 use Symfony\Component\Console\Output\ConsoleOutput;
 use Ympact\FluxIcons\Types\Icon;
+use function Ympact\FluxIcons\arrayMergeRecursive;
 
 class IconBuilder
 {
@@ -33,10 +33,10 @@ class IconBuilder
 
     protected array $variantDefaults = [
         'outline' => [
-            'stub' => 'outline', // default stub for the icon, not necessary to specify
+            'template' => 'outline', // default stub for the icon, not necessary to specify
             'stroke_width' => 1.5,
             'size' => 24, // default size for the icon, not necessary to specify
-            'path_attributes' => [
+            'attributes' => [
                 'stroke-linecap' => 'round',
                 'stroke-linejoin' => 'round',
             ],
@@ -45,10 +45,10 @@ class IconBuilder
             //'filter' => null,
         ],
         'solid' => [
-            'stub' => 'solid',
+            'template' => 'solid',
             'stroke_width' => false, // there is no stroke width for solid icons
             'size' => 24,
-            'path_attributes' => [
+            'attributes' => [
                 'fill-rule' => 'evenodd',
                 'clip-rule' => 'evenodd',
             ],
@@ -101,7 +101,6 @@ class IconBuilder
             $this->namespace = Str::slug(config("{$this->vendorConfig}.namespace") ?? $this->vendor);
 
             $this->determineDefaults();
-            //dump($this->variants);
         }
         else{
             throw new \Exception("Vendor $vendor not found in config file");
@@ -111,11 +110,17 @@ class IconBuilder
 
     /**
      * set the icons that need to be build
-     * @param mixed $icons
+     * @param string|array $icons
      * @return IconBuilder
      * @todo create tests for this method
      */
-    public function setIcons($icons): static{
+    public function setIcons($icons): static
+    {
+        // make sure that the icons are an array
+        if(is_string($icons)){
+            $icons = explode(',', $icons);
+        }
+
         $this->icons = $icons;
         return $this;
     }
@@ -194,7 +199,8 @@ class IconBuilder
 
         // map the files into a new collection as Icon() and by intersecting with $icons
         $baseIcons = $files->map(function($file){
-            return new Icon(config($this->vendorConfig), $file);
+            return  $this->buildIcon($this->baseVariant, $file);
+            //return new Icon(config($this->vendorConfig), $file);
         });
 
         // intersect the base variant icons with the icons argument if it was passed. The icons argument can be a comma separated list of icon names without the file extension or the prefix/suffix
@@ -221,11 +227,10 @@ class IconBuilder
 
         $infoCredits = $this->getPackageCredits();
         $infoFluxVersion = $this->getPackageCredits(true);
-
-        $iconBladeFile = Str::of(File::get(__DIR__.'/../../resources/stubs/icon.blade.stub'));
-
+     
         foreach ($baseIcons as $baseIcon)
         {
+            $iconBladeFile = Str::of(File::get(__DIR__.'/../../resources/stubs/icon.blade.stub'));
 
             // in case there are no solid icons, use the preprocessed bse variant icon
             $basename = $baseIcon->process()->getBaseName();
@@ -234,32 +239,30 @@ class IconBuilder
             // loop through the variants collection build the icons
             foreach($this->variants as $variant => $config)
             {
-                $variantBladeFile = Str::of(File::get(__DIR__.'/../../resources/stubs/variants/'.$variant.'.blade.stub'));
-
                 // in case the variant is the baseVariant, we use the baseIcon
                 if($variant == $this->baseVariant){
                     $icon = $baseIcon;
                 }
                 else{
                     // get the icon file for the variant
-                    $file = $this->getVariantIconFile($variant,$basename);
-                    $icon = $this->buildIcon($variant, $file, $baseIcon);
+                    $file = $this->getVariantIconFile($variant, $basename);
+                    $icon = $this->buildIcon($variant, $file);
+                    $icon->process();
                 }
-                $icon->process()
-                    ->transform($variant)
-                    ->setAttributes($variant);
+                $icon->transform()
+                    ->setPathAttributes();
 
                 if($config['stroke_width']){
                     $icon->setStrokeWidth(config("{$this->config}.default_stroke_width", null));
                 }
-                $variantBladeFile->replace('{SVG_PATHS}', $icon->toHtml())
-                    ->replace('{SVG_SIZE}', $icon->getSize())
-                    ->replace('{SVG_STROKE_WIDTH}', $icon->getStrokeWidth());
-                
-                $iconBladeFile->replace('{'.Str::upper($variant).'}', $variantBladeFile);
+
+                $template = $icon->toHtml();
+                $template = Str::of($template)->replace('<svg', '<svg {{ $attributes->class($classes) }}');
+
+                $iconBladeFile = $iconBladeFile->replace('{'.Str::upper($variant).'}',$template);
             }
             
-            $iconBladeFile
+            $iconBladeFile = $iconBladeFile
                 ->replace('{INFO_ICON_NAME}', $basename)
                 ->replace('{INFO_ICON_USAGE}', $infoUsage)
                 ->replace('{INFO_CREDITS}', $infoCredits)
@@ -291,13 +294,28 @@ class IconBuilder
     {
         // for each variant, we determine the defaults by recursively merging the variantDefaults with the settings in the config into $this->variants
         $settings = config("{$this->vendorConfig}.variants");
+        $this->variants = collect($this->variantDefaults)->except(['mini', 'micro'])->map(function($variant, $key) use ($settings){
+            return arrayMergeRecursive(
+                $variant, 
+                Arr::get($settings, $key, [])
+            );
+        });
+
         $this->variants = collect($this->variantDefaults)->map(function($variant, $key) use ($settings){
+            // for the mini and micro variants, we merge the settings with the base variant settings    
             // the mini and micro variants inherit the settings from the variant listed in the base key
             if($key == 'mini' || $key == 'micro'){
-                $variant = array_merge($variant, Arr::get($variant, $key.'.base' , []), Arr::get($settings, $key.'.base', []));
-            }
-            return array_merge($variant, Arr::get($settings, $key, []));
-        });
+                $base = key_exists('base', $settings) ? $this->variants[$variant['base']] : $this->variants[$variant['base']];
+                $variant = arrayMergeRecursive(
+                    $variant, 
+                    $base
+                );
+            }  
+            return arrayMergeRecursive(
+                $variant, 
+                Arr::get($settings, $key, [])
+            );
+        });     
     }
 
     /**
@@ -309,23 +327,13 @@ class IconBuilder
      * @return Icon
      * @todo create test for this method
      */
-    public function buildIcon(string $variant, string $file, $baseIcon): Icon
+    public function buildIcon(string $variant, string $file): Icon
     {
-        $icon = new Icon(config($this->vendorConfig), $file );
+        $conf = config($this->vendorConfig);
+        $conf['variants'] = $this->variants;
 
-        if ($filter = $this->variantProp($variant, 'source.filter', false)) {
-            if(!call_user_func_array(
-                $filter, 
-                [$file]
-            )){
-                $icon = $baseIcon;
-            }
-        }
-
-        // if the icon doesn't exist, we use the baseIcon
-        if(!$icon->fileExists()){
-            $icon = $baseIcon;
-        }
+        $icon = new Icon($conf, $variant, $file);
+        //$icon->determineStub($variant);
 
         return $icon;
     }
@@ -428,6 +436,23 @@ class IconBuilder
             $dir = is_callable($dir) ? $dir($variant, $size) : $dir;
             $file = Str::of(base_path($dir))->finish('/') . "{$iconName}.svg";
         }
+
+        // check if the file is actually the variant file 
+        if ($filter = $this->variantProp($variant, 'source.filter', false)) {
+            if(!call_user_func_array(
+                $filter, 
+                [$file]
+            )){
+                $file = null;
+            }
+        }
+
+        // check if file exists
+        if(!File::exists($file)){
+            // use the basevariant file as fallback
+            $file = base_path($this->variantProp($this->baseVariant, 'source')) . "/$basename.svg";
+        }
+
         return $file;
     }
 
