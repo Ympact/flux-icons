@@ -2,6 +2,7 @@
 
 namespace Ympact\FluxIcons\Services\Vendors;
 
+use Illuminate\Support\Str;
 use Ympact\FluxIcons\Types\SvgPath;
 use Illuminate\Support\Collection;
 use Ympact\FluxIcons\Types\Icon;
@@ -33,6 +34,11 @@ class Tabler
         return $svgPaths;
     }
 
+    /**
+     * Adjust the SVG attributes of the icon
+     * @param \Ympact\FluxIcons\Types\Icon $icon
+     * @return array
+     */
     public static function attributes(Icon $icon)
     {
         $attributes = [];
@@ -49,30 +55,40 @@ class Tabler
     }
 
     /**
-     * Adjust the stroke width of the outline icon
-     * @param string $iconName base name of the icon
-     * @param int|float $currentStrokeWidth 1.5 or the default set in config option `default_stroke_width`
-     * @param Collection<SvgPath> $svgPaths
+     * Adjust the stroke width of the icon
+     * @param Icon $icon base name of the icon
      * @return int|float
      */
-    public static function changeStrokeWidth (string $iconName, int|float $currentStrokeWidth, Collection $svgPaths): int|float {
+    public static function strokeWidth (Icon $icon): int|float {
         // icons that have a small circular shape should have a stroke width of 2 otherwise you may see a gap in the icon when using 1.5
         // ie icons such as dots, dots-vertical, grip-horizontal, grip-vertical, etc
-        $strokeWidth = $svgPaths->filter(function(SvgPath $svgPath){
+        $strokeWidth = $icon->getPaths()->filter(function(SvgPath $svgPath){
             return strpos($svgPath->getD(), 'a1 1 0 1 0') !== false;
-        })->count() > 0 ? 2 : $currentStrokeWidth;
+        })->count() > 0 ? 2 : $icon->getStrokeWidth();
 
-        //$strokeWidth = match($iconName){
-        //    'refresh' => 2,
-        //    default => $strokeWidth
-        //};
-        
+        if($icon->getVariant() === 'solid' || $icon->getVariant() === 'mini' || $icon->getVariant() === 'micro'){
+            $strokeWidth = match($icon->getBaseName()){
+                'refresh' => 2,
+                default => $strokeWidth
+            };
+
+            $strokeWidth = match(true){
+                Str::startsWith($icon->getBaseName(), 'arrow-') => 2,
+                default => $strokeWidth
+            };
+        }
+
+        // in case it is a float, make sure we have max 2 decimal places
+        if(is_float($strokeWidth)){
+            $strokeWidth = round($strokeWidth, 2);
+        }
+
         return $strokeWidth;
     }
 
 
     /**
-     * add stroke="currentColor" stroke-width="1.5" attributes to the svg paths
+     * Helper method: add stroke="currentColor" stroke-width="1.5" attributes to the the svg paths within range
      * @param \Illuminate\Support\Collection $svgPaths
      * @param int $start
      * @param mixed $end
