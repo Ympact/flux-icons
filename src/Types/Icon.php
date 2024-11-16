@@ -58,6 +58,8 @@ class Icon{
 
     protected string $variant;
 
+    protected array $attributes = [];
+
     public function __construct($config, $variant, $filename)
     {
         $this->config = $config;
@@ -94,6 +96,23 @@ class Icon{
     }
 
     /**
+     * set template
+     */
+    public function setTemplate(string $template): static
+    {
+        $this->template = $template;
+        return $this;
+    }
+
+    /**
+     * get template
+     */
+    public function getTemplate(): string
+    {
+        return $this->template;
+    }
+
+    /**
      * Summary of process
      * @return Icon
      */
@@ -104,6 +123,7 @@ class Icon{
             if($this->xpathSource){
                 $this->determineIconSize();
                 $this->extractTags();
+                $this->determineSvgAttributes();
             }
         }
         return $this;
@@ -159,6 +179,11 @@ class Icon{
         return $this->variantAttributes;
     }
 
+    public function getAttributes(): array
+    {
+        return $this->attributes;
+    }
+
     /**
      * transform icon and return new instance of the transformed icon
      * we merge paths and execute the transformation as set in the config
@@ -188,9 +213,8 @@ class Icon{
     public function setStrokeWidth(float $default = null, bool $force = false): static
     {
         $this->strokeWidth = $default ?? $this->strokeWidth;
-
         // if there is a strokeWidth function in the config file, apply it
-        if(!$force && $callback = Arr::get($this->config, "strokeWidth")){
+        if(!$force && $callback = Arr::get($this->config, "stroke_width")){
             $this->strokeWidth = call_user_func_array($callback, [$this]);
         }
 
@@ -352,11 +376,10 @@ class Icon{
     {
         $this->dom = new DOMDocument();
         $this->dom->loadXML('<svg></svg>'); 
-
-        $attributes = arrayMergeRecursive($this->variantAttributes['default'], $this->variantAttributes[$this->template], $this->determineSvgAttributes());
+       // $attributes = arrayMergeRecursive($this->variantAttributes['default'], $this->variantAttributes[$this->template], $this->determineSvgAttributes());
 
         $svg = $this->dom->getElementsByTagName('svg')->item(0);
-        foreach($attributes as $key => $value){
+        foreach($this->attributes as $key => $value){
             // if value is an array, call the function
             if(is_array($value)){
                 $value = call_user_func($value);
@@ -365,14 +388,18 @@ class Icon{
         }
     }
 
-    public function determineSvgAttributes(): array{
+    public function determineSvgAttributes():void{
         $attributes = [];
         $attributes = Arr::get($this->config, "variants.{$this->variant}.attributes", []);
         if($callback = Arr::get($this->config, 'attributes')){
             $attributes = arrayMergeRecursive($attributes, call_user_func_array($callback, [$this]));
         }
 
-        return $attributes;
+        $this->attributes = arrayMergeRecursive(
+            $this->variantAttributes['default'],
+            $this->variantAttributes[$this->template], 
+            $attributes
+        );
     }
 
     /**

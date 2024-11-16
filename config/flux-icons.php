@@ -47,9 +47,13 @@ return [
                 ],
                 'solid' => [
                     'template' => 'solid',
+                    'fallback' => 'default', // default is baseVariant. 'variant'|false => in case false the icon will not be published at all
                     'stroke_width' => false, // there is no stroke width for solid icons
                     'size' => 24,
-                    'attributes' => [],
+                    'attributes' => [
+                        'fill-rule' => 'evenodd',
+                        'clip-rule' => 'evenodd',
+                    ],
                     'source' => 'node_modules/@tabler/icons/icons/filled',
                     // filter => [],
                 ],

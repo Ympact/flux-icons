@@ -50,8 +50,11 @@ class BuildFluxIconsCommand extends Command
         $configVendorIcons = config("flux-icons.icons.{$vendor}", null);
         $availableIcons = $iconBuilder->getAvailableIcons();
 
-        if($noInteraction){
-            $icons = $all ? $availableIcons->all() : ($icons ? $icons : $configVendorIcons);
+        if($all || $noInteraction){
+            $icons = $all ? $availableIcons->map(function($icon){
+                // get the filename without the extension and remove the directory
+                return Str::of($icon)->basename('.svg')->toString();
+            })->all() : ($icons ? $icons : $configVendorIcons);
         }
         else{
             // adjust select options in case configVendorIcons is set
@@ -87,7 +90,6 @@ class BuildFluxIconsCommand extends Command
                 }
             }
         }
-
         $this->info("Start building icons 👀");
         $iconBuilder->setIcons($icons);
         
