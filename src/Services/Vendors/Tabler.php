@@ -6,6 +6,7 @@ use Illuminate\Support\Str;
 use Ympact\FluxIcons\Types\SvgPath;
 use Illuminate\Support\Collection;
 use Ympact\FluxIcons\Types\Icon;
+use function Ympact\FluxIcons\arrayMergeRecursive;
 
 class Tabler
 {
@@ -46,7 +47,8 @@ class Tabler
 
         if($variant == 'solid' || $variant == 'mini' || $variant == 'micro'){
             $attributes = match($icon->getBaseName()){
-                'refresh' => array_merge($icon->getDefaultAttributes('outline'), ['stroke-width' => 2]),
+                //'refresh' => array_merge($icon->getDefaultAttributes('outline'), ['stroke-width' => 2]),
+                //'refresh' => arrayMergeRecursive($icon->getAttributes(), ['stroke-width' => 2]),
                 default => $attributes
             };
         }
@@ -60,13 +62,20 @@ class Tabler
      * @return int|float
      */
     public static function strokeWidth (Icon $icon): int|float {
+        $strokeWidth = $icon->getStrokeWidth();
+
+        if($icon->getTemplate() !== 'outline'){
+            return $strokeWidth;
+        }
+
         // icons that have a small circular shape should have a stroke width of 2 otherwise you may see a gap in the icon when using 1.5
         // ie icons such as dots, dots-vertical, grip-horizontal, grip-vertical, etc
         $strokeWidth = $icon->getPaths()->filter(function(SvgPath $svgPath){
             return strpos($svgPath->getD(), 'a1 1 0 1 0') !== false;
         })->count() > 0 ? 2 : $icon->getStrokeWidth();
 
-        if($icon->getVariant() === 'solid' || $icon->getVariant() === 'mini' || $icon->getVariant() === 'micro'){
+        $variant = $icon->getVariant();
+        if($variant === 'solid' || $variant === 'mini' || $variant === 'micro'){
             $strokeWidth = match($icon->getBaseName()){
                 'refresh' => 2,
                 default => $strokeWidth
@@ -76,6 +85,7 @@ class Tabler
                 Str::startsWith($icon->getBaseName(), 'arrow-') => 2,
                 default => $strokeWidth
             };
+
         }
 
         // in case it is a float, make sure we have max 2 decimal places

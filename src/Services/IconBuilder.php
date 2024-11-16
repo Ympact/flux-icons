@@ -10,6 +10,10 @@ use Symfony\Component\Console\Helper\ProgressBar;
 use Symfony\Component\Console\Output\ConsoleOutput;
 use Ympact\FluxIcons\Types\Icon;
 use function Ympact\FluxIcons\arrayMergeRecursive;
+use function Laravel\Prompts\error;
+use function Laravel\Prompts\confirm;
+use function Laravel\Prompts\info;
+
 
 class IconBuilder
 {
@@ -36,38 +40,39 @@ class IconBuilder
             'template' => 'outline', // default stub for the icon, not necessary to specify
             'stroke_width' => 1.5,
             'size' => 24, // default size for the icon, not necessary to specify
-            'attributes' => [
-                'stroke-linecap' => 'round',
-                'stroke-linejoin' => 'round',
-            ],
+            'attributes' => [],
             'source' => 'node_modules/@tabler/icons/icons/outline',
             // source can also be an array with dir, prefix, suffix and filter settings
             //'filter' => null,
         ],
         'solid' => [
             'template' => 'solid',
+            'fallback' => 'default',
             'stroke_width' => false, // there is no stroke width for solid icons
             'size' => 24,
-            'attributes' => [
-                'fill-rule' => 'evenodd',
-                'clip-rule' => 'evenodd',
-            ],
+            'attributes' => [],
             'source' => 'node_modules/@tabler/icons/icons/filled',
             //'filter' => null,	
         ],
         // inherits the settings from solid variant
         'mini' => [
-            'base' => 'solid',
+            'base' => 'solid', // inherit solid settings
             'size' => 20
         ], 
         // inherits the settings from solid variant
         'micro' => [
-            'base' => 'solid',
+            'base' => 'solid', // inherit solid settings
             'size' => 16
         ]
     ];
 
     protected ConsoleOutput $output;
+
+    protected $progressBar;
+
+    protected $chunckSize = 50;
+
+    protected $timeout = 1000000/3; // in microseconds
 
     public function __construct(string $vendor = null, array $icons = null, $verbose = false)
     {
@@ -222,46 +227,106 @@ class IconBuilder
             }
         }
 
-        $progressBar = new ProgressBar($this->output, count( $baseIcons));
-        $progressBar->start();
-
         $infoCredits = $this->getPackageCredits();
         $infoFluxVersion = $this->getPackageCredits(true);
      
-        foreach ($baseIcons as $baseIcon)
-        {
-            $iconBladeFile = Str::of(File::get(__DIR__.'/../../resources/stubs/icon.blade.stub'));
+        $npmRunning = false;
+        if($baseIcons->count() > 100){
+            $time = round($baseIcons->count() / 3);
 
-            // in case there are no solid icons, use the preprocessed bse variant icon
-            $basename = $baseIcon->process()->getBaseName();
-            $infoUsage = "<flux:icon.{$this->namespace}.{$basename} /> or <flux:icon name=\"{$this->namespace}.{$basename}\" />";
+            info("In case npm run dev is running, we'll introduce a timeout between processing icons to prevent memory issues. \nThis will make this script take $time seconds. \nIt is better to stop `npm run dev` first before continuing.");
+            $npmRunning = confirm('Is `npm run dev` running?');
+        }
 
-            // loop through the variants collection build the icons
-            foreach($this->variants as $variant => $config)
-            {
-                // in case the variant is the baseVariant, we use the baseIcon
-                if($variant == $this->baseVariant){
-                    $icon = $baseIcon;
-                }
-                else{
-                    // get the icon file for the variant
-                    $file = $this->getVariantIconFile($variant, $basename);
-                    $icon = $this->buildIcon($variant, $file);
-                    $icon->process();
-                }
-                $icon->transform()
-                    ->setPathAttributes();
+        $this->progressBar = new ProgressBar($this->output, count( $baseIcons));
+        $this->progressBar->start();
 
-                if($config['stroke_width']){
-                    $icon->setStrokeWidth(config("{$this->config}.default_stroke_width", null));
-                }
-
-                $template = $icon->toHtml();
-                $template = Str::of($template)->replace('<svg', '<svg {{ $attributes->class($classes) }}');
-
-                $iconBladeFile = $iconBladeFile->replace('{'.Str::upper($variant).'}',$template);
+        // chunk the baseIcons collection into smaller collections to prevent memory issues
+        $baseIcons->chunk($this->chunckSize)->each(function($chunk) use ($infoCredits, $infoFluxVersion, $npmRunning){
+             // Process each chunk of icons
+            foreach ($chunk as $icon) {
+                $this->buildIconCollection($icon, $infoCredits, $infoFluxVersion);
+                
+                // Introduce a timeout between processing chunks
+                if($npmRunning){   
+                    usleep($this->timeout);
+                }   
             }
-            
+        });
+
+        // Finish the progress bar
+        $this->progressBar->finish();
+
+        // write empty line
+        $this->output->writeln('');
+
+        // ask to start running npm run dev again
+        if(confirm('Do you want to start `npm run dev`?')){
+            exec('npm run dev', $output, $result);
+            dump($result, $output);
+        }
+        
+    }
+
+    /**
+     * buildIconCollection
+     * @param Collection $icons
+     * @param ProgressBar $progressBar
+     * @param string $infoCredits
+     * @param string $infoFluxVersion
+     * @return void
+     * @todo create tests for this method
+     */
+    public function buildIconCollection(Icon $baseIcon, string $infoCredits, string $infoFluxVersion): void
+    {
+        $build = true;
+        $iconBladeFile = Str::of(File::get(__DIR__.'/../../resources/stubs/icon.blade.stub'));
+
+        // in case there are no solid icons, use the preprocessed bse variant icon
+        $basename = $baseIcon->process()->getBaseName();
+        $infoUsage = "<flux:icon.{$this->namespace}.{$basename} /> or <flux:icon name=\"{$this->namespace}.{$basename}\" />";
+
+        // loop through the variants collection build the icons
+        foreach($this->variants as $variant => $variantConfig)
+        {
+            // in case the variant is the baseVariant, we use the baseIcon
+            $template = $this->variantProp($variant, 'template');
+            if($variant == $this->baseVariant){
+                $icon = $baseIcon;
+            }
+            else{
+                // get the icon file for the variant
+                if(!$file = $this->getVariantIconFile($variant, $basename)){
+                    $fallback = $this->determineFallback($variant, $baseIcon);
+
+                    if(!$fallback){
+                        $this->verbose ? error("No source found for $basename $variant. No fallback either, so we're not building this icon.") : null;
+                        $build = false;
+                        continue;
+                    }
+
+                    $file = $this->getVariantIconFile($fallback, $basename);
+                    $template = $this->variantProp($fallback, 'template');
+                }
+                
+                $icon = $this->buildIcon($variant, $file);
+                $icon->setTemplate($template);
+                $icon->process();
+            }
+            $icon->transform()
+                ->setPathAttributes();
+
+            if(config("{$this->vendorConfig}.stroke_width") || $this->variantProp($template, 'stroke_width')){
+                $icon->setStrokeWidth($this->variantProp($template, 'stroke_width', null) ?? config("{$this->config}.default_stroke_width"));
+            }
+
+            $svg = $icon->toHtml();
+            $svg = Str::of($svg)->replace('<svg', '<svg {{ $attributes->class($classes) }}');
+
+            $iconBladeFile = $iconBladeFile->replace('{'.Str::upper($variant).'}',$svg);
+        }
+        
+        if($build){
             $iconBladeFile = $iconBladeFile
                 ->replace('{INFO_ICON_NAME}', $basename)
                 ->replace('{INFO_ICON_USAGE}', $infoUsage)
@@ -277,12 +342,10 @@ class IconBuilder
                     $this->output->writeln("<info>Wrote {$basename}.blade.php</info>");
                 }
             }
-            // Update the progress bar
-            $progressBar->advance();
         }
-
-        // Finish the progress bar
-        $progressBar->finish();
+        // Update the progress bar
+        $this->progressBar->advance();
+    
     }
 
     /**
@@ -402,16 +465,46 @@ class IconBuilder
         }   
     }
 
+    /**
+     * determineFallback
+     * @return string|bool
+     */
+    public function determineFallback(string $variant, Icon $baseIcon): string|bool
+    {
+        $fallback = $this->variantProp($variant, 'fallback', false);
+        // if fallback is set to false, we don't have a fallback
+        if(!$fallback){
+            return false;
+        }
+        // if fallback is set to 'variant', we use the variant as the fallback
+        if($fallback == 'default'){
+            return $this->baseVariant;
+        }
+
+        // in case an array is passed, we use as a callback
+        if(is_array($fallback)){
+            return call_user_func_array($fallback, [$baseIcon, $variant, $this->baseVariant]);
+        }
+
+        // if it is a string, check if the string is a variant
+        if(is_string($fallback) && $this->variants->has($fallback)){
+            return $fallback;
+        }
+       
+        //
+        return false;
+    }
+
 
     /**
      * getVariantFile
      * Determine the file for the icon in the specified variant
      * @param string $variant
      * @param string $basename
-     * @return string
+     * @return string|null
      * @todo create tests for this method
      */
-    public function getVariantIconFile(string $variant, string $basename): string
+    public function getVariantIconFile(string $variant, string $basename): string|null
     {       
         $iconName = $basename;
         if (is_string($this->variantProp($variant, 'source'))) {
@@ -449,8 +542,7 @@ class IconBuilder
 
         // check if file exists
         if(!File::exists($file)){
-            // use the basevariant file as fallback
-            $file = base_path($this->variantProp($this->baseVariant, 'source')) . "/$basename.svg";
+            return null;
         }
 
         return $file;
