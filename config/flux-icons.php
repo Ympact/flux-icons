@@ -25,6 +25,9 @@ return [
      * Vendors configuration
      */
     'vendors' => [
+        /**
+         * Tabler
+         */
         'tabler' => [
             'vendor_name' => 'Tabler',
             'namespace' => 'tabler',
@@ -62,85 +65,96 @@ return [
             // adjust individual icons
             'attributes' => [ Ympact\FluxIcons\Services\Vendors\Tabler::class, 'attributes' ],
             'transform' => [ Ympact\FluxIcons\Services\Vendors\Tabler::class, 'transform' ],
-            'change_stroke_width' => [ Ympact\FluxIcons\Services\Vendors\Tabler::class, 'changeStrokeWidth' ] 
+            'stroke_width' => [ Ympact\FluxIcons\Services\Vendors\Tabler::class, 'strokeWidth' ] 
         ],
 
-        // Google Material Design Icons
+        /**
+         * Google Material Design Icons
+         *
+         */
         'google' => [
             'vendor_name' => 'Material Design Icons',
             'namespace' => 'material',
             'package_name' => '@material-design-icons/svg',
-            'build_type' => [
-                'outline' => 'solid',
-                'solid' => 'solid',
-            ],
-            'build_type' => [
-                'outline' => 'solid',
-                'solid' => 'solid',
-            ],
-            'source_directories' => [
-                'outline' => 'node_modules/@material-design-icons/svg/outlined',
-                'solid' => 'node_modules/@material-design-icons/svg/filled',
+            'baseVariant' => 'outline', 
+            'variants' => [
+                'outline' => [
+                    'attributes' => [
+                        'stroke-linecap' => 'round',
+                        'stroke-linejoin' => 'round',
+                    ],
+                    'source' => 'node_modules/@material-design-icons/svg/outlined',
+                    // filter => [],
+                ],
+                'solid' => [
+                    'template' => 'solid',
+                    'stroke_width' => false, // there is no stroke width for solid icons
+                    'size' => 24,
+                    'attributes' => [],
+                    'source' => 'node_modules/@material-design-icons/svg/filled',
+                    // filter => [],
+                ],
+                'mini' => [
+                    'base' => 'solid',
+                ], 
+                'micro' => [
+                    'base' => 'solid', 
+                ],
             ],
             'transform' => null, 
-            'change_stroke_width' => null
+            'stroke_width' => null
         ],
 
-        // Fluent ui 
+        /**
+         * Fluent ui 
+         */
         'fluent' => [
             'vendor_name' => 'Fluent UI',
             'namespace' => 'fluent',
             'package_name' => '@fluentui/svg-icons',
-            'build_type' => [
-                'outline' => 'solid',
-                'solid' => 'solid',
-            ],
-            'build_type' => [
-                'outline' => 'solid',
-                'solid' => 'solid',
-            ],
-            'source_directories' => [
+            'baseVariant' => 'outline', 
+            'vriants' => [
                 'outline' => [
-                    'dir' => 'node_modules/@fluentui/svg-icons/icons',
-                    'prefix' => null,
-                    'suffix' => '_24_regular',
+                    'source' => [
+                        'dir' => 'node_modules/@fluentui/svg-icons/icons',
+                        'prefix' => null,
+                        'suffix' => '_24_regular',
+                    ],
                 ],
                 'solid' => [
-                    'dir' => 'node_modules/@fluentui/svg-icons/icons',
-                    'prefix' => null, 
-                    'suffix' => [ Ympact\FluxIcons\Services\Vendors\Fluent::class, 'sourceSolidSuffix' ],
+                    'source' => [
+                        'dir' => 'node_modules/@fluentui/svg-icons/icons',
+                        'prefix' => null, 
+                        'suffix' => [ Ympact\FluxIcons\Services\Vendors\Fluent::class, 'sourceSolidSuffix' ],
+                    ],
                 ],
             ],
             'transform' => null, 
-            'change_stroke_width' => null
+            'stroke_width' => null
         ],
 
-        /*
-        // Flowbite icons - requires additional configuration to work properly
-        // requires support for subdirectories
-        */
+        /**
+         * Flowbite icons - requires additional configuration to work properly
+         * requires support for subdirectories
+         */
         'flowbite' => [
             'vendor_name' => 'Flowbite',
             'namespace' => 'flowbite',
             'package_name' => 'flowbite-icons',
-            'build_type' => [
-                'outline' => 'outline',
-                'solid' => 'solid',
-            ],
-            'build_type' => [
-                'outline' => 'outline',
-                'solid' => 'solid',
-            ],
-            'source_directories' => [
-                'outline' => 'node_modules/flowbite-icons/src/outline/*/',
-                'solid' => 'node_modules/flowbite-icons/src/solid/*/',
+            'variants' => [
+                'outline' => [
+                    'source' => 'node_modules/flowbite-icons/src/outline/*/'
+                ],
+                'solid' => [
+                    'source' => 'node_modules/flowbite-icons/src/solid/*/'
+                ],
             ],
             'transform' => null, 
-            'change_stroke_width' => null
+            'stroke_width' => null
         ],
 
 
-        /*
+        /**
          * MDI - requires additional configuration to work properly
          * Icons are outlines by default, but in case there is an -outline variant the normal variant is solid
          */
@@ -171,10 +185,10 @@ return [
                     
                     // inverse of the outline filter
                     'filter' => [ Ympact\FluxIcons\Services\Vendors\Mdi::class, 'solidFilter' ]
-                ]   
+                ],
             ],
             'transform' => null, 
-            'change_stroke_width' => null
+            'stroke_width' => null
         ],
         
         // Add other vendors here...

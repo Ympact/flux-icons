@@ -173,6 +173,12 @@ class Icon{
         return $this;
     }
 
+    public function getPaths(): Collection
+    {
+        return $this->paths;
+    }
+
+
     /**
      * change the stroke width of the icon
      * @param float|null $default
@@ -183,9 +189,9 @@ class Icon{
     {
         $this->strokeWidth = $default ?? $this->strokeWidth;
 
-        // if there is a change_stroke_width function in the config file, apply it
-        if(!$force && $callback = Arr::get($this->config, "change_stroke_width")){
-            $this->strokeWidth = call_user_func_array($callback, [$this->basename, $this->strokeWidth , $this->paths]);
+        // if there is a strokeWidth function in the config file, apply it
+        if(!$force && $callback = Arr::get($this->config, "strokeWidth")){
+            $this->strokeWidth = call_user_func_array($callback, [$this]);
         }
 
         $this->strokeWidth = round($this->strokeWidth, 2);
