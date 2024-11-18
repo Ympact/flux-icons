@@ -102,9 +102,9 @@ The vendor specific configuration sits within the `vendors` key. Each vendor sho
 ```php
 'vendors' => [
     'tabler' => [
-        'vendor_name' => 'Tabler',
+        'vendor' => 'Tabler',
         'namespace' => 'tabler',
-        'package_name' => '@tabler/icons',
+        'package' => '@tabler/icons',
         'source_directories' => [ 
             //...
         ]
@@ -114,9 +114,9 @@ The vendor specific configuration sits within the `vendors` key. Each vendor sho
 
 | Option     | Value     | Description                                                                 |
 |------------|-----------|-----------------------------------------------------------------------------|
-| `vendor_name`    |  `string` | Human readable name of the vendor.  |
+| `vendor`    |  `string` | Human readable name of the vendor.  |
 | `namespace`      | `string`  | The namespace for the Flux icon, in case omitted, the vendor name will be used. |
-| `package_name` | `string` | The npm package that should be installed to retrieve the icons. |
+| `package` | `string` | The npm package that should be installed to retrieve the icons. |
 | `source_directories.outline` | `array\|string` | The directory in which the vendors outline icons reside. For specific options see below. |
 | `source_directories.solid` | `array\|string` | The directory in which the vendors solid icons reside. For specific options see below. |
 | `transform_svg_path`    |  `[class, method]` | A callback to transform the SVG path data. Takes a single parameter: the SVG path string. |

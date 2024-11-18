@@ -148,7 +148,7 @@ class IconBuilder
      */
     public function requirePackage(): static
     {
-        $packageName = config("{$this->vendorConfig}.package_name");
+        $packageName = config("{$this->vendorConfig}.package");
         // check if package is not yet installed using package-lock.json
         $packageFile = base_path('package-lock.json');
         if(!File::exists($packageFile)){
@@ -450,7 +450,7 @@ class IconBuilder
         }
         else{
             // get npm package details
-            $packageDir = config("{$this->vendorConfig}.package_name");
+            $packageDir = config("{$this->vendorConfig}.package");
             $packageFile = base_path("node_modules/{$packageDir}/package.json");
             if(File::exists($packageFile)){
                 $packageDetails = json_decode(File::get($packageFile), true);

@@ -16,8 +16,8 @@ class ConfigTest extends TestCase
         $config = require __DIR__.'/../../config/flux-icons.php';
 
         $this->assertArrayHasKey('tabler', $config);
-        $this->assertArrayHasKey('vendor_name', $config['tabler']);
-        $this->assertArrayHasKey('package_name', $config['tabler']);
+        $this->assertArrayHasKey('vendor', $config['tabler']);
+        $this->assertArrayHasKey('package', $config['tabler']);
         $this->assertArrayHasKey('source_directories', $config['tabler']);
         $this->assertArrayHasKey('transform_svg_path', $config['tabler']);
         $this->assertArrayHasKey('change_stroke_width', $config['tabler']);

@@ -28,9 +28,9 @@ return [
          * Tabler
          */
         'tabler' => [
-            'vendor_name' => 'Tabler',
+            'vendor' => 'Tabler',
             'namespace' => 'tabler',
-            'package_name' => '@tabler/icons',
+            'package' => '@tabler/icons',
             'variants' => [
                 'outline' => [
                     //'template' => 'outline', // default stub for the icon, not necessary to specify
@@ -46,7 +46,7 @@ return [
                 'solid' => [
                     //'template' => 'solid',
                     //'fallback' => 'default', // default is baseVariant. 'variant'|false => in case false the icon will not be published at all
-                    'stroke_width' => false, // there is no stroke width for solid icons
+                    //'stroke_width' => false, // there is no stroke width for solid icons
                     //'size' => 24,
                     'attributes' => [
                         'fill-rule' => 'evenodd',
@@ -55,6 +55,7 @@ return [
                     'source' => 'node_modules/@tabler/icons/icons/filled',
                     // filter => [],
                 ],
+                /*
                 'mini' => [
                     'base' => 'solid',
                     //'size' => 20 // default size for the icon, not necessary to specify
@@ -63,6 +64,7 @@ return [
                     'base' => 'solid', 
                     //'size' => 16 // default size for the icon, not necessary to specify
                 ],
+                */
             ],
             // adjust individual icons
             'attributes' => [ Ympact\FluxIcons\Services\Vendors\Tabler::class, 'attributes' ],
@@ -75,9 +77,9 @@ return [
          *
          */
         'google' => [
-            'vendor_name' => 'Material Design Icons',
+            'vendor' => 'Material Design Icons',
             'namespace' => 'material',
-            'package_name' => '@material-design-icons/svg',
+            'package' => '@material-design-icons/svg',
             'variants' => [
                 'outline' => [
                     'template' => 'solid',
@@ -86,21 +88,20 @@ return [
                         'stroke-linejoin' => 'round',
                     ],
                     'source' => 'node_modules/@material-design-icons/svg/outlined',
-                    // filter => [],
                 ],
                 'solid' => [
                     //'stroke_width' => false, // there is no stroke width for solid icons
                     //'size' => 24,
                     //'attributes' => [],
                     'source' => 'node_modules/@material-design-icons/svg/filled',
-                    // filter => [],
                 ],
+                /*
                 'mini' => [
                     'base' => 'solid',
                 ], 
                 'micro' => [
                     'base' => 'solid', 
-                ],
+                ],*/
             ],
             'attributes' => null,
             'transform' => null, 
@@ -111,9 +112,9 @@ return [
          * Fluent ui 
          */
         'fluent' => [
-            'vendor_name' => 'Fluent UI',
+            'vendor' => 'Fluent UI',
             'namespace' => 'fluent',
-            'package_name' => '@fluentui/svg-icons',
+            'package' => '@fluentui/svg-icons',
             'variants' => [
                 'outline' => [
                     'template' => 'solid',
@@ -141,9 +142,9 @@ return [
          * requires support for subdirectories
          */
         'flowbite' => [
-            'vendor_name' => 'Flowbite',
+            'vendor' => 'Flowbite',
             'namespace' => 'flowbite',
-            'package_name' => 'flowbite-icons',
+            'package' => 'flowbite-icons',
             'variants' => [
                 'outline' => [
                     'source' => 'node_modules/flowbite-icons/src/outline/*/'
@@ -163,9 +164,9 @@ return [
          * Icons are outlines by default, but in case there is an -outline variant the normal variant is solid
          */
         'mdi' => [
-            'vendor_name' => 'MDI',
+            'vendor' => 'MDI',
             'namespace' => 'mdi',
-            'package_name' => '@mdi/svg',
+            'package' => '@mdi/svg',
             'variants' => [
                 'outline' => [
                     'template' => 'solid',

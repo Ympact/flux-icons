@@ -25,9 +25,9 @@ return [
      */
     'vendors' => [
         'alpha' => [
-            'vendor_name' => 'Alpha',
+            'vendor' => 'Alpha',
             'namespace' => 'alpha',
-            'package_name' => 'alpha/icons',
+            'package' => 'alpha/icons',
             //'baseVariant' => 'outline', // default variant for the icon, not necessary to specify
             'variants' => [
                 'outline' => [
@@ -70,9 +70,9 @@ return [
          * - using a function to determine the suffix for the solid icon
          */
         'beta' => [
-            'vendor_name' => 'Beta',
+            'vendor' => 'Beta',
             'namespace' => 'beta',
-            'package_name' => 'beta/icons',
+            'package' => 'beta/icons',
             'variants' => [
                 'outline' => [
                     'source' => [
@@ -97,9 +97,9 @@ return [
          * testing for * to include all icons in the directory
          */
         'gamma' => [
-            'vendor_name' => 'Gamma',
+            'vendor' => 'Gamma',
             'namespace' => 'gamma',
-            'package_name' => 'gamma/icons',
+            'package' => 'gamma/icons',
             'variants' => [
                 'outline' => [
                     'source' => 'tests/vendor/gamma/icons/outline/*/',
@@ -119,9 +119,9 @@ return [
          * - adjusting base for mini and micro variants
          */
         'epsilon' => [
-            'vendor_name' => 'Epsilon',
+            'vendor' => 'Epsilon',
             'namespace' => 'epsilon',
-            'package_name' => 'epsilon/icons',
+            'package' => 'epsilon/icons',
             'variants' => [
                 'outline' => [
                     'source' => [
