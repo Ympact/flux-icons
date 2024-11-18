@@ -194,10 +194,10 @@ class IconBuilder
         if ($this->variantProp($this->baseVariant, 'source.filter')) {
             $files = $files->filter(function($file) {
                 $icons = &$this->icons;
-                $res = call_user_func_array($this->variantProp($this->baseVariant, 'source.filter'),[
-                    $file,
-                    &$icons
-                ]);
+                $res = call_user_func_array(
+                    $this->variantProp($this->baseVariant, 'source.filter'),
+                    [$file, &$icons, $this->baseVariant]
+                );
                 return $res;
             });
         }
@@ -549,7 +549,7 @@ class IconBuilder
             $icons = $this->icons;
             if(!call_user_func_array(
                 $filter, 
-                [$file, &$icons]
+                [$file, &$icons, $variant]
             )){
                 $file = null;
             }

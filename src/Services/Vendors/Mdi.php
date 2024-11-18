@@ -8,12 +8,13 @@ use Illuminate\Support\Str;
 class Mdi
 {
     /**
-     * 
+     * Filter function to determine if the icon is an outline icon
      * @param string $file
      * @param array|null $icons
+     * @param string $variant the variant of the source icon (outline, solid, mini, micro)
      * @return boolean
      */
-    public static function outlineFilter($file, &$icons): bool
+    public static function outlineFilter($file, &$icons, $variant): bool
     {
         if($icons === null){
             $icons = [];
@@ -38,11 +39,13 @@ class Mdi
     }
 
     /**
-     * 
-     * @param $size size of the resource icon
+     * Filter function to determine if the icon is a solid icon
+     * @param string $file
+     * @param array|null $icons
+     * @param string $variant the variant of the source icon (outline, solid, mini, micro)
      * @return boolean
      */
-    public static function solidFilter($file, &$icons): bool
+    public static function solidFilter($file, &$icons, $variant): bool
     {
         $filename = pathinfo($file, PATHINFO_FILENAME);
         if (Str::contains($filename,'-outline')) {
