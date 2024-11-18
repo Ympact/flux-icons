@@ -24,6 +24,10 @@ class SvgPath{
         $this->d = $tag->getAttribute('d');
     }
 
+    public function getDom(){
+        return $this->dom;
+    }
+
     public function getType(){
         return $this->type;
     }

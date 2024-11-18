@@ -12,21 +12,21 @@ class Tabler
 {
     /**
      * Transform SVG Paths of the icon
-     * @param string $variant (solid, outline)
-     * @param string $iconName base name of the icon
-     * @param Collection<SvgPath> collection of $svgPaths
+     * @param \Ympact\FluxIcons\Types\Icon $icon
      * @return string
      */
-    public static function transform($variant, $iconName, $svgPaths): Collection
+    public static function transform(Collection $svgPaths, Icon $icon): Collection
     {
+
         // remove the first $svgPath from the array that has a d attribute of 'M0 0h24v24H0z'
         $svgPaths = $svgPaths->filter(function(SvgPath $svgPath){
             return $svgPath->getD() !== 'M0 0h24v24H0z';
         });
 
+        $variant = $icon->getVariant();
         // for some solid icons we want to transform parts of the paths
         if($variant === 'solid' || $variant === 'mini' || $variant === 'micro'){
-            $svgPaths = match($iconName){
+            $svgPaths = match($icon->getBaseName()){
                 'confetti' => self::setPathAsStroke($svgPaths, 0, -1),
                 default => $svgPaths
             };
