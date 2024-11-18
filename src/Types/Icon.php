@@ -401,7 +401,7 @@ class Icon{
         $svg = $this->dom->getElementsByTagName('svg')->item(0);
         foreach($this->attributes as $key => $value){
             // if value is an array, call the function
-            if(is_array($value)){
+            if(is_callable($value)){
                 $value = call_user_func($value);
             }
             $svg->setAttribute($key, $value);

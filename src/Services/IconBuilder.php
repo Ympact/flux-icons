@@ -486,7 +486,7 @@ class IconBuilder
         }
 
         // in case an array is passed, we use as a callback
-        if(is_array($fallback)){
+        if(is_callable($fallback)){
             return call_user_func_array($fallback, [$baseIcon, $variant, $this->baseVariant]);
         }
 

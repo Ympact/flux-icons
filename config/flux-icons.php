@@ -19,7 +19,6 @@ return [
      * Heroicons and hence Flux uses by default a stroke width of 1.5 for icons
      */
     'default_stroke_width' => 1.5,
-    'default_stroke_width' => 1.5,
 
     /**
      * Vendors configuration
@@ -32,12 +31,11 @@ return [
             'vendor_name' => 'Tabler',
             'namespace' => 'tabler',
             'package_name' => '@tabler/icons',
-            'baseVariant' => 'outline', 
             'variants' => [
                 'outline' => [
-                    'template' => 'outline', // default stub for the icon, not necessary to specify
-                    'stroke_width' => 1.5, // default stroke width for the icon, not necessary to specify
-                    'size' => 24, // default size for the icon, not necessary to specify
+                    //'template' => 'outline', // default stub for the icon, not necessary to specify
+                    //'stroke_width' => 1.5, // default stroke width for the icon, not necessary to specify
+                    //'size' => 24, // default size for the icon, not necessary to specify
                     'attributes' => [
                         'stroke-linecap' => 'round',
                         'stroke-linejoin' => 'round',
@@ -46,10 +44,10 @@ return [
                     // filter => [],
                 ],
                 'solid' => [
-                    'template' => 'solid',
-                    'fallback' => 'default', // default is baseVariant. 'variant'|false => in case false the icon will not be published at all
+                    //'template' => 'solid',
+                    //'fallback' => 'default', // default is baseVariant. 'variant'|false => in case false the icon will not be published at all
                     'stroke_width' => false, // there is no stroke width for solid icons
-                    'size' => 24,
+                    //'size' => 24,
                     'attributes' => [
                         'fill-rule' => 'evenodd',
                         'clip-rule' => 'evenodd',
@@ -59,11 +57,11 @@ return [
                 ],
                 'mini' => [
                     'base' => 'solid',
-                    'size' => 20 // default size for the icon, not necessary to specify
+                    //'size' => 20 // default size for the icon, not necessary to specify
                 ], 
                 'micro' => [
                     'base' => 'solid', 
-                    'size' => 16 // default size for the icon, not necessary to specify
+                    //'size' => 16 // default size for the icon, not necessary to specify
                 ],
             ],
             // adjust individual icons
@@ -80,7 +78,6 @@ return [
             'vendor_name' => 'Material Design Icons',
             'namespace' => 'material',
             'package_name' => '@material-design-icons/svg',
-            'baseVariant' => 'outline', 
             'variants' => [
                 'outline' => [
                     'template' => 'solid',
@@ -92,9 +89,9 @@ return [
                     // filter => [],
                 ],
                 'solid' => [
-                    'stroke_width' => false, // there is no stroke width for solid icons
-                    'size' => 24,
-                    'attributes' => [],
+                    //'stroke_width' => false, // there is no stroke width for solid icons
+                    //'size' => 24,
+                    //'attributes' => [],
                     'source' => 'node_modules/@material-design-icons/svg/filled',
                     // filter => [],
                 ],
@@ -105,6 +102,7 @@ return [
                     'base' => 'solid', 
                 ],
             ],
+            'attributes' => null,
             'transform' => null, 
             'stroke_width' => null
         ],
@@ -116,7 +114,6 @@ return [
             'vendor_name' => 'Fluent UI',
             'namespace' => 'fluent',
             'package_name' => '@fluentui/svg-icons',
-            'baseVariant' => 'outline', 
             'variants' => [
                 'outline' => [
                     'template' => 'solid',
@@ -134,6 +131,7 @@ return [
                     ],
                 ],
             ],
+            'attributes' => null,
             'transform' => [ Ympact\FluxIcons\Services\Vendors\Fluent::class, 'transform' ], 
             'stroke_width' => null
         ],
@@ -154,6 +152,7 @@ return [
                     'source' => 'node_modules/flowbite-icons/src/solid/*/'
                 ],
             ],
+            'attributes' => null,
             'transform' => null, 
             'stroke_width' => null
         ],
@@ -189,6 +188,7 @@ return [
                     ],
                 ],
             ],
+            'attributes' => null,
             'transform' => null, 
             'stroke_width' => null
         ],
