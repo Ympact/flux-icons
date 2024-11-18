@@ -22,7 +22,10 @@
     "autoload": {
         "psr-4": {
             "Ympact\\FluxIcons\\": "src/"
-        }
+        },
+        "files": [
+            "src/helpers.php"
+        ]
     },
     "extra": {
         "laravel": {
