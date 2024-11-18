@@ -42,7 +42,7 @@ class Mdi
      * @param $size size of the resource icon
      * @return boolean
      */
-    public static function solidFilter($file): bool
+    public static function solidFilter($file, &$icons): bool
     {
         $filename = pathinfo($file, PATHINFO_FILENAME);
         if (Str::contains($filename,'-outline')) {

@@ -15,11 +15,13 @@ class Icon{
 
     protected string $filename;
 
-    protected string $basename;
+    protected ?string $basename = null;
 
     protected DOMDocument $dom;
 
     protected DOMXPath $xpath;
+
+    protected DOMDocument $domSource;
 
     protected DOMXPath $xpathSource;
 
@@ -118,8 +120,8 @@ class Icon{
      */
     public function process(): static
     {
-        $dom = $this->parseDom();
-        if($dom){
+        $this->domSource = $this->parseDom();
+        if($this->domSource){
             if($this->xpathSource){
                 $this->determineIconSize();
                 $this->extractTags();
@@ -133,24 +135,33 @@ class Icon{
      * Summary of determineBaseName
      * @return Icon
      */
-    public function determineBaseName(): static
+    public function determineBaseName($force = false): static
     {
-        $baseIconName = $this->filename;
-        
-        if ($prefix = Arr::get($this->config, "variants.{$this->variant}.source.prefix")) {
-            //if string contains $prefix, remove it
-            if(Str::contains($baseIconName, $prefix, true)){
-                $baseIconName = Str::after($baseIconName, $prefix );
+        if(!$this->basename || $force){
+            $baseIconName = $this->filename;
+            if ($prefix = Arr::get($this->config, "variants.{$this->variant}.source.prefix")) {
+                //if string contains $prefix, remove it
+                if(is_callable($prefix)){
+                    // we have a callable
+                    $prefix = call_user_func_array($prefix, [$this->variant]);
+                }
+                if(Str::contains($baseIconName, $prefix, true)){
+                    $baseIconName = Str::after($baseIconName, $prefix );
+                }
             }
-        }
-        if ($suffix = Arr::get($this->config, "variants.{$this->variant}.source.suffix")) {
-            //if string contains $suffix, remove it
-            if(Str::contains($baseIconName, $suffix)){
-                $baseIconName = Str::before($baseIconName, $suffix);
+            if ($suffix = Arr::get($this->config, "variants.{$this->variant}.source.suffix")) {
+                if(is_callable($suffix)){
+                    // we have a callable
+                    $suffix = call_user_func_array($suffix, [$this->variant]);
+                }
+                //if string contains $suffix, remove it
+                if(Str::contains($baseIconName, $suffix)){
+                    $baseIconName = Str::before($baseIconName, $suffix);
+                }
             }
-        }
-        $this->basename = $baseIconName;
 
+            $this->basename = $baseIconName;
+        }
         return $this;
     }
 
@@ -192,7 +203,7 @@ class Icon{
     public function transform(): static
     {
         if($callback = Arr::get($this->config, 'transform')){
-            $this->paths = call_user_func_array($callback, [$this->variant, $this->basename, $this->paths]);
+            $this->paths = call_user_func_array($callback, [$this->paths, $this]);
         }
 
         return $this;
@@ -280,6 +291,15 @@ class Icon{
      */
     public function getName(){
         return $this->filename;
+    }
+
+    /**
+     * set basename
+     */
+    public function setBaseName(string $basename): static
+    {
+        $this->basename = $basename;
+        return $this;
     }
 
     /**
@@ -410,18 +430,18 @@ class Icon{
     {
         $svg = $this->xpathSource->query('//svg')->item(0);
         // first try using viewBox attribute, otherwise use height
-        if($svg->hasAttribute('viewBox')){
-            $viewBox = $svg->getAttribute('viewBox');
+        if($svg->hasAttribute('viewbox')){
+            $viewBox = $svg->getAttribute('viewbox');
             $viewBox = explode(' ', $viewBox);
             if(count($viewBox) == 4){
-                // convert string $viewBox[3] to int
+                // convert string $viewBox[3] to in
                 $this->size = (int)$viewBox[3];
                 return;
             }
         }
 
-        $height = $svg->getAttribute('height');
-        $this->size = (int)$height;
+        $size = $svg->getAttribute('height') ?? $svg->getAttribute('width');
+        $this->size = (int)$size;
     }
 
     /**

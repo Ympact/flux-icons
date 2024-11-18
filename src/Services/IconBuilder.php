@@ -263,7 +263,6 @@ class IconBuilder
         // ask to start running npm run dev again
         if(confirm('Do you want to start `npm run dev`?')){
             exec('npm run dev', $output, $result);
-            dump($result, $output);
         }
         
     }
@@ -296,23 +295,29 @@ class IconBuilder
             }
             else{
                 // get the icon file for the variant
-                if(!$file = $this->getVariantIconFile($variant, $basename)){
+                $file = $this->getVariantIconFile($variant, $basename, $baseIcon);
+                if(!$file){
                     $fallback = $this->determineFallback($variant, $baseIcon);
-
                     if(!$fallback){
                         $this->verbose ? error("No source found for $basename $variant. No fallback either, so we're not building this icon.") : null;
                         $build = false;
-                        continue;
+                        continue; 
                     }
 
-                    $file = $this->getVariantIconFile($fallback, $basename);
+                    $file = $this->getVariantIconFile($fallback, $basename, $baseIcon);
+                    if(!$file){
+                        $this->verbose ? error("No source found for $basename $fallback. We cannot build this icon.") : null;
+                        $build = false;
+                        continue; 
+                    }
                     $template = $this->variantProp($fallback, 'template');
                 }
-                
                 $icon = $this->buildIcon($variant, $file);
+                
                 $icon->setTemplate($template);
                 $icon->process();
             }
+
             $icon->transform()
                 ->setPathAttributes();
 
@@ -368,7 +373,7 @@ class IconBuilder
             // for the mini and micro variants, we merge the settings with the base variant settings    
             // the mini and micro variants inherit the settings from the variant listed in the base key
             if($key == 'mini' || $key == 'micro'){
-                $base = key_exists('base', $settings) ? $this->variants[$variant['base']] : $this->variants[$variant['base']];
+                $base = key_exists('base', $settings) ? $this->variants[$settings['base']] : $this->variants[$variant['base']];
                 $variant = arrayMergeRecursive(
                     $variant, 
                     $base
@@ -396,7 +401,6 @@ class IconBuilder
         $conf['variants'] = $this->variants;
 
         $icon = new Icon($conf, $variant, $file);
-        //$icon->determineStub($variant);
 
         return $icon;
     }
@@ -504,37 +508,48 @@ class IconBuilder
      * @return string|null
      * @todo create tests for this method
      */
-    public function getVariantIconFile(string $variant, string $basename): string|null
+    public function getVariantIconFile(string $variant, string $basename, Icon $icon): string|null
     {       
         $iconName = $basename;
-        if (is_string($this->variantProp($variant, 'source'))) {
-            $file = base_path($this->variantProp($variant, 'source')) . "/$basename.svg";
-        }
-        else{
-            // allow for passing the size to the callbacks
-            $size = $this->variantProp($variant, 'size', 24);
-            //$size = Arr::get($this->variants, "{$variant}.size", 24);
 
+        if(is_array($this->variantProp($variant, 'source'))){
+            $size = $this->variantProp($variant, 'size', 24);
             if($prefix = $this->variantProp($variant, 'source.prefix')){
                 // prefix can be either a string or a function
-                $iconName = is_callable($prefix) ? $prefix($variant, $size) : $prefix . $iconName;
+                $prefix = is_callable($prefix) ? call_user_func_array($prefix, [$variant]) : $prefix;
+                $iconName = $prefix . $iconName;
             }
             if($suffix = $this->variantProp($variant, 'source.suffix')){
                 // suffix can be either a string or a function
-                $iconName = is_callable($suffix) ? $suffix($variant, $size) : $iconName . $suffix;
+                $suffix = is_callable($suffix) ? call_user_func_array($suffix, [$variant]) : $suffix;
+                $iconName = $iconName . $suffix;
             }
 
             $dir = $this->variantProp($variant, 'source.dir');
             // $dir can be a string or a callable and should finish with a slash
             $dir = is_callable($dir) ? $dir($variant, $size) : $dir;
-            $file = Str::of(base_path($dir))->finish('/') . "{$iconName}.svg";
+        }
+        else{
+            $dir = $this->variantProp($variant, 'source');
+        }
+
+        $file = File::glob(
+            Str::of(base_path($dir))->finish('/'). "{$iconName}.svg"
+        ); 
+
+        if(empty($file)){
+            return null;
+        }
+        else{
+            $file = $file[0];
         }
 
         // check if the file is actually the variant file 
         if ($filter = $this->variantProp($variant, 'source.filter', false)) {
+            $icons = $this->icons;
             if(!call_user_func_array(
                 $filter, 
-                [$file]
+                [$file, &$icons]
             )){
                 $file = null;
             }

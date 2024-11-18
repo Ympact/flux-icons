@@ -83,6 +83,7 @@ return [
             'baseVariant' => 'outline', 
             'variants' => [
                 'outline' => [
+                    'template' => 'solid',
                     'attributes' => [
                         'stroke-linecap' => 'round',
                         'stroke-linejoin' => 'round',
@@ -91,7 +92,6 @@ return [
                     // filter => [],
                 ],
                 'solid' => [
-                    'template' => 'solid',
                     'stroke_width' => false, // there is no stroke width for solid icons
                     'size' => 24,
                     'attributes' => [],
@@ -117,8 +117,9 @@ return [
             'namespace' => 'fluent',
             'package_name' => '@fluentui/svg-icons',
             'baseVariant' => 'outline', 
-            'vriants' => [
+            'variants' => [
                 'outline' => [
+                    'template' => 'solid',
                     'source' => [
                         'dir' => 'node_modules/@fluentui/svg-icons/icons',
                         'prefix' => null,
@@ -133,7 +134,7 @@ return [
                     ],
                 ],
             ],
-            'transform' => null, 
+            'transform' => [ Ympact\FluxIcons\Services\Vendors\Fluent::class, 'transform' ], 
             'stroke_width' => null
         ],
 
@@ -166,29 +167,26 @@ return [
             'vendor_name' => 'MDI',
             'namespace' => 'mdi',
             'package_name' => '@mdi/svg',
-            'build_type' => [
-                'outline' => 'solid',
-                'solid' => 'solid',
-            ],
-            'build_type' => [
-                'outline' => 'solid',
-                'solid' => 'solid',
-            ],
-            'source_directories' => [
+            'variants' => [
                 'outline' => [
-                    'dir' => 'node_modules/@mdi/svg/svg',
-                    'prefix' => null,
-                    'suffix' => '-outline',
-                    // filter function to determine if the icon is an outline icon
-                    'filter' => [ Ympact\FluxIcons\Services\Vendors\Mdi::class, 'outlineFilter' ]
+                    'template' => 'solid',
+                    'source' => [
+                        'dir' => 'node_modules/@mdi/svg/svg',
+                        'prefix' => null,
+                        'suffix' => '-outline',
+                        // filter function to determine if the icon is an outline icon
+                        'filter' => [ Ympact\FluxIcons\Services\Vendors\Mdi::class, 'outlineFilter' ]
+                    ],
                 ],
                 'solid' => [
-                    'dir' => 'node_modules/@mdi/svg/svg',
-                    'prefix' => null,
-                    'suffix' => null,
-                    
-                    // inverse of the outline filter
-                    'filter' => [ Ympact\FluxIcons\Services\Vendors\Mdi::class, 'solidFilter' ]
+                    'source' => [
+                        'dir' => 'node_modules/@mdi/svg/svg',
+                        'prefix' => null,
+                        'suffix' => null,
+                        
+                        // inverse of the outline filter
+                        'filter' => [ Ympact\FluxIcons\Services\Vendors\Mdi::class, 'solidFilter' ]
+                    ],
                 ],
             ],
             'transform' => null, 
