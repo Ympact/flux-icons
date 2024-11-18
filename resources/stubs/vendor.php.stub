@@ -4,70 +4,80 @@ namespace App\Services\FluxIcons\Vendors;
 
 use Ympact\FluxIcons\Types\SvgPath;
 use Illuminate\Support\Collection;
+use Ympact\FluxIcons\Types\Icon;
 
 class VendorName{
     /**
      * Transform SVG Paths of the icon
-     * @param string $variant (`solid` or `outline`)
-     * @param string $iconName base name of the icon
      * @param Collection<SvgPath> $svgPaths
+     * @param Icon $icon
      */
-    function TransformSvgPath (string $variant, string $iconName, Collection $svgPaths): Collection 
+    public static function transform(Collection $svgPaths, Icon $icon): Collection 
     {
         // Your transformation logic here
+        return $svgPaths;
     }
 
     /**
-     * Adjust the stroke width of the outline icon
-     * @param string $iconName base name of the icon
-     * @param float $defaultStrokeWidth 1.5 or the default set in config option `default_stroke_width`
-     * @param Collection<SvgPath> $svgPaths
+     * Adjust the SVG attributes of the icon
+     * @param \Ympact\FluxIcons\Types\Icon $icon
+     * @return array
+     */
+    public static function attributes(Icon $icon)
+    {
+        // Your attributes logic here
+        $attributes = [];
+        return $attributes;
+    }
+
+    /**
+     * Adjust the stroke width of the icon
+     * @param Icon $icon base name of the icon
      * @return int|float
      */
-    function changeStrokeWidth(string $iconName, int|float $defaultStrokeWidth, Collection $svgPaths): int|float 
+    public static function strokeWidth (Icon $icon): int|float 
     {
         // logic to determine stroke width
+        $strokeWidth = $icon->getStrokeWidth();
+        return $strokeWidth;
     }
 
     /**
-     * Determine the correct suffix for the solid icon
-     * @param int $size size of the resource icon
+     * Determine the correct prefix for the variant icon
+     * @param string $variant the variant of the source icon (outline, solid, mini, micro)
      * @return string
      */
-    public static function sourceSolidPrefix(int $size): string
+    public static function prefix(string $variant = null): string
     {
         // your logic here
+        $prefix = 's-';
+        return $prefix;
     }
 
     /**
-     * Determine the correct suffix for the solid icon
-     * @param int $size size of the resource icon
+     * Determine the correct suffix for the variant icon
+     * @param string $variant the variant of the source icon (outline, solid, mini, micro)
      * @return string
      */
-    public static function sourceSolidSuffix(int $size): string
+    public static function suffix(string $variant = null): string
     {
         // your logic here
+        $suffix = '-solid';
+        return $suffix;
     }
 
     /**
-     * A filter callback to determine if a file should be processed as outline icon.
+     * A filter callback to determine if a file should be processed as icon for the current variant.
      * Optionally this callback can adjust the $icons array.
      * @param string $file
      * @param array|null $icons that are requested to be build
+     * @param string $variant the variant of the source icon (outline, solid, mini, micro)
      * @return boolean
      */
-    public static function outlineFilter(string $file, array|null &$icons): bool
+    public static function filter(string $file, array|null &$icons, string $variant): bool
     {
         // your logic here
+        return true;
     }
 
-    /**
-     * A filter callback to determine if a file should be processed as solid icon
-     * @param $size size of the resource icon
-     * @return boolean
-     */
-    public static function solidFilter($file): bool
-    {
-        // your logic here
-    }
 }
