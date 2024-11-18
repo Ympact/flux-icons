@@ -16,11 +16,9 @@ composer require --dev ympact/flux-icons
 ## Icon Vendor Support
 
 Initial support:
+
 - [Tabler Icons](https://tabler.io/icons)
 - [Flowbite](https://flowbite.com/icons/)
-
-Work in progress **Not production ready!**
-
 - [Fluent UI Icons](https://github.com/microsoft/fluentui-system-icons) and [unofficial viewer](https://fluenticons.co/)
 - [Google Material Design Icons](https://fonts.google.com/icons)
 - [MDI](https://pictogrammers.com/library/mdi/)
@@ -47,7 +45,7 @@ php artisan flux-icons:build tabler --icons=confetti,confetti-off
 | `-a\|--all`     | Build all icons from the vendor. **Note:** this might generate over thousands of files and cause `npm run dev` to crash due to memory issues. |
 | `-v\|--verbose` | Show additional messages during build. |
 
-The artisan script will try to install the icon package using `npm install`.
+The artisan script will try to install the vendor's icon package using `npm install`.
 
 ### Usage
 
@@ -63,14 +61,6 @@ or
 <flux:icon name="tabler.confetti-off"/>
 ```
 
-## Note on icon variants
-
-Due to the way the flux icon component is made, it requires 4 variants: an outline and a solid of three sizes (24, 20, 16).
-For the first version of this Flux Icons package the source icons are treated as follows:
-
-- In case there is only one solid size variant in the source package, it will use the same svg for all three size variants. Generally the svg will be scaled by the browser.
-- In case there is no solid variant, it will use the outline variant as the solid variant.
-- In case the solid variant does not have an outline variant, the icon is not exported at all.
 
 ## Publish config
 
@@ -105,24 +95,60 @@ The vendor specific configuration sits within the `vendors` key. Each vendor sho
         'vendor' => 'Tabler',
         'namespace' => 'tabler',
         'package' => '@tabler/icons',
-        'source_directories' => [ 
+        'variants' => [ 
             //...
         ]
     ]
  ]
 ```
 
-| Option     | Value     | Description                                                                 |
-|------------|-----------|-----------------------------------------------------------------------------|
-| `vendor`    |  `string` | Human readable name of the vendor.  |
-| `namespace`      | `string`  | The namespace for the Flux icon, in case omitted, the vendor name will be used. |
-| `package` | `string` | The npm package that should be installed to retrieve the icons. |
-| `source_directories.outline` | `array\|string` | The directory in which the vendors outline icons reside. For specific options see below. |
-| `source_directories.solid` | `array\|string` | The directory in which the vendors solid icons reside. For specific options see below. |
-| `transform_svg_path`    |  `[class, method]` | A callback to transform the SVG path data. Takes a single parameter: the SVG path string. |
-| `change_stroke_width`   |  `[class, method]` | A callback to determine the whether the stroke width should be changed on this icon. |
+| Option     | Value     | Default  |Description                                                                 |
+|------------|-----------|----------|----------------------------------------------------------------------------|
+| `vendor`    | `string` |         | Human readable name of the vendor. |
+| `namespace` | `string`  |         | The namespace for the Flux icon, in case omitted, the vendor name will be used. |
+| `package`   | `string` |          | The npm package that should be installed to retrieve the icons. |
+| `baseVariant` | `string` | `outline` | The default variant to use as basis. Generally the vendors variant that has the most icons. |
+| `variants`  | `array` |           | The configuration for each of the variants (outline, solid, mini, micro). |
+| `attributes` | `[class, method]` | `null` | A callback to adjust the attributes on the SVG. |
+| `transform` | `[class, method]` | `null` | A callback to transform the SVG path data. |
+| `stroke_width`| `[class, method]` | `null` | A callback to determine the whether the stroke width should be changed on this icon. |
 
-#### Source directories
+#### Variants
+
+```php
+    'variants' => [
+        'outline' => [
+            'source' => [],
+            'template' => 'outline',
+            'fallback' => 'default', 
+            'stroke_width' => false, 
+            'size' => 24,
+            'attributes' = []
+        ],
+        'solid' => [
+            'source' => [],
+
+        ],
+        'mini' => [
+            'base' => 'solid'
+        ],
+        'micro' => [
+            'base' => 'solid'
+        ],
+    ]
+```
+
+| Option     | Value     | Default  |Description                                                                 |
+|------------|-----------|----------|----------------------------------------------------------------------------|
+| `source`    |  `string\|callable array` |         |  |
+| `template` | `string`  |         | |
+| `fallback`   | `string\|callable array` |          | |
+| `stroke_width` | `int\|float` |  |  |
+| `size`  | `int` |           | |
+| `attributes` |  `array` | `` |  |
+| `base` |  `string` | `null` | |
+
+#### Source
 
 The source directories specify where the script can find the outline and solid/filled versions of the icons you want to build.
 In case the vendor uses a prefix or suffix for the icons, we want to configure it here to determine the basename of the icon and make them more accessible in flux.
@@ -151,6 +177,23 @@ For the **solid** icons, the filter callback passes a single param `file`. Optio
 ],
 ```
 
+#### Fallbacks for icon variants
+
+Due to the way the flux icon component is made, it requires 4 variants: an outline and a solid of three sizes:
+
+- solid - 24px
+- mini - 20px
+- micro - 16px
+
+Using the configuration of the vendor, you can determine how to handle the building of the icon when there is no source file for a certain variant. Thhe options are
+
+| Value     |Description                                                                 |
+|-----------|----------------------------------------------------------------------------|
+| `false`   |  |
+| `default`  |  |
+| `{variant}` |  |
+| `callback array` |  |
+
 #### Callbacks
 
 The configuration file provides various options on which callback can be defined. To keep the config file serializable, the callbacks should be defined in a separate class and referenced as above. See [vendor.php.stub](resources/stubs/vendor.php.stub) for reference of the available callbacks.
@@ -171,7 +214,7 @@ php artisan vendor:publish --tag=flux-icons-icons
   <flux:icon name="{{ $icon ?? 'flux-icons.empty' }}" />
   ```
 
-- A placeholder avatar icon, usin an icon or initials
+- A placeholder avatar icon, using an icon or initials
 
   ```html
   <flux:icon.flux-icons.avatar-placeholder name="Maurits Korse" color="green" />
@@ -186,5 +229,7 @@ php artisan vendor:publish --tag=flux-icons-icons
 ## Roadmap
 
 - Add/Improve command for updating/rebuilding icons
-- Improve fallback handling for non-existing solid icons
 - Adding more vendors
+- Helper script to create configurations for new vendors
+- Improving testing
+- Documentation
