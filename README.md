@@ -14,14 +14,14 @@ composer require --dev ympact/flux-icons
 
 Initial support:
 
-- [Tabler Icons](https://tabler.io/icons)
+- [Bootstrap](https://icons.getbootstrap.com/#icons)
+- [Codicons](https://github.com/microsoft/vscode-codicons/tree/main/src/icons) VScode codicons - no viewer
 - [Flowbite](https://flowbite.com/icons/)
 - [Fluent UI Icons](https://github.com/microsoft/fluentui-system-icons) - ([unofficial viewer](https://fluenticons.co/))
 - [Google Material Design Icons](https://fonts.google.com/icons)
-- [MDI](https://pictogrammers.com/library/mdi/)
 - [Lucide](https://lucide.dev/icons/)
-- [Bootstrap](https://icons.getbootstrap.com/#icons)
-- [Codicons](https://github.com/microsoft/vscode-codicons/tree/main/src/icons) VScode codicons - no viewer
+- [MDI](https://pictogrammers.com/library/mdi/)
+- [Tabler Icons](https://tabler.io/icons)
 
 ## Building icons
 
