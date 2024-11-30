@@ -459,6 +459,9 @@ class IconBuilder
                 $version = Arr::get($packageDetails, 'version');
                 $author = Arr::get($packageDetails, 'author', null);
             
+                $name = is_array($name) ? $name['name'] : $name;
+                $author = is_array($author) ? $author['name'] : $author;
+
                 return $packageDetails 
                     ? $name . ' ('.$version.') '. ( $author ? 'by ' . $author : '')
                     : '';
@@ -527,7 +530,7 @@ class IconBuilder
 
             $dir = $this->variantProp($variant, 'source.dir');
             // $dir can be a string or a callable and should finish with a slash
-            $dir = is_callable($dir) ? $dir($variant, $size) : $dir;
+            $dir = is_callable($dir) ? call_user_func_array($dir, [$variant]) : $dir;
         }
         else{
             $dir = $this->variantProp($variant, 'source');
@@ -600,16 +603,21 @@ class IconBuilder
             ); 
         }
         else{
+            $dir = $this->variantProp($variant, 'source.dir');
+            // $dir can be a string or a callable and should finish with a slash
+            $dir = is_callable($dir) ? call_user_func_array($dir, [$variant]) : $dir;
+
             // if a filter is passed in the config, don't use the prefix and suffix to prefilter the files
             // the prefix and suffix are still used to determine the basename
             if($this->variantProp($variant, 'source.filter')) {
+
                 $files = File::glob(
-                    Str::of(base_path($this->variantProp($variant, 'source.dir')))->finish('/') . '*' . '.svg'
+                    Str::of(base_path($dir))->finish('/') . '*' . '.svg'
                 );
             }
             else{
                 $files = File::glob(
-                    Str::of(base_path($this->variantProp($variant, 'source.dir')))->finish('/') .
+                    Str::of(base_path($dir))->finish('/') .
                     ($this->variantProp($variant, 'source.prefix') ?? '') . 
                     '*' . 
                     ($this->variantProp($variant, 'source.suffix') ?? '') . 
