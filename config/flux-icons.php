@@ -28,14 +28,15 @@ return [
          * Tabler
          */
         'tabler' => [
-            'vendor' => 'Tabler',
+            'vendor_name' => 'Tabler',
             'namespace' => 'tabler',
-            'package' => '@tabler/icons',
+            'package_name' => '@tabler/icons',
+            'baseVariant' => 'outline', 
             'variants' => [
                 'outline' => [
-                    //'template' => 'outline', // default stub for the icon, not necessary to specify
-                    //'stroke_width' => 1.5, // default stroke width for the icon, not necessary to specify
-                    //'size' => 24, // default size for the icon, not necessary to specify
+                    'template' => 'outline', // default stub for the icon, not necessary to specify
+                    'stroke_width' => 1.5, // default stroke width for the icon, not necessary to specify
+                    'size' => 24, // default size for the icon, not necessary to specify
                     'attributes' => [
                         'stroke-linecap' => 'round',
                         'stroke-linejoin' => 'round',
@@ -44,10 +45,10 @@ return [
                     // filter => [],
                 ],
                 'solid' => [
-                    //'template' => 'solid',
-                    //'fallback' => 'default', // default is baseVariant. 'variant'|false => in case false the icon will not be published at all
-                    //'stroke_width' => false, // there is no stroke width for solid icons
-                    //'size' => 24,
+                    'template' => 'solid',
+                    'fallback' => 'default', // default is baseVariant. 'variant'|false => in case false the icon will not be published at all
+                    'stroke_width' => false, // there is no stroke width for solid icons
+                    'size' => 24,
                     'attributes' => [
                         'fill-rule' => 'evenodd',
                         'clip-rule' => 'evenodd',
@@ -55,16 +56,14 @@ return [
                     'source' => 'node_modules/@tabler/icons/icons/filled',
                     // filter => [],
                 ],
-                /*
                 'mini' => [
                     'base' => 'solid',
-                    //'size' => 20 // default size for the icon, not necessary to specify
+                    'size' => 20 // default size for the icon, not necessary to specify
                 ], 
                 'micro' => [
                     'base' => 'solid', 
-                    //'size' => 16 // default size for the icon, not necessary to specify
+                    'size' => 16 // default size for the icon, not necessary to specify
                 ],
-                */
             ],
             // adjust individual icons
             'attributes' => [ Ympact\FluxIcons\Services\Vendors\Tabler::class, 'attributes' ],
@@ -74,12 +73,11 @@ return [
 
         /**
          * Google Material Design Icons
-         *
          */
         'google' => [
-            'vendor' => 'Material Design Icons',
+            'vendor_name' => 'Material Design Icons',
             'namespace' => 'material',
-            'package' => '@material-design-icons/svg',
+            'package_name' => '@material-design-icons/svg',
             'variants' => [
                 'outline' => [
                     'template' => 'solid',
@@ -90,31 +88,19 @@ return [
                     'source' => 'node_modules/@material-design-icons/svg/outlined',
                 ],
                 'solid' => [
-                    //'stroke_width' => false, // there is no stroke width for solid icons
-                    //'size' => 24,
-                    //'attributes' => [],
+                    'stroke_width' => false, // there is no stroke width for solid icons
                     'source' => 'node_modules/@material-design-icons/svg/filled',
                 ],
-                /*
-                'mini' => [
-                    'base' => 'solid',
-                ], 
-                'micro' => [
-                    'base' => 'solid', 
-                ],*/
             ],
-            'attributes' => null,
-            'transform' => null, 
-            'stroke_width' => null
         ],
 
         /**
          * Fluent ui 
          */
         'fluent' => [
-            'vendor' => 'Fluent UI',
+            'vendor_name' => 'Fluent UI',
             'namespace' => 'fluent',
-            'package' => '@fluentui/svg-icons',
+            'package_name' => '@fluentui/svg-icons',
             'variants' => [
                 'outline' => [
                     'template' => 'solid',
@@ -132,19 +118,17 @@ return [
                     ],
                 ],
             ],
-            'attributes' => null,
             'transform' => [ Ympact\FluxIcons\Services\Vendors\Fluent::class, 'transform' ], 
-            'stroke_width' => null
         ],
 
         /**
-         * Flowbite icons - requires additional configuration to work properly
-         * requires support for subdirectories
+         * Flowbite icons 
+         * icons are available in outline and solid variants within various subdirectories
          */
         'flowbite' => [
-            'vendor' => 'Flowbite',
+            'vendor_name' => 'Flowbite',
             'namespace' => 'flowbite',
-            'package' => 'flowbite-icons',
+            'package_name' => 'flowbite-icons',
             'variants' => [
                 'outline' => [
                     'source' => 'node_modules/flowbite-icons/src/outline/*/'
@@ -153,20 +137,16 @@ return [
                     'source' => 'node_modules/flowbite-icons/src/solid/*/'
                 ],
             ],
-            'attributes' => null,
-            'transform' => null, 
-            'stroke_width' => null
         ],
 
-
         /**
-         * MDI - requires additional configuration to work properly
+         * MDI 
          * Icons are outlines by default, but in case there is an -outline variant the normal variant is solid
          */
         'mdi' => [
-            'vendor' => 'MDI',
+            'vendor_name' => 'MDI',
             'namespace' => 'mdi',
-            'package' => '@mdi/svg',
+            'package_name' => '@mdi/svg',
             'variants' => [
                 'outline' => [
                     'template' => 'solid',
@@ -189,12 +169,83 @@ return [
                     ],
                 ],
             ],
-            'attributes' => null,
-            'transform' => null, 
-            'stroke_width' => null
         ],
         
-        // Add other vendors here...
+        /**
+         * Bootstrap Icons
+         * Icons are available in solid and outline variants
+         */
+        'bootstrap' => [
+            'vendor_name' => 'Bootstrap',
+            'namespace' => 'bootstrap',
+            'package_name' => 'bootstrap-icons',
+            'variants' => [
+                'outline' => [
+                    'template' => 'solid',
+                    'source' => [
+                        'dir' => 'node_modules/bootstrap-icons/icons',
+                        'prefix' => null,
+                        'suffix' => null,
+                        // since solid and outline icons are in the same directory,
+                        // use a filter function to determine if the icon is an outline icon
+                        'filter' => [ Ympact\FluxIcons\Services\Vendors\Bootstrap::class, 'outlineFilter' ]
+                    ],
+                ],
+                'solid' => [
+                    'source' => [
+                        'dir' => 'node_modules/bootstrap-icons/icons',
+                        'prefix' => null,
+                        'suffix' => '-fill',
+                        // since solid and outline icons are in the same directory,
+                        // use a filter function to determine if the icon is a solid icon
+                        'filter' => [ Ympact\FluxIcons\Services\Vendors\Bootstrap::class, 'solidFilter' ]
+                    ],
+                ],
+            ],
+        ],
+
+        /**
+         * Lucide Icons
+         * Lucide has only outline icons, so there is no difference between outline and solid variant
+         */
+        'lucide' => [
+            'vendor_name' => 'Lucide',
+            'namespace' => 'lucide',
+            'package_name' => 'lucide-static',
+            'variants' => [
+                'outline' => [
+                    'template' => 'outline',
+                    'source' => 'node_modules/lucide-static/icons',
+                ],
+                // lucide doesnt have solid icons, so we just use the outline icons
+                'solid' => [
+                    'template' => 'outline',
+                    'source' => 'node_modules/lucide-static/icons',
+                ],
+            ],
+        ],
+
+        /**
+         * VSCode Codicons
+         * Codicons has only outline icons, so there is no difference between outline and solid variant
+         */
+        'codicons' => [
+            'vendor_name' => 'VSCode Codicons',
+            'namespace' => 'codicons',
+            'package_name' => '@vscode/codicons',
+            'variants' => [
+                'outline' => [
+                    'template' => 'solid',
+                    'source' => 'node_modules/@vscode/codicons/src/icons',
+                ],
+                // codicons doesnt have solid icons, so we just use the outline icons
+                'solid' => [
+                    'source' => 'node_modules/@vscode/codicons/src/icons',
+                ],
+            ],
+        ],
+
+        // Add additional vendors here...
 
     ],
 ];
