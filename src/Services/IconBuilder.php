@@ -489,7 +489,7 @@ class IconBuilder
         }
 
         // in case an array is passed, we use as a callback
-        if(is_callable($fallback)){
+        if(is_array($fallback) && is_callable($fallback)){
             return call_user_func_array($fallback, [$baseIcon, $variant, $this->baseVariant]);
         }
 
@@ -519,18 +519,18 @@ class IconBuilder
             $size = $this->variantProp($variant, 'size', 24);
             if($prefix = $this->variantProp($variant, 'source.prefix')){
                 // prefix can be either a string or a function
-                $prefix = is_callable($prefix) ? call_user_func_array($prefix, [$variant]) : $prefix;
+                $prefix = is_array($prefix) && is_callable($prefix) ? call_user_func_array($prefix, [$variant]) : $prefix;
                 $iconName = $prefix . $iconName;
             }
             if($suffix = $this->variantProp($variant, 'source.suffix')){
                 // suffix can be either a string or a function
-                $suffix = is_callable($suffix) ? call_user_func_array($suffix, [$variant]) : $suffix;
+                $suffix = is_array($suffix) && is_callable($suffix) ? call_user_func_array($suffix, [$variant]) : $suffix;
                 $iconName = $iconName . $suffix;
             }
 
             $dir = $this->variantProp($variant, 'source.dir');
             // $dir can be a string or a callable and should finish with a slash
-            $dir = is_callable($dir) ? call_user_func_array($dir, [$variant]) : $dir;
+            $dir = is_array($dir) && is_callable($dir) ? call_user_func_array($dir, [$variant]) : $dir;
         }
         else{
             $dir = $this->variantProp($variant, 'source');
@@ -605,7 +605,7 @@ class IconBuilder
         else{
             $dir = $this->variantProp($variant, 'source.dir');
             // $dir can be a string or a callable and should finish with a slash
-            $dir = is_callable($dir) ? call_user_func_array($dir, [$variant]) : $dir;
+            $dir = is_array($dir) && is_callable($dir) ? call_user_func_array($dir, [$variant]) : $dir;
 
             // if a filter is passed in the config, don't use the prefix and suffix to prefilter the files
             // the prefix and suffix are still used to determine the basename

@@ -141,7 +141,7 @@ class Icon{
             $baseIconName = $this->filename;
             if ($prefix = Arr::get($this->config, "variants.{$this->variant}.source.prefix")) {
                 //if string contains $prefix, remove it
-                if(is_callable($prefix)){
+                if(is_array($prefix) && is_callable($prefix)){
                     // we have a callable
                     $prefix = call_user_func_array($prefix, [$this->variant]);
                 }
@@ -150,7 +150,7 @@ class Icon{
                 }
             }
             if ($suffix = Arr::get($this->config, "variants.{$this->variant}.source.suffix")) {
-                if(is_callable($suffix)){
+                if(is_array($suffix) && is_callable($suffix)){
                     // we have a callable
                     $suffix = call_user_func_array($suffix, [$this->variant]);
                 }
@@ -400,7 +400,7 @@ class Icon{
         $svg = $this->dom->getElementsByTagName('svg')->item(0);
         foreach($this->attributes as $key => $value){
             // if value is an array, call the function
-            if(is_callable($value)){
+            if(is_array($value) && is_callable($value)){
                 $value = call_user_func_array($value, [$this]);
             }
             $svg->setAttribute($key, $value);
