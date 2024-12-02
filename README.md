@@ -19,6 +19,7 @@ Initial support:
 - [Flowbite](https://flowbite.com/icons/)
 - [Fluent UI Icons](https://github.com/microsoft/fluentui-system-icons) - ([unofficial viewer](https://fluenticons.co/))
 - [Google Material Design Icons](https://fonts.google.com/icons)
+- [Healthicons](https://healthicons.org)
 - [Lucide](https://lucide.dev/icons/)
 - [MDI](https://pictogrammers.com/library/mdi/)
 - [Tabler Icons](https://tabler.io/icons)
@@ -108,6 +109,7 @@ The vendor specific configuration sits within the `vendors` key. Each vendor sho
 | `package`   | `string` |          | The npm package that should be installed to retrieve the icons. |
 | `baseVariant` | `string` | `outline` | The default variant to use as basis. This is usually the vendor's variant that has the most icons available. |
 | `variants`  | `array` |           | The configuration for each of the variants (outline, solid, mini, micro). |
+| `icon_name` | `[class, method]` | `null` | A callback to adjust the name of the svg. |
 | `attributes` | `[class, method]` | `null` | A callback to adjust the attributes on the SVG. |
 | `transform` | `[class, method]` | `null` | A callback to transform the SVG path data. |
 | `stroke_width`| `[class, method]` | `null` | A callback to determine the whether the stroke width should be changed on this icon. |

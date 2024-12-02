@@ -331,6 +331,11 @@ class IconBuilder
             $iconBladeFile = $iconBladeFile->replace('{'.Str::upper($variant).'}',$svg);
         }
         
+        // if there is a name callback, call it to rename the icon
+        if($nameCallback = config("{$this->vendorConfig}.icon_name")){
+            $basename = call_user_func_array($nameCallback, [$basename]);
+        }
+
         if($build){
             $iconBladeFile = $iconBladeFile
                 ->replace('{INFO_ICON_NAME}', $basename)
