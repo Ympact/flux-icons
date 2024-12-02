@@ -30,7 +30,7 @@ return [
         'tabler' => [
             'vendor_name' => 'Tabler',
             'namespace' => 'tabler',
-            'package_name' => '@tabler/icons',
+            'package' => '@tabler/icons',
             'baseVariant' => 'outline', 
             'variants' => [
                 'outline' => [
@@ -78,7 +78,7 @@ return [
         'google' => [
             'vendor_name' => 'Material Design Icons',
             'namespace' => 'material',
-            'package_name' => '@material-design-icons/svg',
+            'package' => '@material-design-icons/svg',
             'variants' => [
                 'outline' => [
                     'template' => 'solid',
@@ -101,7 +101,7 @@ return [
         'fluent' => [
             'vendor_name' => 'Fluent UI',
             'namespace' => 'fluent',
-            'package_name' => '@fluentui/svg-icons',
+            'package' => '@fluentui/svg-icons',
             'variants' => [
                 'outline' => [
                     'template' => 'solid',
@@ -129,7 +129,7 @@ return [
         'flowbite' => [
             'vendor_name' => 'Flowbite',
             'namespace' => 'flowbite',
-            'package_name' => 'flowbite-icons',
+            'package' => 'flowbite-icons',
             'variants' => [
                 'outline' => [
                     'source' => 'node_modules/flowbite-icons/src/outline/*/'
@@ -147,7 +147,7 @@ return [
         'mdi' => [
             'vendor_name' => 'MDI',
             'namespace' => 'mdi',
-            'package_name' => '@mdi/svg',
+            'package' => '@mdi/svg',
             'variants' => [
                 'outline' => [
                     'template' => 'solid',
@@ -179,7 +179,7 @@ return [
         'bootstrap' => [
             'vendor_name' => 'Bootstrap',
             'namespace' => 'bootstrap',
-            'package_name' => 'bootstrap-icons',
+            'package' => 'bootstrap-icons',
             'variants' => [
                 'outline' => [
                     'template' => 'solid',
@@ -212,7 +212,7 @@ return [
         'lucide' => [
             'vendor_name' => 'Lucide',
             'namespace' => 'lucide',
-            'package_name' => 'lucide-static',
+            'package' => 'lucide-static',
             'variants' => [
                 'outline' => [
                     'template' => 'outline',
@@ -233,7 +233,7 @@ return [
         'codicons' => [
             'vendor_name' => 'VSCode Codicons',
             'namespace' => 'codicons',
-            'package_name' => '@vscode/codicons',
+            'package' => '@vscode/codicons',
             'variants' => [
                 'outline' => [
                     'template' => 'solid',
@@ -256,7 +256,7 @@ return [
         'health' => [
             'vendor_name' => 'Healthicons',
             'namespace' => 'health',
-            'package_name' => 'healthicons',
+            'package' => 'healthicons',
             'variants' => [
                 'outline' => [
                     'template' => 'solid',
