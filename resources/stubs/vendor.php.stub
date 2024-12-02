@@ -7,6 +7,19 @@ use Illuminate\Support\Collection;
 use Ympact\FluxIcons\Types\Icon;
 
 class VendorName{
+
+    /**
+     * Adjust the icon name
+     * @param Icon $icon
+     */
+    public static function name(Icon $icon): Collection 
+    {
+        $name = $icon->getBaseName();
+        // Your transformation logic here
+        
+        return $name;
+    }
+
     /**
      * Transform SVG Paths of the icon
      * @param Collection<SvgPath> $svgPaths
