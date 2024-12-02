@@ -72,8 +72,6 @@ class BuildFluxIconsCommand extends Command
                     default: $configVendorIcons ? 'config' : 'select'
                 );
 
-                //$all = $whichOption === 'all';
-
                 if($whichOption === 'config'){
                     $icons = $configVendorIcons;
                 }
@@ -86,10 +84,17 @@ class BuildFluxIconsCommand extends Command
                             ->values()
                             ->all(),
                         scroll: 10
-                    ); 
+                    );
+                    
+                    // only get the file name of the icons
+                    $icons = array_map(function($icon){
+                        return Str::of($icon)->basename('.svg')->toString();
+                    }, $icons);
                 }
             }
         }
+
+
         $this->info("Start building icons 👀");
         $iconBuilder->setIcons($icons);
         
