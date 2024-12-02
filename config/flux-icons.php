@@ -66,6 +66,7 @@ return [
                 ],
             ],
             // adjust individual icons
+            //'name' => [ Ympact\FluxIcons\Services\Vendors\Tabler::class, 'name' ],
             'attributes' => [ Ympact\FluxIcons\Services\Vendors\Tabler::class, 'attributes' ],
             'transform' => [ Ympact\FluxIcons\Services\Vendors\Tabler::class, 'transform' ],
             'stroke_width' => [ Ympact\FluxIcons\Services\Vendors\Tabler::class, 'strokeWidth' ] 
@@ -244,7 +245,40 @@ return [
                 ],
             ],
         ],
-
+        
+        /**
+         * Health Icons
+         * Health Icons has only solid icons, so there is no difference between outline and solid variant
+         * Some icons have a 48 and 24px variant:
+         *   48px is default size and is used for outline and solid variants. 
+         *   In case 24px exists, it is used for mini and micro variants.
+         */
+        'health' => [
+            'vendor_name' => 'Healthicons',
+            'namespace' => 'health',
+            'package_name' => 'healthicons',
+            'variants' => [
+                'outline' => [
+                    'template' => 'solid',
+                    'source' => 'node_modules/healthicons/public/icons/svg/outline/*/',
+                ],
+                'solid' => [
+                    'source' => 'node_modules/healthicons/public/icons/svg/filled/*/'
+                ],
+                'mini' => [
+                    'base' => 'solid',
+                    'fallback' => 'solid', 
+                    'source' => 'node_modules/healthicons/public/icons/svg/filled-24px/*/'
+                ],
+                'micro' => [
+                    'base' => 'solid',
+                    'fallback' => 'solid', 
+                    'source' => 'node_modules/healthicons/public/icons/svg/filled-24px/*/'
+                ],
+            ],
+            'icon_name' => [ Ympact\FluxIcons\Services\Vendors\Health::class, 'name' ]
+        ]
+        
         // Add additional vendors here...
 
     ],
