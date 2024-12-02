@@ -396,15 +396,15 @@ class Icon{
     {
         $this->dom = new DOMDocument();
         $this->dom->loadXML('<svg></svg>'); 
-       // $attributes = arrayMergeRecursive($this->variantAttributes['default'], $this->variantAttributes[$this->template], $this->determineSvgAttributes());
 
         $svg = $this->dom->getElementsByTagName('svg')->item(0);
         foreach($this->attributes as $key => $value){
             // if value is an array, call the function
             if(is_callable($value)){
-                $value = call_user_func($value);
+                $value = call_user_func_array($value, [$this]);
             }
             $svg->setAttribute($key, $value);
+            
         }
     }
 
