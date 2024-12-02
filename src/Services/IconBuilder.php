@@ -333,7 +333,7 @@ class IconBuilder
         
         // if there is a name callback, call it to rename the icon
         if($nameCallback = config("{$this->vendorConfig}.icon_name")){
-            $basename = call_user_func_array($nameCallback, [$basename]);
+            $basename = call_user_func_array($nameCallback, [$icon]);
         }
 
         if($build){

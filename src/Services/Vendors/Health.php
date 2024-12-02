@@ -17,6 +17,14 @@ class Health
      */
     public static function name(Icon $icon): string
     {
-        return Str::replace('_', '-' ,$icon->getBaseName());
+        $name = (string) $icon->getBaseName();
+        if($name == '0') {
+            return 'zero';
+        }
+
+        return Str::of($name)
+            ->replace('_', '-')
+            ->lower()
+            ->toString();
     }
 }

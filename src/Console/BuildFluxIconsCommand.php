@@ -80,7 +80,9 @@ class BuildFluxIconsCommand extends Command
                     $icons = multisearch(
                         label: 'Which icons do you want to build from the vendor?',
                         options: fn (string $value) => $iconBuilder->getAvailableIcons()
-                            ->filter(fn ($name) => Str::contains($name, $value, ignoreCase: true))
+                            // remove everything before and including node_modules
+                            ->map(fn ($name) => Str::of($name)->after('node_modules/')->toString())
+                            ->filter(fn ($name) => Str::contains(Str::of($name)->basename('.svg')->toString(), $value, ignoreCase: true))
                             ->values()
                             ->all(),
                         scroll: 10
