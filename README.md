@@ -12,26 +12,27 @@ composer require --dev ympact/flux-icons
 
 ## Icon Vendor Support
 
-Initial support:
-
-- [Bootstrap](https://icons.getbootstrap.com/#icons)
-- [Codicons](https://github.com/microsoft/vscode-codicons/tree/main/src/icons) VScode codicons - no viewer
-- [Flowbite](https://flowbite.com/icons/)
-- [Fluent UI Icons](https://github.com/microsoft/fluentui-system-icons) - ([unofficial viewer](https://fluenticons.co/))
-- [Google Material Design Icons](https://fonts.google.com/icons)
-- [Healthicons](https://healthicons.org)
-- [Lucide](https://lucide.dev/icons/)
-- [MDI](https://pictogrammers.com/library/mdi/)
-- [Tabler Icons](https://tabler.io/icons)
+| Vendor       | Namespace   | Preview / Repo | Notes |
+|--------------|-------------|----------------|-------|
+| Bootstrap    | `bootstrap` | [Preview](https://icons.getbootstrap.com/#icons) | Stroke width of outline icons cannot be adjusted |
+| VSC Codicons | `codicons`  | [Repo](https://github.com/microsoft/vscode-codicons/) | Only outline icons available, but stroke width cannot be adjusted |
+| Flowbite     | `flowbite`  | [Preview](https://flowbite.com/icons/) |  |
+| Fluent UI    | `fluent`    | [Preview (unofficial)](https://fluenticons.co/) - [Repo](https://github.com/microsoft/fluentui-system-icons) | Stroke width of outline icons cannot be adjusted |
+| Google Material Design Icons | `google` | [Preview](https://fonts.google.com/icons) | Stroke width of outline icons cannot be adjusted |
+| Healthicons  | `health`    | [Preview](https://healthicons.org) | Stroke width cannot be adjusted. |
+| Lucide       | `lucide`    | [Preview](https://lucide.dev/icons/) | Only outline icons available |
+| MDI          | `mdi`       | [Preview](https://pictogrammers.com/library/mdi/) | Stroke width of outline icons cannot be adjusted |
+| Tabler       | `tabler`    | [Preview](https://tabler.io/icons) | |
 
 ## Building icons
 
-You will need to build the icons yourself once the package is installed. This can be done using the artisan command `flux-icons:build` you can optionally pass the vendor name as the first argument.
+You will need to build the icons yourself once the package is installed. This can be done using the artisan command `flux-icons:build`. You can optionally pass the vendor name as the first argument.
 
 ```cmd
 php artisan flux-icons:build tabler --icons=confetti,confetti-off
 ```
 
+The artisan script will try to install the vendor's icon package for you using `npm install`.
 In case you did not provide any arguments, the script will walk you through all options
 
 ![php artisan flux-icons:build](screenshot-cli.png)
@@ -45,11 +46,9 @@ In case you did not provide any arguments, the script will walk you through all 
 | `-a\|--all`     | Build all icons from the vendor. **Note:** this might generate over thousands of files and cause `npm run dev` to crash due to memory issues. |
 | `-v\|--verbose` | Show additional messages during build. |
 
-The artisan script will try to install the vendor's icon package using `npm install`.
-
 ### Usage
 
-Since this package publishes all icons to `resources/views/flux/icon/{vendor}/` you can simply use the Blade convention of referencing the icons within your flux:icon component. So for example:
+Since this package publishes all icons to `resources/views/flux/icon/{vendor}/` you can simply use the Blade convention of referencing the icons within your `flux:icon` component. So for example:
 
 ```html
 <flux:icon.tabler.confetti />
@@ -68,13 +67,13 @@ php artisan vendor:publish --tag=config
 
 ### Publish specific vendor callbacks
 
-Some vendors have callbacks defined (see the [config](/config/flux-icons.php). You can publish the class for these vendors using the following command:
+For some vendors callbacks str defined (see the [config](/config/flux-icons.php)). Adjusting these callbacks can be done by publishing the class using the following command:
 
 ```cmd
 php artisan flux-icons:publish {vendor}
 ```
 
-When adjusting the callback for an vendor, make sure you also publish the config file and reference the correct class.
+When adjusting the callback for a vendor, make sure you also publish the config file and reference the correct class.
 
 ## Advanced configuration
 
@@ -144,7 +143,7 @@ The vendor specific configuration sits within the `vendors` key. Each vendor sho
 | `template` | `outline` or `solid` |  | The svg-tag template for the specific variant. Mini and micro variants use the solid template by default. Commonly the outline icon may be set to solid as the outline icon was designed as solids and not using strokes. |
 | `fallback` | `string\|callable array` | | Determine the fallback icon to use if it the source was not found for the specific variant. See [details below](#fallbacks-for-icon-variants). |
 | `stroke_width` | `int\|float` |   | Determine the stroke width for the icon. Works only in case the `outline` template is used |
-| `size`     | `int`     | ... | Determine the size of the icon variant. By default we'll use the Flux implementaton (outline/solid = 24px, mini = 20px and micro = 16px |
+| `size`     | `int`     | ... | Determine the size of the icon variant. By default we'll use the Flux implementaton (outline/solid = 24px, mini = 20px and micro = 16px) |
 | `attributes` | `array` | `[]` | Add or remove (null) specific attributes to the svg html tag of the icon. |
 | `base`     | `string`  | `null`   | Determine what the base settings are for the `mini` and `micro` variants. By default the `solid` settings are used. |
 
@@ -167,7 +166,7 @@ In case the vendor uses a prefix or suffix for the icons, we want to configure i
 An optional `filter` callback can be defined to indicate whether a file in the directory should be used as outline or solid respectively.
 The function gets three arguments passed: `$file`, `$icons`, `$variant`:
 
-- `$file` 
+- `$file`
 - `icons` is an array of icons that the user requested to build. This is passed by reference in case this array needs to be adjusted. See the [Mdi class](src/Services/Vendors/Mdi.php) as example.
 - `$variant`
 
@@ -191,7 +190,7 @@ Due to the way the flux icon component is made, it requires 4 variants: an outli
 - mini - 20px
 - micro - 16px
 
-Using the configuration of the vendor, you can determine how to handle the building of the icon when there is no source file for a certain variant. The options are
+Using the configuration of the vendor, you can determine how to handle the building of the icon when there is no source file for a certain variant. The options are:
 
 | Value     | Description                                                                |
 |-----------|----------------------------------------------------------------------------|
@@ -239,3 +238,4 @@ php artisan vendor:publish --tag=flux-icons-icons
 - Helper script to create configurations for new vendors
 - Improving testing
 - Documentation
+- Support other variants (duotone, etc.)
