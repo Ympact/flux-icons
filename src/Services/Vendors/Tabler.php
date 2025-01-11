@@ -104,14 +104,17 @@ class Tabler
      * @param mixed $end
      * @return Collection
      */
-    private static function setPathAsStroke(Collection $svgPaths, int $start = 0, ?int $end){
+    private static function setPathAsStroke(Collection $svgPaths, int $start = 0, ?int $end = null): Collection{
         // use the start and end index to set the stroke attribute
         $total = $svgPaths->count();
         if($end < 0){
             $end = $total + $end;
         }
+        if($end === null){
+            $end = $total;
+        }
         return $svgPaths->map(function(SvgPath $svgPath, $index) use ($start, $end){
-            if($index >= $start && $index <= $end){
+            if($index >= $start && $index < $end){
                 $svgPath->setAttributes([
                     'stroke' => 'currentColor',
                     'stroke-width' => 1.5
