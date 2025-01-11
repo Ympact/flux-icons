@@ -253,9 +253,9 @@ return [
          *   48px is default size and is used for outline and solid variants. 
          *   In case 24px exists, it is used for mini and micro variants.
          */
-        'health' => [
+        'healthicons' => [
             'vendor_name' => 'Healthicons',
-            'namespace' => 'health',
+            'namespace' => 'healthicons',
             'package' => 'healthicons',
             'variants' => [
                 'outline' => [
