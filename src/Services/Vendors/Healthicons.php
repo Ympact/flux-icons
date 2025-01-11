@@ -8,7 +8,7 @@ use Illuminate\Support\Str;
 use Ympact\FluxIcons\Types\Icon;
 use Ympact\FluxIcons\Types\SvgPath;
 
-class Health
+class Healthicons
 {
     /**
      * Determine the final name of the icon

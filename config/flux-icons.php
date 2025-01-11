@@ -282,7 +282,7 @@ return [
                     'source' => 'node_modules/healthicons/public/icons/svg/filled-24px/*/'
                 ],
             ],
-            'icon_name' => [ Ympact\FluxIcons\Services\Vendors\Health::class, 'name' ]
+            'icon_name' => [ Ympact\FluxIcons\Services\Vendors\Healthicons::class, 'name' ]
         ]
         
         // Add additional vendors here...
