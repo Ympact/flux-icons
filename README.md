@@ -19,7 +19,7 @@ composer require --dev ympact/flux-icons
 | Flowbite     | `flowbite`  | [Preview](https://flowbite.com/icons/) |  |
 | Fluent UI    | `fluent`    | [Preview (unofficial)](https://fluenticons.co/) - [Repo](https://github.com/microsoft/fluentui-system-icons) | Stroke width of outline icons cannot be adjusted |
 | Google Material Design Icons | `google` | [Preview](https://fonts.google.com/icons) | Stroke width of outline icons cannot be adjusted |
-| Healthicons  | `health`    | [Preview](https://healthicons.org) | Stroke width cannot be adjusted. |
+| Healthicons  | `healthicons` | [Preview](https://healthicons.org) | Stroke width cannot be adjusted. |
 | Lucide       | `lucide`    | [Preview](https://lucide.dev/icons/) | Only outline icons available |
 | MDI          | `mdi`       | [Preview](https://pictogrammers.com/library/mdi/) | Stroke width of outline icons cannot be adjusted |
 | Tabler       | `tabler`    | [Preview](https://tabler.io/icons) | |
