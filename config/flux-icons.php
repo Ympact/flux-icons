@@ -7,6 +7,12 @@
  */
 
 return [
+
+    /**
+     * Request to restart npm dev after building icons
+     */
+    'request_npm_dev' => true, 
+
      /**
       * Default icons to be used in the project
       * Listing icons here will make them auto buildable and updatable through flux-icons:build and flux-icons:update commands

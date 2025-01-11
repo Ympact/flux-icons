@@ -231,11 +231,13 @@ class IconBuilder
         $infoFluxVersion = $this->getPackageCredits(true);
      
         $npmRunning = false;
-        if($baseIcons->count() > 100){
-            $time = round($baseIcons->count() / 3);
+        if(config('request_npm_dev')){
+            if($baseIcons->count() > 100){
+                $time = round($baseIcons->count() / 3);
 
-            info("In case npm run dev is running, we'll introduce a timeout between processing icons to prevent memory issues. \nThis will make this script take $time seconds. \nIt is better to stop `npm run dev` first before continuing.");
-            $npmRunning = confirm('Is `npm run dev` running?');
+                info("In case npm run dev is running, we'll introduce a timeout between processing icons to prevent memory issues. \nThis will make this script take $time seconds. \nIt is better to stop `npm run dev` first before continuing.");
+                $npmRunning = confirm('Is `npm run dev` running?');
+            }
         }
 
         $this->progressBar = new ProgressBar($this->output, count( $baseIcons));
@@ -261,7 +263,7 @@ class IconBuilder
         $this->output->writeln('');
 
         // ask to start running npm run dev again
-        if(confirm('Do you want to start `npm run dev`?')){
+        if(config('request_npm_dev') && $npmRunning && confirm('Do you want to start `npm run dev`?')){
             exec('npm run dev', $output, $result);
         }
         
@@ -283,7 +285,6 @@ class IconBuilder
 
         // in case there are no solid icons, use the preprocessed bse variant icon
         $basename = $baseIcon->process()->getBaseName();
-        $infoUsage = "<flux:icon.{$this->namespace}.{$basename} /> or <flux:icon name=\"{$this->namespace}.{$basename}\" />";
 
         // loop through the variants collection build the icons
         foreach($this->variants as $variant => $variantConfig)
@@ -335,6 +336,8 @@ class IconBuilder
         if($nameCallback = config("{$this->vendorConfig}.icon_name")){
             $basename = call_user_func_array($nameCallback, [$icon]);
         }
+
+        $infoUsage = "<flux:icon.{$this->namespace}.{$basename} /> or <flux:icon name=\"{$this->namespace}.{$basename}\" />";
 
         if($build){
             $iconBladeFile = $iconBladeFile
