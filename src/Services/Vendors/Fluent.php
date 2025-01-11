@@ -77,6 +77,7 @@ class Fluent
         return $split;
     }
 
+    /*
     private static function filter($svgPaths, ?int $index = null, ?array $indeces = null, ?string $d = null, ?array $ds = null){
         if($d){
             $svgPaths = $svgPaths->filter(function(SvgPath $svgPath) use($d) {
@@ -103,5 +104,6 @@ class Fluent
 
         return $svgPaths;
     }
+    */
 
 }
