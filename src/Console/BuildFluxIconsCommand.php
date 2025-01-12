@@ -88,6 +88,12 @@ class BuildFluxIconsCommand extends Command
                         scroll: 10
                     );
                     
+                    // if none selected, notify and exit
+                    if(empty($icons)){
+                        $this->error("You did not select any icons. Exiting...");
+                        return 1;
+                    }
+
                     // only get the file name of the icons
                     $icons = array_map(function($icon){
                         return Str::of($icon)->basename('.svg')->toString();
