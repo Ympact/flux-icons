@@ -18,7 +18,8 @@ composer require --dev ympact/flux-icons
 | VSC Codicons | `codicons`  | [Repo](https://github.com/microsoft/vscode-codicons/) | Only outline icons available, but stroke width cannot be adjusted |
 | Flowbite     | `flowbite`  | [Preview](https://flowbite.com/icons/) |  |
 | Fluent UI    | `fluent`    | [Preview (unofficial)](https://fluenticons.co/) - [Repo](https://github.com/microsoft/fluentui-system-icons) | Stroke width of outline icons cannot be adjusted |
-| Google Material Design Icons | `google` | [Preview](https://fonts.google.com/icons) | Stroke width of outline icons cannot be adjusted |
+| Google Material Design Icons | `material-icons` | [Preview](https://fonts.google.com/icons) | Stroke width of outline icons cannot be adjusted |
+| Google Material Symbols (300) | `material-symbols` | [Preview](https://fonts.google.com/icons?icon.set=Material+Symbols) | Stroke width of outline icons cannot be adjusted |
 | Healthicons  | `healthicons` | [Preview](https://healthicons.org) | Stroke width cannot be adjusted. |
 | Lucide       | `lucide`    | [Preview](https://lucide.dev/icons/) | Only outline icons available |
 | MDI          | `mdi`       | [Preview](https://pictogrammers.com/library/mdi/) | Stroke width of outline icons cannot be adjusted |
@@ -62,7 +63,7 @@ You can publish the config file to adjust settings for a specific vendor or add 
 In case you add your own vendor, please share or make a PR so others can use it too!
 
 ```cmd
-php artisan vendor:publish --tag=config
+php artisan vendor:publish --tag=flux-icons-config
 ```
 
 ### Publish specific vendor callbacks
