@@ -62,7 +62,7 @@ You can publish the config file to adjust settings for a specific vendor or add 
 In case you add your own vendor, please share or make a PR so others can use it too!
 
 ```cmd
-php artisan vendor:publish --tag=config
+php artisan vendor:publish --tag=flux-icons-config
 ```
 
 ### Publish specific vendor callbacks
