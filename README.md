@@ -58,7 +58,7 @@ or
 
 ## Publish config
 
-You can publish the config file to adjust settings for a specific vendor or add your own vendor. For exmaple adjusting the stroke width of outline icons.
+You can publish the config file to adjust settings for a specific vendor or add your own vendor. For example adjusting the stroke width of outline icons.
 In case you add your own vendor, please share or make a PR so others can use it too!
 
 ```cmd
