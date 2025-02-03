@@ -1,0 +1,41 @@
+<?php
+
+/**
+ * Flux Icons configuration file
+ * In case you have published the configuration file, you can modify the configuration here
+ * The config file is merged with the default configuration, so you only need to specify the values you want to change
+ */
+
+return [
+
+    /**
+     * Request to restart npm dev after building icons
+     */
+    'request_npm_dev' => true, 
+
+    /**
+     * Default vendor to use (optionally add the default variants for that vendor)
+     */
+    // 'default' => 'tabler',
+    // 'default' => ['tabler' =>
+    //    'outline' => []
+    //    'solid' => []
+    //    'mini' => []
+    //    'micro' => []
+    //],
+
+     /**
+      * Default icons to be used in the project
+      * Listing icons here will make them auto buildable and updatable through flux-icons:build and flux-icons:update commands
+      * array ['vendor' => ['icon-name', ...] ] 
+      */  
+    'icons' => null,
+
+    /**
+     * custom vendor
+     */
+    // 'custom-vendors' = [
+    //     //
+    // ],
+
+];
