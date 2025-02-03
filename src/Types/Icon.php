@@ -29,7 +29,17 @@ class Icon{
 
     protected string $rawContent;
 
-    protected int $size;
+    /**
+     * The size of the icon
+     * @var array<int> $size
+     */
+    protected array $size;
+
+    /**
+     * xy origin of the icon for custom viewBox positioning
+     * @var array<int> $origin
+     */
+    protected array $origin = [0, 0];
 
     protected float $strokeWidth = 1.5;
 
@@ -271,7 +281,7 @@ class Icon{
     {
         $this->createSvg();
         $svg = $this->dom->getElementsByTagName('svg')->item(0);
-        $svg->setAttribute('viewBox', "0 0 {$this->size} {$this->size}");
+        $svg->setAttribute('viewBox', "{$this->origin[0]} {$this->origin[1]} {$this->size[0]} {$this->size[1]}");
 
         $svgPathNodes = $this->paths->map(function(SvgPath $path){
             return $path->getNode();
@@ -312,7 +322,7 @@ class Icon{
 
     /**
      * Summary of getSize
-     * @return int
+     * @return array
      */
     public function getSize()
     {
@@ -434,14 +444,17 @@ class Icon{
             $viewBox = $svg->getAttribute('viewbox');
             $viewBox = explode(' ', $viewBox);
             if(count($viewBox) == 4){
-                // convert string $viewBox[3] to in
-                $this->size = (int)$viewBox[3];
+
+                $this->origin = [(int)$viewBox[0], (int)$viewBox[1]];
+
+                $this->size = [(int)$viewBox[2], (int)$viewBox[3]];
                 return;
             }
         }
 
-        $size = $svg->getAttribute('height') ?? $svg->getAttribute('width');
-        $this->size = (int)$size;
+        $height = $svg->getAttribute('height') ?? $svg->getAttribute('width') ?? null;
+        $width = $svg->getAttribute('width') ?? $svg->getAttribute('height') ?? null;
+        $this->size = [(int)$width, (int)$height];
     }
 
     /**
