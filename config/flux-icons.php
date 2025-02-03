@@ -133,30 +133,6 @@ return [
         ],
 
         /**
-         * Google Material Design Icons
-         * @see https://fonts.google.com/icons
-         */
-        'google' => [
-            'vendor_name' => 'Material Design Icons',
-            'namespace' => 'material',
-            'package' => '@material-design-icons/svg',
-            'variants' => [
-                'outline' => [
-                    'template' => 'solid',
-                    'attributes' => [
-                        'stroke-linecap' => 'round',
-                        'stroke-linejoin' => 'round',
-                    ],
-                    'source' => 'node_modules/@material-design-icons/svg/outlined',
-                ],
-                'solid' => [
-                    'stroke_width' => false, // there is no stroke width for solid icons
-                    'source' => 'node_modules/@material-design-icons/svg/filled',
-                ],
-            ],
-        ],
-
-        /**
          * Health Icons
          * @see https://healthicons.org/
          * Health Icons has only solid icons, so there is no difference between outline and solid variant
@@ -211,6 +187,56 @@ return [
                 ],
             ],
         ],
+
+        /**
+         * Google Material Design Icons
+         * @see https://fonts.google.com/icons
+         */
+        'material-design-icons' => [
+            'vendor_name' => 'Material Design Icons',
+            'namespace' => 'material',
+            'package' => '@material-design-icons/svg',
+            'variants' => [
+                'outline' => [
+                    'template' => 'solid',
+                    'attributes' => [
+                        'stroke-linecap' => 'round',
+                        'stroke-linejoin' => 'round',
+                    ],
+                    'source' => 'node_modules/@material-design-icons/svg/outlined',
+                ],
+                'solid' => [
+                    'stroke_width' => false, // there is no stroke width for solid icons
+                    'source' => 'node_modules/@material-design-icons/svg/filled',
+                ],
+            ],
+        ],
+
+        /**
+         * Material Design Icons
+         * @see https://fonts.google.com/icons?icon.set=Material+Symbols
+         */
+        'material-symbols-300' => [
+            'vendor_name' => 'Material Symbols 300',
+            'namespace' => 'material-symbols',
+            'package' => '@material-symbols/svg-300',
+            'variants' => [
+                'outline' => [
+                    'template' => 'solid',
+                    'source' => [
+                        'dir' => 'node_modules/@material-symbols/svg-300/outlined',
+                        'filter' => [ Ympact\FluxIcons\Services\Vendors\MaterialSymbols::class, 'outlineFilter' ]
+                    ],
+                ],
+                'solid' => [
+                    'source' => [
+                        'dir' => 'node_modules/@material-symbols/svg-300/outlined',
+                        'suffix' => '-fill',
+                        'filter' => [ Ympact\FluxIcons\Services\Vendors\MaterialSymbols::class, 'solidFilter' ]
+                    ]
+                ], 
+            ],  
+        ], 
 
         /**
          * MDI 
