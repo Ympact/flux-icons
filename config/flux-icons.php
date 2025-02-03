@@ -192,7 +192,7 @@ return [
          * Google Material Design Icons
          * @see https://fonts.google.com/icons
          */
-        'material-design-icons' => [
+        'material-icons' => [
             'vendor_name' => 'Material Design Icons',
             'namespace' => 'material',
             'package' => '@material-design-icons/svg',
@@ -216,7 +216,7 @@ return [
          * Material Design Icons
          * @see https://fonts.google.com/icons?icon.set=Material+Symbols
          */
-        'material-symbols-300' => [
+        'material-symbols' => [
             'vendor_name' => 'Material Symbols 300',
             'namespace' => 'material-symbols',
             'package' => '@material-symbols/svg-300',
