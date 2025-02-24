@@ -86,6 +86,30 @@ return [
         ],
 
         /**
+         * Flag icons
+         * @see https://github.com/lipis/flag-icons/
+         * Flag icons has only solid icons, so there is no difference between outline and solid variant
+         * The 4x3 AR version is used by default, change the directory to 1x1 for the square version
+         */
+        'flags' => [
+            'vendor_name' => 'Flag Icons',
+            'namespace' => 'flags',
+            'package' => 'flag-icons',
+            'variants' => [
+                // there is no outline variant, so we just use the solid icons
+                'outline' => [
+                    'template' => 'solid',
+                    'raw' => true,
+                    'source' => 'node_modules/flag-icons/flags/4x3'
+                ],
+                'solid' => [
+                    'raw' => true,
+                    'source' => 'node_modules/flag-icons/flags/4x3',
+                ],
+            ],
+        ],
+
+        /**
          * Flowbite icons 
          * @see https://flowbite.com/icons/
          * icons are available in outline and solid variants within various subdirectories

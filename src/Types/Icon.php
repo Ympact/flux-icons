@@ -47,6 +47,8 @@ class Icon{
 
     protected string $template = 'outline';
 
+    protected bool $raw = false;
+
     protected array $variantAttributes = [
         "default" => [
             "data-flux-icon" => true,
@@ -115,6 +117,16 @@ class Icon{
         $this->template = $template;
         return $this;
     }
+
+    /**
+     * set raw
+     */
+    public function setRaw(bool $raw = true): static
+    {
+        $this->raw = $raw;
+        return $this;
+    }
+
 
     /**
      * get template
@@ -283,16 +295,23 @@ class Icon{
         $svg = $this->dom->getElementsByTagName('svg')->item(0);
         $svg->setAttribute('viewBox', "{$this->origin[0]} {$this->origin[1]} {$this->size[0]} {$this->size[1]}");
 
-        $svgPathNodes = $this->paths->map(function(SvgPath $path){
-            return $path->getNode();
-        });
-
-        // insert the svgPaths nodes into the svg node
-        foreach ($svgPathNodes as $node) {
-            $importedNode = $this->dom->importNode($node, true);
-            $svg->appendChild($importedNode);
+        // if the raw flag is set, use the raw content of the icon to append to the svg tag
+        if($this->raw){
+            $content = $this->xpathSource->query('//svg')->item(0)->C14N();
+            $svg->appendChild($this->dom->createCDATASection($content));
         }
+        else{
+            $svgPathNodes = $this->paths->map(function(SvgPath $path){
+                return $path->getNode();
+            });
 
+            // insert the svgPaths nodes into the svg node
+            foreach ($svgPathNodes as $node) {
+                $importedNode = $this->dom->importNode($node, true);
+                $svg->appendChild($importedNode);
+            }
+        }
+        
         return $this->dom->saveHTML();
     }
 
@@ -477,7 +496,7 @@ class Icon{
      */
     private function getPathDefinitions()
     {
-        return "//path | //circle | //rect | //line | //polyline | //polygon";
+        return "//path | //g | //circle | //rect | //line | //polyline | //polygon | //use";
     }
 
 
