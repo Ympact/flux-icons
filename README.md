@@ -17,6 +17,7 @@ composer require --dev ympact/flux-icons
 | Bootstrap    | `bootstrap` | [Preview](https://icons.getbootstrap.com/#icons) | Stroke width of outline icons cannot be adjusted |
 | VSC Codicons | `codicons`  | [Repo](https://github.com/microsoft/vscode-codicons/) | Only outline icons available, but stroke width cannot be adjusted |
 | Flowbite     | `flowbite`  | [Preview](https://flowbite.com/icons/) |  |
+| Flags        | `flags`     |  [Repo](https://github.com/lipis/flag-icons/) | There is only one variant (solid and outline show the same flag). Currently the 4x3 AR version is configured. The rectangle version can also be used by adjusting the config |
 | Fluent UI    | `fluent`    | [Preview (unofficial)](https://fluenticons.co/) - [Repo](https://github.com/microsoft/fluentui-system-icons) | Stroke width of outline icons cannot be adjusted |
 | Google Material Design Icons | `material-icons` | [Preview](https://fonts.google.com/icons) | Stroke width of outline icons cannot be adjusted |
 | Google Material Symbols (300) | `material-symbols` | [Preview](https://fonts.google.com/icons?icon.set=Material+Symbols) | Stroke width of outline icons cannot be adjusted |
