@@ -325,6 +325,8 @@ class IconBuilder
             if(config("{$this->vendorConfig}.stroke_width") || $this->variantProp($template, 'stroke_width')){
                 $icon->setStrokeWidth($this->variantProp($template, 'stroke_width', null) ?? config("{$this->config}.default_stroke_width"));
             }
+            
+            $icon->setRaw( $this->variantProp($template, 'raw', false));
 
             $svg = $icon->toHtml();
             $svg = Str::of($svg)->replace('<svg', '<svg {{ $attributes->class($classes) }}');
