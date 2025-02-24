@@ -148,6 +148,7 @@ The vendor specific configuration sits within the `vendors` key. Each vendor sho
 | `size`     | `int`     | ... | Determine the size of the icon variant. By default we'll use the Flux implementaton (outline/solid = 24px, mini = 20px and micro = 16px) |
 | `attributes` | `array` | `[]` | Add or remove (null) specific attributes to the svg html tag of the icon. |
 | `base`     | `string`  | `null`   | Determine what the base settings are for the `mini` and `micro` variants. By default the `solid` settings are used. |
+| `raw`      | `bool`    | `false`  | Determine whether the inner contents of the icon's svg should simply be copied into the Flux icon and explicitly prevent any transformations. |
 
 #### Source
 
