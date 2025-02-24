@@ -2,7 +2,7 @@
 
 This is a laravel package to customize the icons for [Livewire Flux](https://github.com/livewire/flux). It builds the icons from various vendors into a `flux:icon` component.
 
-![Packagist Version](https://img.shields.io/packagist/v/ympact/flux-icons)
+[![Packagist Version](https://img.shields.io/packagist/v/ympact/flux-icons)](https://packagist.org/packages/ympact/flux-icons)
 
 ## Installation
 
