@@ -74,7 +74,7 @@ class IconBuilder
 
     protected $timeout = 1000000/3; // in microseconds
 
-    public function __construct(string $vendor = null, array $icons = null, $verbose = false)
+    public function __construct(?string $vendor = null, ?array $icons = null, $verbose = false)
     {
         if($verbose){
             $this->setVerbose($verbose);
@@ -347,7 +347,10 @@ class IconBuilder
                 ->replace('{INFO_ICON_USAGE}', $infoUsage)
                 ->replace('{INFO_CREDITS}', $infoCredits)
                 ->replace('{INFO_FLUX_VERSION}', $infoFluxVersion)
-                ->replace('{INFO_BUILD_DATE}', now()->format('Y-m-d H:i:s'));
+                ->replace('{INFO_BUILD_DATE}', now()->format('Y-m-d H:i:s'))
+                
+                ->replace('{PURE}', (PackageManager::fluxVersion() >= "2.2.6" ? '@pure' : '') );
+
 
             $put = File::put("{$this->outputDir}/{$basename}.blade.php", $iconBladeFile);
             if($this->verbose){

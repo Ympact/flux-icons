@@ -7,16 +7,16 @@ use Illuminate\Support\Collection;
 class IconManager
 {
 
-    public function currentVendors()
+    public static function currentVendors()
     {
         // get the directory names from resources/flux/icons
         return collect(glob(resource_path('views/flux/icon/*'), GLOB_ONLYDIR))
             ->map(fn($dir) => basename($dir));
     }
 
-    public function currentIcons(?Collection $vendors = null)
+    public static function installedIcons(?Collection $vendors = null)
     {
-        $vendors = $vendors ?? $this->currentVendors();
+        $vendors = $vendors ?? self::currentVendors();
 
         // get the SVG file names from resources/flux/icons/{vendor}/{icon}.blade.php and group them by vendor
         return $vendors->mapWithKeys(function ($vendor) {
