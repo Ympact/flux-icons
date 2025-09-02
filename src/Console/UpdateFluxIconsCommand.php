@@ -2,7 +2,6 @@
 
 namespace Ympact\FluxIcons\Console;
 
-use Illuminate\Support\Str;
 use Ympact\FluxIcons\Services\IconBuilder;
 use Illuminate\Console\Command;
 use Ympact\FluxIcons\Services\IconManager;
@@ -42,21 +41,17 @@ class UpdateFluxIconsCommand extends Command
             );
 
             // update the icons
-            $this->components->task(
-                'Updating '.count($vendorIcons).' icons for '.$vendor,
-                function() use ($vendorIcons, $vendor, $verbose){
-                    try {
-                        $iconBuilder = new IconBuilder($vendor);
-                        $iconBuilder->setVerbose($verbose)->requirePackage();
-                        $iconBuilder->setIcons($vendorIcons->all());
-                        $iconBuilder->buildIcons();
-                        return true;
-                    } catch (\RuntimeException $e) {
-                        error("Failed to update the icons for: $vendor. ".$e->getMessage());
-                        return false;
-                    }
-                }
-            );
+            info('Updating '.count($vendorIcons).' icons for '.$vendor);
+    
+            try {
+                $iconBuilder = new IconBuilder($vendor);
+                $iconBuilder->setVerbose($verbose)->requirePackage();
+                $iconBuilder->setIcons($vendorIcons->all());
+                $iconBuilder->buildIcons();
+                
+            } catch (\RuntimeException $e) {
+                error("Failed to update the icons for: $vendor. ".$e->getMessage());
+            }
 
         });
 
