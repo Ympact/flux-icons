@@ -1,0 +1,3 @@
+<?php {CASES} ?>
+{SOLID}
+<?php break; ?>

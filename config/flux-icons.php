@@ -13,18 +13,37 @@ return [
      */
     'request_npm_dev' => true, 
 
+    'defaults' => [
+
+        /**
+         * Default vendor for icons, 
+         * let's you omit the vendor from build and update commands
+         */
+        'vendor' => null,
+
+        /**
+         * default variants to build
+         */
+        'variants' => [
+            'outline' => '[:where(&)]:size-6',
+            'solid' => '[:where(&)]:size-6',
+            'mini' => '[:where(&)]:size-5',
+            'micro' => '[:where(&)]:size-4',
+        ],
+
+        /**
+         * Default stroke width for icons
+         * Heroicons and hence Flux uses by default a stroke width of 1.5 for icons
+         */
+        'stroke_width' => 1.5,
+    ],
+
      /**
       * Default icons to be used in the project
       * Listing icons here will make them auto buildable and updatable through flux-icons:build and flux-icons:update commands
       * null or array ['vendor' => ['icon-name', ...] ] 
       */  
     'icons' => null,
-
-    /**
-     * Default stroke width for icons
-     * Heroicons and hence Flux uses by default a stroke width of 1.5 for icons
-     */
-    'default_stroke_width' => 1.5,
 
     /**
      * Vendors configuration
