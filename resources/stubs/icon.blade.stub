@@ -6,6 +6,7 @@
   Built:    {INFO_BUILD_DATE}
 --}}
 
+{PURE}
 
 @props([
     'variant' => 'outline',
