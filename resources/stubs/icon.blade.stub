@@ -1,40 +1,33 @@
-{{-- 
-  Icon:     {INFO_ICON_NAME} 
-  Usage:    {INFO_ICON_USAGE} 
-  Credits:  {INFO_CREDITS} 
-  Flux:     {INFO_FLUX_VERSION} 
-  Built:    {INFO_BUILD_DATE}
---}}
+{CREDITS}
 
+{PURE}
 
 @props([
     'variant' => 'outline',
+    'size' => null,
+    'stroke' => '1',
+    'primary' => null,
+    'secondary' => null
 ])
 
 @php
+$size ??= match($variant) {
+    'outline' => 'md',
+    'solid' => 'md',
+    'mini' => 'sm',
+    'micro' => 'xs',
+};
+
 $classes = Flux::classes('shrink-0')
-    ->add(match($variant) {
-        'outline' => '[:where(&)]:size-6',
-        'solid' => '[:where(&)]:size-6',
-        'mini' => '[:where(&)]:size-5',
-        'micro' => '[:where(&)]:size-4',
+    ->add(match($size) {
+        'md' => '[:where(&)]:size-6',
+        'sm' => '[:where(&)]:size-5',
+        'xs' => '[:where(&)]:size-4',
+        '2xs' => '[:where(&)]:size-4',
+        'custom' => '',
     });
 @endphp
 
-<?php switch ($variant): case ('outline'): ?>
-{OUTLINE}
-        <?php break; ?>
-
-    <?php case ('solid'): ?>
-{SOLID}
-        <?php break; ?>
-
-    <?php case ('mini'): ?>
-{MINI}
-        <?php break; ?>
-
-    <?php case ('micro'): ?>
-{MICRO}
-        <?php break; ?>
-
+<?php switch ($variant): ?>
+{VARIANTS}
 <?php endswitch; ?>
