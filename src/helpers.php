@@ -1,22 +1,17 @@
 <?php
 
-namespace Ympact\FluxIcons;
+declare(strict_types=1);
 
-if (! function_exists('Ympact\FluxIcons\arrayMergeRecursive')) {
+use Flux\FluxManager;
+
+if (! function_exists('svg')) {
     /**
-     * Summary of Ympact\FluxIcons\arrayMergeRecursive
-     * @param array $arrays
-     * @return array
+     * helper function to use the icon in blade
+     * for easy transitining from Blade Icons to Flux Icons package 
      */
-    function arrayMergeRecursive(...$arrays): array
+    function svg(string $name, $class = '', array $attributes = []): Svg
     {
-        $result = array_replace_recursive(...$arrays);
-
-        // Remove null values
-        $result = array_filter($result, function($value) {
-            return !is_null($value);
-        });
-
-        return $result;
+        return app(FluxIconsManager::class)->svg($name, $class, $attributes);
     }
+
 }

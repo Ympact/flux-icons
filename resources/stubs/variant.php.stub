@@ -1,3 +1,10 @@
+{{--
+    ATTR_FILL: fill="currentColor" : fill="none" 
+    ATTR_STROKE: stroke-width="1.5" stroke="currentColor" : stroke-width="0"
+    ATTR_VIEWBOX: viewBox="0 0 24 24"
+--}}
 <?php case ('{name}'): 
-{VARIANT}
+<svg {{ $attributes->class($classes) }} data-flux-icon xmlns="http://www.w3.org/2000/svg" {ATTR_VIEWBOX} {ATTR_FILL} {ATTR_STROKE} aria-hidden="true" data-slot="icon">
+    {VARIANT}
+</svg>
 <?php break; ?>

@@ -10,9 +10,11 @@ use Ympact\FluxIcons\Variants;
 
 abstract class Vendor implements VendorInterface
 {
-    public $package = null;
+    public $package = 'heroicons';
 
-    public $name = null; // optionally a human readable name, otherwise the package name will be used
+    //public $name = 'Heroicons'; // optionally a human readable name, otherwise the package name will be used
+
+    public $namespace = null; // disable the namespace prefix <flux:icon.$iconName />
 
     // base path within the package where the icons are located /vendor/{$package}
     public $basePath = null;

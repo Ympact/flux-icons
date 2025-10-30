@@ -204,7 +204,7 @@ class Icon{
         return $this;
     }
 
-    public function getDefaultAttributes(string $variant = null): array
+    public function getDefaultAttributes(?string $variant = null): array
     {
         if($variant){
             return array_key_exists($variant, $this->variantAttributes) ? $this->variantAttributes[$variant] : [];
@@ -243,7 +243,7 @@ class Icon{
      * @param bool $force force the passed argument and ignore the config
      * @return Icon
      */
-    public function setStrokeWidth(float $default = null, bool $force = false): static
+    public function setStrokeWidth(?float $default = null, bool $force = false): static
     {
         $this->strokeWidth = $default ?? $this->strokeWidth;
         // if there is a strokeWidth function in the config file, apply it
@@ -261,7 +261,7 @@ class Icon{
      * @param array $attributes
      * @return Icon
      */
-    public function setPathAttributes(array $attributes = null): static
+    public function setPathAttributes(?array $attributes = null): static
     {
         $attributes = $attributes ?? Arr::get($this->config, "path_attributes.{$this->variant}");
         if($attributes){

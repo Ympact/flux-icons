@@ -1,17 +1,25 @@
+{{{
+    INLINE_CSS: ->add('size-[{VENDOR_INLINE_SIZE}] vertical-align-[{VENDOR_INLINE_OFFESET}];')
+}}}
+
+
 {CREDITS}
 
-{PURE}
+{BLAZE}
 
 @props([
+    {PROPS}
     'variant' => 'outline',
     'size' => null,
     'stroke' => '1',
     'primary' => null,
-    'secondary' => null
+    'secondary' => null,
+    'inline' => null
 ])
 
 @php
 $size ??= match($variant) {
+    {VARIANT_SIZES}
     'outline' => 'md',
     'solid' => 'md',
     'mini' => 'sm',
@@ -20,14 +28,17 @@ $size ??= match($variant) {
 
 $classes = Flux::classes('shrink-0')
     ->add(match($size) {
+        {SIZES}
         'md' => '[:where(&)]:size-6',
         'sm' => '[:where(&)]:size-5',
         'xs' => '[:where(&)]:size-4',
         '2xs' => '[:where(&)]:size-4',
         'custom' => '',
-    });
+    })
+    {INLINE_CSS}
+    ;
 @endphp
 
 <?php switch ($variant): ?>
-{VARIANTS}
+    {VARIANTS_SVG}
 <?php endswitch; ?>

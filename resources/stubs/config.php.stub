@@ -16,15 +16,14 @@ return [
     /**
      * Default vendor to use (optionally add the default variants for that vendor)
      */
-    // 'default' => 'tabler',
-    // 'default' => ['tabler' =>
-    //    'outline' => []
-    //    'solid' => []
-    //    'mini' => []
-    //    'micro' => []
-    //],
+    // 'default' => Ympact\FluxIcons\Vendors\Tabler::class
 
-     /**
+    /**
+     * Whether to use Livewire Blaze
+     */
+    'blaze' => true,
+
+    /**
       * Default icons to be used in the project
       * Listing icons here will make them auto buildable and updatable through flux-icons:build and flux-icons:update commands
       * array ['vendor' => ['icon-name', ...] ] 
@@ -32,10 +31,10 @@ return [
     'icons' => null,
 
     /**
-     * custom vendor
+     * additional custom vendors
+     * reference a Vendor class
      */
-    // 'custom-vendors' = [
-    //     //
-    // ],
-
+    'vendors' = [
+      //
+    ],
 ];

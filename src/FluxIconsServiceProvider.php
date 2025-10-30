@@ -8,6 +8,13 @@ class FluxIconsServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
+        $this->app->alias(FluxIconsManager::class, 'flux-icons');
+
+        $this->app->singleton(FluxIconsManager::class);
+
+        $loader = \Illuminate\Foundation\AliasLoader::getInstance();
+        $loader->alias('FluxIcons', \Ympact\FluxIcons\FluxIconsManager::class);
+
         // Merge the package configuration with the application's copy.
         $this->mergeConfigFrom(__DIR__.'/../config/flux-icons.php', 'flux-icons');
     }
