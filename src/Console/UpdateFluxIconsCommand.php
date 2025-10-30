@@ -13,7 +13,7 @@ class UpdateFluxIconsCommand extends Command
 {
     protected $signature = 'flux-icons:update
                             {--P|vendor : The vendors for which to update the icon package}';
-    protected $description = 'Updates icon vendor packages, built icons and adding @pure directive';
+    protected $description = 'Updates icon vendor packages, built icons and adding @blaze directive';
 
     public function handle()
     {

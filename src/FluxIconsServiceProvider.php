@@ -3,6 +3,7 @@
 namespace Ympact\FluxIcons;
 
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Support\Facades\Blade;
 
 class FluxIconsServiceProvider extends ServiceProvider
 {
@@ -24,7 +25,14 @@ class FluxIconsServiceProvider extends ServiceProvider
         ], 'flux-icons-icons');
 
         // Register the commands
+        $this->bootFallbackBlazeDirectivesIfBlazeIsNotInstalled();
         $this->bootCommands();
+    }
+
+    public function bootFallbackBlazeDirectivesIfBlazeIsNotInstalled()
+    {
+        Blade::directive('pure', fn () => '');
+        Blade::directive('blaze', fn () => '');
     }
     
     public function bootCommands()

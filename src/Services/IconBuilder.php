@@ -349,7 +349,7 @@ class IconBuilder
                 ->replace('{INFO_FLUX_VERSION}', $infoFluxVersion)
                 ->replace('{INFO_BUILD_DATE}', now()->format('Y-m-d H:i:s'))
                 
-                ->replace('{PURE}', (PackageManager::fluxVersion() >= "2.2.6" ? '@pure' : '') );
+                ->replace('{BLAZE}', (PackageManager::fluxVersion() >= "2.2.6" ? '@blaze' : '') );
 
 
             $put = File::put("{$this->outputDir}/{$basename}.blade.php", $iconBladeFile);
