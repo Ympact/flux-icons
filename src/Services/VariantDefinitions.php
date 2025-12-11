@@ -5,7 +5,7 @@ namespace Ympact\FluxIcons\Services;
 use Ympact\FluxIcons\Types\Variant;
 
 class VariantDefinitions
-{    
+{
     public $variants = [];
 
     public function name(string $name): Variant

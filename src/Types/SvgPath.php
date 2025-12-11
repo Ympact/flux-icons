@@ -1,12 +1,13 @@
 <?php
 
 // class that is a representation of an icon using DomDocument and XPath
+
 namespace Ympact\FluxIcons\Types;
 
 use DOMNode;
 
-class SvgPath{
-
+class SvgPath
+{
     protected $dom;
 
     protected DOMNode $tag;
@@ -24,36 +25,42 @@ class SvgPath{
         $this->d = $tag->getAttribute('d');
     }
 
-    public function getDom(){
+    public function getDom()
+    {
         return $this->dom;
     }
 
-    public function getType(){
+    public function getType()
+    {
         return $this->type;
     }
 
-    public function getD(){
+    public function getD()
+    {
         return $this->d;
     }
 
     // get the attributes on the path
-    public function getAttributes(){
+    public function getAttributes()
+    {
         $attributes = [];
-        foreach($this->tag->attributes as $key => $value){
+        foreach ($this->tag->attributes as $key => $value) {
             $attributes[$key] = $value;
         }
+
         return $attributes;
     }
 
     // set the attributes on the path
-    public function setAttributes($attributes){
-        foreach($attributes as $key => $value){
+    public function setAttributes($attributes)
+    {
+        foreach ($attributes as $key => $value) {
             $this->tag->setAttribute($key, $value);
         }
     }
 
-    public function getNode(){
+    public function getNode()
+    {
         return $this->tag;
     }
-
 }

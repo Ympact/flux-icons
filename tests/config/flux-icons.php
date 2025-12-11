@@ -7,12 +7,12 @@
  */
 
 return [
-     /**
-      * Default icons to be used in the project
-      * Listing icons here will make them auto buildable and updatable through flux-icons:build and flux-icons:update commands
-      * null or array ['vendor' => ['icon-name', ...] ] 
-      */  
-    'icons' => [ 'vendor-1' => [ 'home', 'arrow-left' ]],
+    /**
+     * Default icons to be used in the project
+     * Listing icons here will make them auto buildable and updatable through flux-icons:build and flux-icons:update commands
+     * null or array ['vendor' => ['icon-name', ...] ]
+     */
+    'icons' => ['vendor-1' => ['home', 'arrow-left']],
 
     /**
      * Default stroke width for icons
@@ -28,12 +28,12 @@ return [
             'vendor' => 'Alpha',
             'namespace' => 'alpha',
             'package' => 'alpha/icons',
-            //'baseVariant' => 'outline', // default variant for the icon, not necessary to specify
+            // 'baseVariant' => 'outline', // default variant for the icon, not necessary to specify
             'variants' => [
                 'outline' => [
-                    //'stub' => 'outline', // default stub for the icon, not necessary to specify
-                    //'stroke_width' => 1.5, // default stroke width for the icon, not necessary to specify
-                    //'size' => 24, // default size for the icon, not necessary to specify
+                    // 'stub' => 'outline', // default stub for the icon, not necessary to specify
+                    // 'stroke_width' => 1.5, // default stroke width for the icon, not necessary to specify
+                    // 'size' => 24, // default size for the icon, not necessary to specify
                     'path_attributes' => [
                         'stroke-linecap' => 'round',
                         'data-ympact' => 'alpha',
@@ -42,9 +42,9 @@ return [
                     // filter => [],
                 ],
                 'solid' => [
-                    //'stub' => 'solid',
-                    //'stroke_width' => false, // there is no stroke width for solid icons
-                    //'size' => 24,
+                    // 'stub' => 'solid',
+                    // 'stroke_width' => false, // there is no stroke width for solid icons
+                    // 'size' => 24,
                     'path_attributes' => [
                         'fill-rule' => 'evenodd',
                         'data-ympact' => 'alpha',
@@ -53,16 +53,16 @@ return [
                     // filter => [],
                 ],
                 'mini' => [
-                    //'base' => 'solid',
-                    //'size' => 20 // default size for the icon, not necessary to specify
-                ], 
+                    // 'base' => 'solid',
+                    // 'size' => 20 // default size for the icon, not necessary to specify
+                ],
                 'micro' => [
-                    //'base' => 'solid', 
-                    //'size' => 16 // default size for the icon, not necessary to specify
+                    // 'base' => 'solid',
+                    // 'size' => 16 // default size for the icon, not necessary to specify
                 ],
             ],
-            'transform_svg_path' => [ Ympact\FluxIcons\Tests\Vendor\Alpha\Alpha::class, 'transformSvgPath' ],
-            'change_stroke_width' => [ Ympact\FluxIcons\Tests\Vendor\Alpha\Alpha::class, 'changeStrokeWidth' ] 
+            'transform_svg_path' => [Ympact\FluxIcons\Tests\Vendor\Alpha\Alpha::class, 'transformSvgPath'],
+            'change_stroke_width' => [Ympact\FluxIcons\Tests\Vendor\Alpha\Alpha::class, 'changeStrokeWidth'],
         ],
 
         /**
@@ -84,13 +84,13 @@ return [
                 'solid' => [
                     'source' => [
                         'dir' => 'tests/vendor/beta/icons',
-                        'prefix' => null, 
-                        'suffix' => [ Ympact\FluxIcons\Tests\Vendor\Beta\Beta::class, 'sourceSolidSuffix' ],
+                        'prefix' => null,
+                        'suffix' => [Ympact\FluxIcons\Tests\Vendor\Beta\Beta::class, 'sourceSolidSuffix'],
                     ],
                 ],
             ],
-            'transform_svg_path' => null, 
-            'change_stroke_width' => null
+            'transform_svg_path' => null,
+            'change_stroke_width' => null,
         ],
 
         /**
@@ -108,12 +108,12 @@ return [
                     'source' => 'tests/vendor/gamma/icons/solid/*/',
                 ],
             ],
-            'transform_svg_path' => null, 
-            'change_stroke_width' => null
+            'transform_svg_path' => null,
+            'change_stroke_width' => null,
         ],
 
         /**
-         * testing for advanced source configuration: 
+         * testing for advanced source configuration:
          * - using suffix and prefix
          * - using filter function
          * - adjusting base for mini and micro variants
@@ -130,7 +130,7 @@ return [
                         'suffix' => '-outline',
                     ],
                     // filter function to determine if the icon is an outline icon
-                    'filter' => [ Ympact\FluxIcons\Tests\Vendor\Epsilon\Epsilon::class, 'outlineFilter' ]
+                    'filter' => [Ympact\FluxIcons\Tests\Vendor\Epsilon\Epsilon::class, 'outlineFilter'],
                 ],
                 'solid' => [
                     'source' => [
@@ -138,9 +138,9 @@ return [
                         'prefix' => 'icon-',
                         'suffix' => null,
                     ],
-                    
+
                     // inverse of the outline filter
-                    'filter' => [ Ympact\FluxIcons\Tests\Vendor\Epsilon\Epsilon::class, 'solidFilter' ]
+                    'filter' => [Ympact\FluxIcons\Tests\Vendor\Epsilon\Epsilon::class, 'solidFilter'],
                 ],
                 'mini' => [
                     'base' => 'outline',
@@ -149,8 +149,8 @@ return [
                     'base' => 'outline',
                 ],
             ],
-            'transform_svg_path' => null, 
-            'change_stroke_width' => null
+            'transform_svg_path' => null,
+            'change_stroke_width' => null,
         ],
 
     ],

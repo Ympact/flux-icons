@@ -6,15 +6,13 @@ use Ympact\FluxIcons\Exceptions\SvgNotFound;
 
 class FluxIconsManager
 {
-
-
     public function arrayMergeRecursive(...$arrays): array
     {
         $result = array_replace_recursive(...$arrays);
 
         // Remove null values
-        $result = array_filter($result, function($value) {
-            return !is_null($value);
+        $result = array_filter($result, function ($value) {
+            return ! is_null($value);
         });
 
         return $result;
@@ -55,5 +53,4 @@ class FluxIconsManager
             throw $exception;
         }
     }
-
 }

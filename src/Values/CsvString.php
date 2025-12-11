@@ -8,7 +8,7 @@ use Illuminate\Contracts\Support\Arrayable;
 use InvalidArgumentException;
 use Stringable;
 
-class CsvString implements Stringable, Arrayable, Castable
+class CsvString implements Arrayable, Castable, Stringable
 {
     protected array $csv;
 
@@ -19,8 +19,8 @@ class CsvString implements Stringable, Arrayable, Castable
 
     public static function from(array|string $values): self
     {
-        return new self(is_array($values) 
-            ? $values 
+        return new self(is_array($values)
+            ? $values
             : self::fromString($values)
         );
     }
@@ -42,12 +42,12 @@ class CsvString implements Stringable, Arrayable, Castable
 
     /**
      * @method fromString
-     * @param string $csv
+     *
      * @return array<string>
      */
     private static function fromString(string $csv): array
     {
-        return  array_map('trim', explode(',', $csv));
+        return array_map('trim', explode(',', $csv));
     }
 
     /**
@@ -59,16 +59,17 @@ class CsvString implements Stringable, Arrayable, Castable
     {
         return new class implements CastsAttributes
         {
-            public function get(\Illuminate\Database\Eloquent\Model $model, string $key, mixed $value, array $attributes): CsvString 
+            public function get(\Illuminate\Database\Eloquent\Model $model, string $key, mixed $value, array $attributes): CsvString
             {
                 return CsvString::from($value);
             }
- 
+
             public function set(\Illuminate\Database\Eloquent\Model $model, string $key, mixed $value, array $attributes): array
             {
-                if(! $value instanceof CsvString) {
+                if (! $value instanceof CsvString) {
                     throw new InvalidArgumentException('The given value is not a CsvString instance.');
                 }
+
                 return CsvString::from($value)->toArray();
             }
         };

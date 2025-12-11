@@ -5,8 +5,6 @@ namespace Ympact\FluxIcons\Types;
 use Closure;
 use Illuminate\Contracts\Support\Arrayable;
 use Illuminate\Support\Collection;
-use Ympact\FluxIcons\Types\Fill;
-use Ympact\FluxIcons\Types\Stroke;
 
 use function PHPUnit\Framework\isBool;
 
@@ -19,6 +17,7 @@ class Variant implements Arrayable
 
     /**
      * None, one or multiple fills can be defined for duotone/multitone icons
+     *
      * @var null|Collection<Fill>
      */
     public ?Collection $fills = null;
@@ -40,39 +39,43 @@ class Variant implements Arrayable
     // set stroke width, linecap, linejoin
     public function stroke(bool|Stroke|Closure $stroke): self
     {
-        if(isBool($stroke) && $stroke === false) {
+        if (isBool($stroke) && $stroke === false) {
             $this->stroke = null;
+
             return $this;
         }
 
-        if($stroke instanceof Closure) {
+        if ($stroke instanceof Closure) {
             $newStroke = new Stroke;
             $stroke($newStroke);
             $stroke = $newStroke;
         }
 
         $this->stroke = $stroke;
+
         return $this;
     }
 
     public function addFill(bool|Fill|Closure $fill): self
     {
-        if(isBool($fill) && $fill === false) {
+        if (isBool($fill) && $fill === false) {
             $this->fills = null;
+
             return $this;
         }
 
-        if($fill instanceof Closure) {
+        if ($fill instanceof Closure) {
             $newFill = new Fill;
             $fill($newFill);
             $fill = $newFill;
         }
 
         if (is_null($this->fills)) {
-            $this->fills = new Collection();
+            $this->fills = new Collection;
         }
 
         $this->fills->push($fill);
+
         return $this;
     }
 
@@ -82,17 +85,20 @@ class Variant implements Arrayable
         $this->stroke = null;
         $this->fills = null;
         $this->isFullColor = true;
+
         return $this;
     }
 
     public function default(): self
     {
         $this->isDefault = true;
+
         return $this;
     }
 
     /**
      * Implementing Arrayable interface
+     *
      * @return array<string, mixed>
      */
     public function toArray(): array
@@ -102,5 +108,4 @@ class Variant implements Arrayable
             'fills' => $this->fills,
         ];
     }
-
 }

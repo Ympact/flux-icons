@@ -32,7 +32,7 @@ class FluxIconsServiceProvider extends ServiceProvider
         // Register the commands
         $this->bootCommands();
     }
-    
+
     public function bootCommands()
     {
         if (! $this->app->runningInConsole()) {
