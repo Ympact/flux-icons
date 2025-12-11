@@ -5,7 +5,7 @@ on:
     branches: ["v1"]
   pull_request:
     branches: ["v1"]
-
+    
 jobs:
   tests:
     runs-on: ubuntu-latest
@@ -53,7 +53,8 @@ jobs:
       - name: Run PHPStan (static analysis)
         run: |
           if [ ! -f vendor/bin/phpstan ]; then composer require --dev phpstan/phpstan --no-interaction --no-progress; fi
-          vendor/bin/phpstan analyse --ansi
+          # Use explicit configuration (which includes the baseline) and increase memory
+          vendor/bin/phpstan analyse --configuration=phpstan.neon --memory-limit=1G --no-progress --ansi
 
       - name: Run tests (Pest)
         run: |
