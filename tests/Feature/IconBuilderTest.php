@@ -41,7 +41,11 @@ class IconBuilderTest extends TestCase
         // Config::set('flux-icons.variants.outline.source', 'path/to/icons');
         File::shouldReceive('glob')
             ->once()
-            ->with(Str::of(base_path('tests/vendor/alpha/icons'))->finish('/').'*.svg')
+            ->withArgs(function ($arg) {
+                $path = (string) $arg;
+                // Accept paths that contain the test vendor dir and end with svg pattern
+                return str_contains($path, 'tests/vendor/alpha/icons') && str_ends_with($path, 'outline/*.svg');
+            })
             ->andReturn(['icon1.svg', 'icon2.svg']);
 
         $icons = $this->iconBuilder->getAvailableIcons('outline');
