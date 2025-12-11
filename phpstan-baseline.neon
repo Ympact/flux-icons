@@ -1,2 +1,667 @@
 parameters:
-	ignoreErrors: []
+	ignoreErrors:
+		-
+			message: '#^Binary operation "\." between ''Configured icons…'' and array\|bool\|int\|string\|null results in an error\.$#'
+			identifier: binaryOp.invalid
+			count: 1
+			path: src/Console/BuildFluxIconsCommand.php
+
+		-
+			message: '#^Method Ympact\\FluxIcons\\Console\\BuildFluxIconsCommand\:\:handle\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: src/Console/BuildFluxIconsCommand.php
+
+		-
+			message: '#^Parameter \#1 \$string of static method Illuminate\\Support\\Str\:\:of\(\) expects string, int\|string given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Console/BuildFluxIconsCommand.php
+
+		-
+			message: '#^Parameter \#1 \$vendor of class Ympact\\FluxIcons\\Services\\IconBuilder constructor expects string\|null, array\|bool\|int\|string\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Console/BuildFluxIconsCommand.php
+
+		-
+			message: '#^Part \$vendor \(array\|bool\|int\|string\|null\) of encapsed string cannot be cast to string\.$#'
+			identifier: encapsedStringPart.nonString
+			count: 6
+			path: src/Console/BuildFluxIconsCommand.php
+
+		-
+			message: '#^Method Ympact\\FluxIcons\\Console\\PublishFluxIconsVendorFileCommmand\:\:handle\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: src/Console/PublishFluxIconsVendorFileCommmand.php
+
+		-
+			message: '#^Parameter \#2 \$array of function implode expects array, Illuminate\\Support\\Collection given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Console/PublishFluxIconsVendorFileCommmand.php
+
+		-
+			message: '#^Parameter \#3 \$subject of function str_replace expects array\<string\>\|string, string\|false given\.$#'
+			identifier: argument.type
+			count: 2
+			path: src/Console/PublishFluxIconsVendorFileCommmand.php
+
+		-
+			message: '#^Method Ympact\\FluxIcons\\Console\\UpdateFluxIconsCommand\:\:handle\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: src/Console/UpdateFluxIconsCommand.php
+
+		-
+			message: '#^Method Ympact\\FluxIcons\\FluxIconsServiceProvider\:\:bootCommands\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: src/FluxIconsServiceProvider.php
+
+		-
+			message: '#^Method Ympact\\FluxIcons\\FluxIconsServiceProvider\:\:bootFallbackBlazeDirectivesIfBlazeIsNotInstalled\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: src/FluxIconsServiceProvider.php
+
+		-
+			message: '#^Method Ympact\\FluxIcons\\Services\\IconBuilder\:\:__construct\(\) has parameter \$icons with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Services/IconBuilder.php
+
+		-
+			message: '#^Method Ympact\\FluxIcons\\Services\\IconBuilder\:\:__construct\(\) has parameter \$verbose with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: src/Services/IconBuilder.php
+
+		-
+			message: '#^Method Ympact\\FluxIcons\\Services\\IconBuilder\:\:getAvailableIcons\(\) return type with generic class Illuminate\\Support\\Collection does not specify its types\: TKey, TValue$#'
+			identifier: missingType.generics
+			count: 1
+			path: src/Services/IconBuilder.php
+
+		-
+			message: '#^Method Ympact\\FluxIcons\\Services\\IconBuilder\:\:getAvailableVendors\(\) return type with generic class Illuminate\\Support\\Collection does not specify its types\: TKey, TValue$#'
+			identifier: missingType.generics
+			count: 1
+			path: src/Services/IconBuilder.php
+
+		-
+			message: '#^Method Ympact\\FluxIcons\\Services\\IconBuilder\:\:setIcons\(\) has parameter \$icons with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Services/IconBuilder.php
+
+		-
+			message: '#^PHPDoc tag @param references unknown parameter\: \$baseIcon$#'
+			identifier: parameter.notFound
+			count: 1
+			path: src/Services/IconBuilder.php
+
+		-
+			message: '#^PHPDoc tag @param references unknown parameter\: \$icons$#'
+			identifier: parameter.notFound
+			count: 1
+			path: src/Services/IconBuilder.php
+
+		-
+			message: '#^PHPDoc tag @param references unknown parameter\: \$progressBar$#'
+			identifier: parameter.notFound
+			count: 1
+			path: src/Services/IconBuilder.php
+
+		-
+			message: '#^PHPDoc tag @return with type Ympact\\FluxIcons\\Services\\IconBuilder is not subtype of native type static\(Ympact\\FluxIcons\\Services\\IconBuilder\)\.$#'
+			identifier: return.phpDocType
+			count: 3
+			path: src/Services/IconBuilder.php
+
+		-
+			message: '#^PHPDoc tag @return with type void is incompatible with native type static\(Ympact\\FluxIcons\\Services\\IconBuilder\)\.$#'
+			identifier: return.phpDocType
+			count: 1
+			path: src/Services/IconBuilder.php
+
+		-
+			message: '#^Parameter \#1 \$variant of method Ympact\\FluxIcons\\Services\\IconBuilder\:\:getVariantIconFile\(\) expects string, string\|true given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Services/IconBuilder.php
+
+		-
+			message: '#^Parameter \#1 \$variant of method Ympact\\FluxIcons\\Services\\IconBuilder\:\:variantProp\(\) expects string, string\|true given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Services/IconBuilder.php
+
+		-
+			message: '#^Property Ympact\\FluxIcons\\Services\\IconBuilder\:\:\$baseVariant has no type specified\.$#'
+			identifier: missingType.property
+			count: 1
+			path: src/Services/IconBuilder.php
+
+		-
+			message: '#^Property Ympact\\FluxIcons\\Services\\IconBuilder\:\:\$chunckSize has no type specified\.$#'
+			identifier: missingType.property
+			count: 1
+			path: src/Services/IconBuilder.php
+
+		-
+			message: '#^Property Ympact\\FluxIcons\\Services\\IconBuilder\:\:\$icons type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Services/IconBuilder.php
+
+		-
+			message: '#^Property Ympact\\FluxIcons\\Services\\IconBuilder\:\:\$progressBar has no type specified\.$#'
+			identifier: missingType.property
+			count: 1
+			path: src/Services/IconBuilder.php
+
+		-
+			message: '#^Property Ympact\\FluxIcons\\Services\\IconBuilder\:\:\$timeout has no type specified\.$#'
+			identifier: missingType.property
+			count: 1
+			path: src/Services/IconBuilder.php
+
+		-
+			message: '#^Property Ympact\\FluxIcons\\Services\\IconBuilder\:\:\$variantDefaults type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Services/IconBuilder.php
+
+		-
+			message: '#^Property Ympact\\FluxIcons\\Services\\IconBuilder\:\:\$variants with generic class Illuminate\\Support\\Collection does not specify its types\: TKey, TValue$#'
+			identifier: missingType.generics
+			count: 1
+			path: src/Services/IconBuilder.php
+
+		-
+			message: '#^Unable to resolve the template type TKey in call to function collect$#'
+			identifier: argument.templateType
+			count: 3
+			path: src/Services/IconBuilder.php
+
+		-
+			message: '#^Unable to resolve the template type TValue in call to function collect$#'
+			identifier: argument.templateType
+			count: 3
+			path: src/Services/IconBuilder.php
+
+		-
+			message: '#^Variable \$icon might not be defined\.$#'
+			identifier: variable.undefined
+			count: 1
+			path: src/Services/IconBuilder.php
+
+		-
+			message: '#^Method Ympact\\FluxIcons\\Services\\IconManager\:\:currentVendors\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: src/Services/IconManager.php
+
+		-
+			message: '#^Method Ympact\\FluxIcons\\Services\\IconManager\:\:installedIcons\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: src/Services/IconManager.php
+
+		-
+			message: '#^Method Ympact\\FluxIcons\\Services\\IconManager\:\:installedIcons\(\) has parameter \$vendors with generic class Illuminate\\Support\\Collection but does not specify its types\: TKey, TValue$#'
+			identifier: missingType.generics
+			count: 1
+			path: src/Services/IconManager.php
+
+		-
+			message: '#^Parameter \#1 \$path of function basename expects string, string\|false given\.$#'
+			identifier: argument.type
+			count: 2
+			path: src/Services/IconManager.php
+
+		-
+			message: '#^Parameter \#1 \$value of function collect expects Illuminate\\Contracts\\Support\\Arrayable\<int\<0, max\>, string\>\|iterable\<int\<0, max\>, string\>\|null, list\<string\>\|false given\.$#'
+			identifier: argument.type
+			count: 2
+			path: src/Services/IconManager.php
+
+		-
+			message: '#^Method Ympact\\FluxIcons\\Services\\PackageManager\:\:fluxVersion\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: src/Services/PackageManager.php
+
+		-
+			message: '#^Method Ympact\\FluxIcons\\Services\\PackageManager\:\:updateVendorPackage\(\) has parameter \$verbose with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: src/Services/PackageManager.php
+
+		-
+			message: '#^Parameter \#1 \$json of function json_decode expects string, string\|false given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Services/PackageManager.php
+
+		-
+			message: '#^Unable to resolve the template type TKey in call to function collect$#'
+			identifier: argument.templateType
+			count: 1
+			path: src/Services/PackageManager.php
+
+		-
+			message: '#^Unable to resolve the template type TValue in call to function collect$#'
+			identifier: argument.templateType
+			count: 1
+			path: src/Services/PackageManager.php
+
+		-
+			message: '#^Method Ympact\\FluxIcons\\Services\\Vendors\\Bootstrap\:\:outlineFilter\(\) has parameter \$file with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: src/Services/Vendors/Bootstrap.php
+
+		-
+			message: '#^Method Ympact\\FluxIcons\\Services\\Vendors\\Bootstrap\:\:outlineFilter\(\) has parameter \$icons with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: src/Services/Vendors/Bootstrap.php
+
+		-
+			message: '#^Method Ympact\\FluxIcons\\Services\\Vendors\\Bootstrap\:\:solidFilter\(\) has parameter \$icons with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Services/Vendors/Bootstrap.php
+
+		-
+			message: '#^Method Ympact\\FluxIcons\\Services\\Vendors\\Fluent\:\:splitSvgPaths\(\) return type with generic class Illuminate\\Support\\Collection does not specify its types\: TKey, TValue$#'
+			identifier: missingType.generics
+			count: 1
+			path: src/Services/Vendors/Fluent.php
+
+		-
+			message: '#^Method Ympact\\FluxIcons\\Services\\Vendors\\Fluent\:\:transform\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: src/Services/Vendors/Fluent.php
+
+		-
+			message: '#^Method Ympact\\FluxIcons\\Services\\Vendors\\Fluent\:\:transform\(\) has parameter \$svgPaths with generic class Illuminate\\Support\\Collection but does not specify its types\: TKey, TValue$#'
+			identifier: missingType.generics
+			count: 1
+			path: src/Services/Vendors/Fluent.php
+
+		-
+			message: '#^PHPDoc tag @param references unknown parameter\: \$icon$#'
+			identifier: parameter.notFound
+			count: 1
+			path: src/Services/Vendors/Fluent.php
+
+		-
+			message: '#^Parameter \#1 \$array of function array_filter expects array, list\<string\>\|false given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Services/Vendors/Fluent.php
+
+		-
+			message: '#^Static method Ympact\\FluxIcons\\Services\\Vendors\\Fluent\:\:splitSvgPaths\(\) is unused\.$#'
+			identifier: method.unused
+			count: 1
+			path: src/Services/Vendors/Fluent.php
+
+		-
+			message: '#^Method Ympact\\FluxIcons\\Services\\Vendors\\MaterialSymbols\:\:outlineFilter\(\) has parameter \$file with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: src/Services/Vendors/MaterialSymbols.php
+
+		-
+			message: '#^Method Ympact\\FluxIcons\\Services\\Vendors\\MaterialSymbols\:\:outlineFilter\(\) has parameter \$icons with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: src/Services/Vendors/MaterialSymbols.php
+
+		-
+			message: '#^Method Ympact\\FluxIcons\\Services\\Vendors\\MaterialSymbols\:\:solidFilter\(\) has parameter \$icons with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Services/Vendors/MaterialSymbols.php
+
+		-
+			message: '#^Method Ympact\\FluxIcons\\Services\\Vendors\\Mdi\:\:outlineFilter\(\) has parameter \$icons with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Services/Vendors/Mdi.php
+
+		-
+			message: '#^Method Ympact\\FluxIcons\\Services\\Vendors\\Mdi\:\:solidFilter\(\) has parameter \$icons with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Services/Vendors/Mdi.php
+
+		-
+			message: '#^Method Ympact\\FluxIcons\\Services\\Vendors\\Tabler\:\:attributes\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Services/Vendors/Tabler.php
+
+		-
+			message: '#^Method Ympact\\FluxIcons\\Services\\Vendors\\Tabler\:\:setPathAsStroke\(\) has parameter \$svgPaths with generic class Illuminate\\Support\\Collection but does not specify its types\: TKey, TValue$#'
+			identifier: missingType.generics
+			count: 1
+			path: src/Services/Vendors/Tabler.php
+
+		-
+			message: '#^Method Ympact\\FluxIcons\\Services\\Vendors\\Tabler\:\:setPathAsStroke\(\) return type with generic class Illuminate\\Support\\Collection does not specify its types\: TKey, TValue$#'
+			identifier: missingType.generics
+			count: 1
+			path: src/Services/Vendors/Tabler.php
+
+		-
+			message: '#^Method Ympact\\FluxIcons\\Services\\Vendors\\Tabler\:\:transform\(\) has parameter \$svgPaths with generic class Illuminate\\Support\\Collection but does not specify its types\: TKey, TValue$#'
+			identifier: missingType.generics
+			count: 1
+			path: src/Services/Vendors/Tabler.php
+
+		-
+			message: '#^Method Ympact\\FluxIcons\\Services\\Vendors\\Tabler\:\:transform\(\) return type with generic class Illuminate\\Support\\Collection does not specify its types\: TKey, TValue$#'
+			identifier: missingType.generics
+			count: 1
+			path: src/Services/Vendors/Tabler.php
+
+		-
+			message: '#^PHPDoc tag @param for parameter \$end with type mixed is not subtype of native type int\|null\.$#'
+			identifier: parameter.phpDocType
+			count: 1
+			path: src/Services/Vendors/Tabler.php
+
+		-
+			message: '#^PHPDoc tag @return with type string is incompatible with native type Illuminate\\Support\\Collection\.$#'
+			identifier: return.phpDocType
+			count: 1
+			path: src/Services/Vendors/Tabler.php
+
+		-
+			message: '#^Argument of an invalid type DOMNodeList\<DOMNameSpaceNode\|DOMNode\>\|false supplied for foreach, only iterables are supported\.$#'
+			identifier: foreach.nonIterable
+			count: 1
+			path: src/Types/Icon.php
+
+		-
+			message: '#^Call to an undefined method DOMNameSpaceNode\|DOMNode\:\:C14N\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: src/Types/Icon.php
+
+		-
+			message: '#^Call to an undefined method DOMNameSpaceNode\|DOMNode\:\:getAttribute\(\)\.$#'
+			identifier: method.notFound
+			count: 5
+			path: src/Types/Icon.php
+
+		-
+			message: '#^Call to an undefined method DOMNameSpaceNode\|DOMNode\:\:hasAttribute\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: src/Types/Icon.php
+
+		-
+			message: '#^Cannot call method item\(\) on DOMNodeList\<DOMNameSpaceNode\|DOMNode\>\|false\.$#'
+			identifier: method.nonObject
+			count: 2
+			path: src/Types/Icon.php
+
+		-
+			message: '#^If condition is always true\.$#'
+			identifier: if.alwaysTrue
+			count: 2
+			path: src/Types/Icon.php
+
+		-
+			message: '#^Method Ympact\\FluxIcons\\Types\\Icon\:\:__construct\(\) has parameter \$config with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: src/Types/Icon.php
+
+		-
+			message: '#^Method Ympact\\FluxIcons\\Types\\Icon\:\:__construct\(\) has parameter \$filename with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: src/Types/Icon.php
+
+		-
+			message: '#^Method Ympact\\FluxIcons\\Types\\Icon\:\:__construct\(\) has parameter \$variant with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: src/Types/Icon.php
+
+		-
+			message: '#^Method Ympact\\FluxIcons\\Types\\Icon\:\:createSvg\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: src/Types/Icon.php
+
+		-
+			message: '#^Method Ympact\\FluxIcons\\Types\\Icon\:\:determineBaseName\(\) has parameter \$force with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: src/Types/Icon.php
+
+		-
+			message: '#^Method Ympact\\FluxIcons\\Types\\Icon\:\:getAttributes\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Types/Icon.php
+
+		-
+			message: '#^Method Ympact\\FluxIcons\\Types\\Icon\:\:getD\(\) return type with generic class Illuminate\\Support\\Collection does not specify its types\: TKey, TValue$#'
+			identifier: missingType.generics
+			count: 1
+			path: src/Types/Icon.php
+
+		-
+			message: '#^Method Ympact\\FluxIcons\\Types\\Icon\:\:getDefaultAttributes\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Types/Icon.php
+
+		-
+			message: '#^Method Ympact\\FluxIcons\\Types\\Icon\:\:getName\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: src/Types/Icon.php
+
+		-
+			message: '#^Method Ympact\\FluxIcons\\Types\\Icon\:\:getPaths\(\) return type with generic class Illuminate\\Support\\Collection does not specify its types\: TKey, TValue$#'
+			identifier: missingType.generics
+			count: 1
+			path: src/Types/Icon.php
+
+		-
+			message: '#^Method Ympact\\FluxIcons\\Types\\Icon\:\:getSize\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Types/Icon.php
+
+		-
+			message: '#^Method Ympact\\FluxIcons\\Types\\Icon\:\:getStrokeWidth\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: src/Types/Icon.php
+
+		-
+			message: '#^Method Ympact\\FluxIcons\\Types\\Icon\:\:getVariant\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: src/Types/Icon.php
+
+		-
+			message: '#^Method Ympact\\FluxIcons\\Types\\Icon\:\:setDefaultAttributes\(\) has parameter \$attributes with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: src/Types/Icon.php
+
+		-
+			message: '#^Method Ympact\\FluxIcons\\Types\\Icon\:\:setPathAttributes\(\) has parameter \$attributes with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Types/Icon.php
+
+		-
+			message: '#^Method Ympact\\FluxIcons\\Types\\Icon\:\:toHtml\(\) should return string but returns string\|false\.$#'
+			identifier: return.type
+			count: 1
+			path: src/Types/Icon.php
+
+		-
+			message: '#^PHPDoc tag @param for parameter \$content with type mixed is not subtype of native type string\.$#'
+			identifier: parameter.phpDocType
+			count: 1
+			path: src/Types/Icon.php
+
+		-
+			message: '#^PHPDoc tag @param for parameter \$iconName with type mixed is not subtype of native type string\.$#'
+			identifier: parameter.phpDocType
+			count: 1
+			path: src/Types/Icon.php
+
+		-
+			message: '#^PHPDoc tag @param references unknown parameter\: \$filename$#'
+			identifier: parameter.notFound
+			count: 1
+			path: src/Types/Icon.php
+
+		-
+			message: '#^PHPDoc tag @return with type Ympact\\FluxIcons\\Types\\Icon is not subtype of native type static\(Ympact\\FluxIcons\\Types\\Icon\)\.$#'
+			identifier: return.phpDocType
+			count: 7
+			path: src/Types/Icon.php
+
+		-
+			message: '#^PHPDoc tag @return with type void is incompatible with native type static\(Ympact\\FluxIcons\\Types\\Icon\)\.$#'
+			identifier: return.phpDocType
+			count: 1
+			path: src/Types/Icon.php
+
+		-
+			message: '#^Parameter \#1 \$tag of class Ympact\\FluxIcons\\Types\\SvgPath constructor expects DOMNode, DOMNameSpaceNode\|DOMNode given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Types/Icon.php
+
+		-
+			message: '#^Property Ympact\\FluxIcons\\Types\\Icon\:\:\$attributes type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Types/Icon.php
+
+		-
+			message: '#^Property Ympact\\FluxIcons\\Types\\Icon\:\:\$config type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Types/Icon.php
+
+		-
+			message: '#^Property Ympact\\FluxIcons\\Types\\Icon\:\:\$paths with generic class Illuminate\\Support\\Collection does not specify its types\: TKey, TValue$#'
+			identifier: missingType.generics
+			count: 1
+			path: src/Types/Icon.php
+
+		-
+			message: '#^Property Ympact\\FluxIcons\\Types\\Icon\:\:\$svgAttributes type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Types/Icon.php
+
+		-
+			message: '#^Property Ympact\\FluxIcons\\Types\\Icon\:\:\$variantAttributes type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Types/Icon.php
+
+		-
+			message: '#^Call to an undefined method DOMNode\:\:getAttribute\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: src/Types/SvgPath.php
+
+		-
+			message: '#^Call to an undefined method DOMNode\:\:setAttribute\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: src/Types/SvgPath.php
+
+		-
+			message: '#^Method Ympact\\FluxIcons\\Types\\SvgPath\:\:getAttributes\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: src/Types/SvgPath.php
+
+		-
+			message: '#^Method Ympact\\FluxIcons\\Types\\SvgPath\:\:getD\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: src/Types/SvgPath.php
+
+		-
+			message: '#^Method Ympact\\FluxIcons\\Types\\SvgPath\:\:getDom\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: src/Types/SvgPath.php
+
+		-
+			message: '#^Method Ympact\\FluxIcons\\Types\\SvgPath\:\:getNode\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: src/Types/SvgPath.php
+
+		-
+			message: '#^Method Ympact\\FluxIcons\\Types\\SvgPath\:\:getType\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: src/Types/SvgPath.php
+
+		-
+			message: '#^Method Ympact\\FluxIcons\\Types\\SvgPath\:\:setAttributes\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: src/Types/SvgPath.php
+
+		-
+			message: '#^Method Ympact\\FluxIcons\\Types\\SvgPath\:\:setAttributes\(\) has parameter \$attributes with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: src/Types/SvgPath.php
+
+		-
+			message: '#^Property Ympact\\FluxIcons\\Types\\SvgPath\:\:\$d has no type specified\.$#'
+			identifier: missingType.property
+			count: 1
+			path: src/Types/SvgPath.php
+
+		-
+			message: '#^Property Ympact\\FluxIcons\\Types\\SvgPath\:\:\$dom has no type specified\.$#'
+			identifier: missingType.property
+			count: 1
+			path: src/Types/SvgPath.php
+
+		-
+			message: '#^Property Ympact\\FluxIcons\\Types\\SvgPath\:\:\$type has no type specified\.$#'
+			identifier: missingType.property
+			count: 1
+			path: src/Types/SvgPath.php
+
+		-
+			message: '#^Function Ympact\\FluxIcons\\arrayMergeRecursive\(\) has parameter \$arrays with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/helpers.php
+
+		-
+			message: '#^Function Ympact\\FluxIcons\\arrayMergeRecursive\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/helpers.php
