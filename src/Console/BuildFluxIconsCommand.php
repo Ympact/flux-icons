@@ -2,11 +2,12 @@
 
 namespace Ympact\FluxIcons\Console;
 
+use Illuminate\Console\Command;
 use Illuminate\Support\Str;
 use Ympact\FluxIcons\Services\IconBuilder;
-use Illuminate\Console\Command;
-use function Laravel\Prompts\select;
+
 use function Laravel\Prompts\multisearch;
+use function Laravel\Prompts\select;
 
 class BuildFluxIconsCommand extends Command
 {
@@ -15,22 +16,24 @@ class BuildFluxIconsCommand extends Command
                             {--I|icons= : The icons to build (single or comma separated list)}
                             {--A|all : All icons from the vendor}
                             {--M|merge : Merge the icons from the --icons option with the default icons}';
+
     protected $description = 'Build icons for Flux using a specific icon package';
 
     public function handle()
     {
         $noInteraction = $this->option('no-interaction');
         $verbose = $this->option('verbose');
-        
+
         $vendor = $this->argument('vendor') ?? ($noInteraction ? null :
             select(
                 label: 'From which vendor do you want to build icons?',
                 options: IconBuilder::getAvailableVendors()->keys()->toArray(),
                 scroll: 5
             ));
-        
-        if (!config("flux-icons.vendors.$vendor")) {
+
+        if (! config("flux-icons.vendors.$vendor")) {
             $this->error("Vendor configuration for '$vendor' not found.");
+
             return 1;
         }
 
@@ -41,42 +44,42 @@ class BuildFluxIconsCommand extends Command
 
         $icons = $this->option('icons') ?? null;
         $all = $this->option('all');
-        
-        if($icons && $all){
+
+        if ($icons && $all) {
             $this->error("You can't use the --icons option in combination with the --all option");
+
             return 1;
         }
 
         $configVendorIcons = config("flux-icons.icons.{$vendor}", null);
         $availableIcons = $iconBuilder->getAvailableIcons();
 
-        if($all || $noInteraction){
-            $icons = $all ? $availableIcons->map(function($icon){
+        if ($all || $noInteraction) {
+            $icons = $all ? $availableIcons->map(function ($icon) {
                 // get the filename without the extension and remove the directory
                 return Str::of($icon)->basename('.svg')->toString();
             })->all() : ($icons ? $icons : $configVendorIcons);
-        }
-        else{
+        } else {
             // adjust select options in case configVendorIcons is set
             $options = [
-                'select' => 'Let me choose', 
-                'all' => 'All '. $availableIcons->count() . ' icons'
+                'select' => 'Let me choose',
+                'all' => 'All '.$availableIcons->count().' icons',
             ];
-            $options = $configVendorIcons ? array_merge( ['config' => 'Configured icons for '.$vendor], $options) : $options;
+            $options = $configVendorIcons ? array_merge(['config' => 'Configured icons for '.$vendor], $options) : $options;
 
             // if icons is null, confirm that the user wants to build all icons
-            if (!$icons) {
+            if (! $icons) {
                 $whichOption = select(
                     label: 'Which icons do you want to build from the vendor?',
                     options: $options,
                     default: $configVendorIcons ? 'config' : 'select'
                 );
 
-                if($whichOption === 'config'){
+                if ($whichOption === 'config') {
                     $icons = $configVendorIcons;
                 }
 
-                if($whichOption === 'select'){
+                if ($whichOption === 'select') {
                     $icons = multisearch(
                         label: 'Which icons do you want to build from the vendor?',
                         options: fn (string $value) => $iconBuilder->getAvailableIcons()
@@ -87,29 +90,30 @@ class BuildFluxIconsCommand extends Command
                             ->all(),
                         scroll: 10
                     );
-                    
+
                     // if none selected, notify and exit
-                    if(empty($icons)){
-                        $this->error("You did not select any icons. Exiting...");
+                    if (empty($icons)) {
+                        $this->error('You did not select any icons. Exiting...');
+
                         return 1;
                     }
 
                     // only get the file name of the icons
-                    $icons = array_map(function($icon){
+                    $icons = array_map(function ($icon) {
                         return Str::of($icon)->basename('.svg')->toString();
                     }, $icons);
                 }
             }
         }
 
-
-        $this->info("Start building icons 👀");
+        $this->info('Start building icons 👀');
         $iconBuilder->setIcons($icons);
-        
+
         $this->info("Building icons for vendor: $vendor");
         $iconBuilder->buildIcons();
 
         $this->newLine()->info("Icons built successfully for vendor: $vendor");
+
         return 0;
     }
 }

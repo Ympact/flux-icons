@@ -2,18 +2,18 @@
 
 namespace Ympact\FluxIcons\Services;
 
-use Illuminate\Support\Collection;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
 use Symfony\Component\Console\Helper\ProgressBar;
 use Symfony\Component\Console\Output\ConsoleOutput;
 use Ympact\FluxIcons\Types\Icon;
-use function Ympact\FluxIcons\arrayMergeRecursive;
-use function Laravel\Prompts\error;
-use function Laravel\Prompts\confirm;
-use function Laravel\Prompts\info;
 
+use function Laravel\Prompts\confirm;
+use function Laravel\Prompts\error;
+use function Laravel\Prompts\info;
+use function Ympact\FluxIcons\arrayMergeRecursive;
 
 class IconBuilder
 {
@@ -21,8 +21,8 @@ class IconBuilder
 
     protected string $namespace;
 
-    protected array|null $icons;
-    
+    protected ?array $icons;
+
     protected string $outputDir;
 
     protected string $config = 'flux-icons';
@@ -31,7 +31,7 @@ class IconBuilder
 
     protected bool $verbose;
 
-    protected Collection|null $variants = null;
+    protected ?Collection $variants = null;
 
     protected $baseVariant = 'outline';
 
@@ -43,7 +43,7 @@ class IconBuilder
             'attributes' => [],
             'source' => 'node_modules/@tabler/icons/icons/outline',
             // source can also be an array with dir, prefix, suffix and filter settings
-            //'filter' => null,
+            // 'filter' => null,
         ],
         'solid' => [
             'template' => 'solid',
@@ -52,18 +52,18 @@ class IconBuilder
             'size' => 24,
             'attributes' => [],
             'source' => 'node_modules/@tabler/icons/icons/filled',
-            //'filter' => null,	
+            // 'filter' => null,
         ],
         // inherits the settings from solid variant
         'mini' => [
             'base' => 'solid', // inherit solid settings
-            'size' => 20
-        ], 
+            'size' => 20,
+        ],
         // inherits the settings from solid variant
         'micro' => [
             'base' => 'solid', // inherit solid settings
-            'size' => 16
-        ]
+            'size' => 16,
+        ],
     ];
 
     protected ConsoleOutput $output;
@@ -72,78 +72,91 @@ class IconBuilder
 
     protected $chunckSize = 50;
 
-    protected $timeout = 1000000/3; // in microseconds
+    protected $timeout = 1000000 / 3; // in microseconds
 
     public function __construct(?string $vendor = null, ?array $icons = null, $verbose = false)
     {
-        if($verbose){
+        if ($verbose) {
             $this->setVerbose($verbose);
         }
 
-        $this->output = new ConsoleOutput();
+        $this->output = new ConsoleOutput;
 
-        if($vendor){
+        if ($vendor) {
             $this->setVendor($vendor);
         }
 
-        if($icons){
+        if ($icons) {
             $this->setIcons($icons);
         }
     }
 
     /**
      * set the vendor to build the icons for
-     * @param mixed $vendor
-     * @throws \Exception
+     *
+     * @param  mixed  $vendor
      * @return IconBuilder
+     *
+     * @throws \Exception
+     *
      * @todo create tests for this method
      */
-    public function setVendor($vendor): static{
+    public function setVendor($vendor): static
+    {
         $this->vendor = $vendor;
-        if(config()->has("{$this->config}.vendors.{$vendor}")){
+        if (config()->has("{$this->config}.vendors.{$vendor}")) {
             $this->vendorConfig = "{$this->config}.vendors.{$vendor}";
             $this->baseVariant = config("{$this->vendorConfig}.baseVariant", 'outline');
             $this->namespace = Str::slug(config("{$this->vendorConfig}.namespace") ?? $this->vendor);
 
             $this->determineDefaults();
-        }
-        else{
+        } else {
             throw new \Exception("Vendor $vendor not found in config file");
         }
+
         return $this;
     }
 
     /**
      * set the icons that need to be build
-     * @param string|array $icons
+     *
+     * @param  string|array  $icons
      * @return IconBuilder
+     *
      * @todo create tests for this method
      */
     public function setIcons($icons): static
     {
         // make sure that the icons are an array
-        if(is_string($icons)){
+        if (is_string($icons)) {
             $icons = explode(',', $icons);
         }
 
         $this->icons = $icons;
+
         return $this;
     }
 
     /**
      * setVerbose
-     * @param mixed $verbose
+     *
+     * @param  mixed  $verbose
      * @return IconBuilder
+     *
      * @todo create tests for this method
      */
-    public function setVerbose($verbose): static{
+    public function setVerbose($verbose): static
+    {
         $this->verbose = $verbose;
+
         return $this;
     }
 
     /**
      * installPackage
+     *
      * @return void
+     *
      * @todo create tests for this method
      */
     public function requirePackage(): static
@@ -151,26 +164,25 @@ class IconBuilder
         $packageName = config("{$this->vendorConfig}.package");
         // check if package is not yet installed using package-lock.json
         $packageFile = base_path('package-lock.json');
-        if(!File::exists($packageFile)){
-            $this->verbose ? $this->output->writeln("<info>package-lock.json not found. Running npm install</info>") : null;
-            exec("npm install");
+        if (! File::exists($packageFile)) {
+            $this->verbose ? $this->output->writeln('<info>package-lock.json not found. Running npm install</info>') : null;
+            exec('npm install');
         }
         $packageLock = json_decode(File::get($packageFile), true);
         $packages = collect($packageLock['packages']);
 
-        if(!($packages->has('node_modules/'.$packageName) && File::exists('node_modules/'.$packageName.'/package.json'))){
+        if (! ($packages->has('node_modules/'.$packageName) && File::exists('node_modules/'.$packageName.'/package.json'))) {
             $this->verbose ? $this->output->writeln("<info>Package not found. Installing package $packageName</info>") : null;
             // in case !$verbose keep npm install silent
             $arg = $this->verbose ? '' : '-s';
             exec("npm install $packageName --save {$arg}", $output, $result);
 
-            if($result == 128){
+            if ($result == 128) {
                 $this->output->writeln("<error>Failed to install package $packageName. Please check if it is set correctly in the config.</error>");
                 // finish the process
                 exit(1);
             }
-        }
-        else{
+        } else {
             $this->verbose ? $this->output->writeln("<info>Package $packageName already installed</info>") : null;
         }
 
@@ -179,7 +191,9 @@ class IconBuilder
 
     /**
      * buildIcons
+     *
      * @return void
+     *
      * @todo create tests for this method
      */
     public function buildIcons()
@@ -192,47 +206,48 @@ class IconBuilder
 
         // if source.filter has a icon key, then filter the files using this callback
         if ($this->variantProp($this->baseVariant, 'source.filter')) {
-            $files = $files->filter(function($file) {
+            $files = $files->filter(function ($file) {
                 $icons = &$this->icons;
                 $res = call_user_func_array(
                     $this->variantProp($this->baseVariant, 'source.filter'),
                     [$file, &$icons, $this->baseVariant]
                 );
+
                 return $res;
             });
         }
 
         // map the files into a new collection as Icon() and by intersecting with $icons
-        $baseIcons = $files->map(function($file){
-            return  $this->buildIcon($this->baseVariant, $file);
-            //return new Icon(config($this->vendorConfig), $file);
+        $baseIcons = $files->map(function ($file) {
+            return $this->buildIcon($this->baseVariant, $file);
+            // return new Icon(config($this->vendorConfig), $file);
         });
 
         // intersect the base variant icons with the icons argument if it was passed. The icons argument can be a comma separated list of icon names without the file extension or the prefix/suffix
         if ($this->icons) {
             $icons = $this->icons;
-                
-            $baseIcons = $baseIcons->filter(function(Icon $icon) use ($icons){
+
+            $baseIcons = $baseIcons->filter(function (Icon $icon) use ($icons) {
                 return in_array($icon->getName(), $icons) || in_array($icon->getBaseName(), $icons);
             });
 
-            if($this->verbose){
+            if ($this->verbose) {
                 // get the difference between the icons argument and the baseIcons and output which icons are not found
-                $diff = collect($icons)->diff($baseIcons->map(function($icon){
+                $diff = collect($icons)->diff($baseIcons->map(function ($icon) {
                     return $icon->getName();
                 }));
-                if($diff->count() > 0){
-                    $this->output->writeln("<error> Icons not found: ". $diff->implode(', ') . " </error>");
+                if ($diff->count() > 0) {
+                    $this->output->writeln('<error> Icons not found: '.$diff->implode(', ').' </error>');
                 }
             }
         }
 
         $infoCredits = $this->getPackageCredits();
         $infoFluxVersion = $this->getPackageCredits(true);
-     
+
         $npmRunning = false;
-        if(config('request_npm_dev')){
-            if($baseIcons->count() > 100){
+        if (config('request_npm_dev')) {
+            if ($baseIcons->count() > 100) {
                 $time = round($baseIcons->count() / 3);
 
                 info("In case npm run dev is running, we'll introduce a timeout between processing icons to prevent memory issues. \nThis will make this script take $time seconds. \nIt is better to stop `npm run dev` first before continuing.");
@@ -240,19 +255,19 @@ class IconBuilder
             }
         }
 
-        $this->progressBar = new ProgressBar($this->output, count( $baseIcons));
+        $this->progressBar = new ProgressBar($this->output, count($baseIcons));
         $this->progressBar->start();
 
         // chunk the baseIcons collection into smaller collections to prevent memory issues
-        $baseIcons->chunk($this->chunckSize)->each(function($chunk) use ($infoCredits, $infoFluxVersion, $npmRunning){
-             // Process each chunk of icons
+        $baseIcons->chunk($this->chunckSize)->each(function ($chunk) use ($infoCredits, $infoFluxVersion, $npmRunning) {
+            // Process each chunk of icons
             foreach ($chunk as $icon) {
                 $this->buildIconCollection($icon, $infoCredits, $infoFluxVersion);
-                
+
                 // Introduce a timeout between processing chunks
-                if($npmRunning){   
+                if ($npmRunning) {
                     usleep($this->timeout);
-                }   
+                }
             }
         });
 
@@ -263,19 +278,18 @@ class IconBuilder
         $this->output->writeln('');
 
         // ask to start running npm run dev again
-        if(config('request_npm_dev') && $npmRunning && confirm('Do you want to start `npm run dev`?')){
+        if (config('request_npm_dev') && $npmRunning && confirm('Do you want to start `npm run dev`?')) {
             exec('npm run dev', $output, $result);
         }
-        
+
     }
 
     /**
      * buildIconCollection
-     * @param Collection $icons
-     * @param ProgressBar $progressBar
-     * @param string $infoCredits
-     * @param string $infoFluxVersion
-     * @return void
+     *
+     * @param  Collection  $icons
+     * @param  ProgressBar  $progressBar
+     *
      * @todo create tests for this method
      */
     public function buildIconCollection(Icon $baseIcon, string $infoCredits, string $infoFluxVersion): void
@@ -287,34 +301,34 @@ class IconBuilder
         $basename = $baseIcon->process()->getBaseName();
 
         // loop through the variants collection build the icons
-        foreach($this->variants as $variant => $variantConfig)
-        {
+        foreach ($this->variants as $variant => $variantConfig) {
             // in case the variant is the baseVariant, we use the baseIcon
             $template = $this->variantProp($variant, 'template');
-            if($variant == $this->baseVariant){
+            if ($variant == $this->baseVariant) {
                 $icon = $baseIcon;
-            }
-            else{
+            } else {
                 // get the icon file for the variant
                 $file = $this->getVariantIconFile($variant, $basename, $baseIcon);
-                if(!$file){
+                if (! $file) {
                     $fallback = $this->determineFallback($variant, $baseIcon);
-                    if(!$fallback){
+                    if (! $fallback) {
                         $this->verbose ? error("No source found for $basename $variant. No fallback either, so we're not building this icon.") : null;
                         $build = false;
-                        continue; 
+
+                        continue;
                     }
 
                     $file = $this->getVariantIconFile($fallback, $basename, $baseIcon);
-                    if(!$file){
+                    if (! $file) {
                         $this->verbose ? error("No source found for $basename $fallback. We cannot build this icon.") : null;
                         $build = false;
-                        continue; 
+
+                        continue;
                     }
                     $template = $this->variantProp($fallback, 'template');
                 }
                 $icon = $this->buildIcon($variant, $file);
-                
+
                 $icon->setTemplate($template);
                 $icon->process();
             }
@@ -322,39 +336,38 @@ class IconBuilder
             $icon->transform()
                 ->setPathAttributes();
 
-            if(config("{$this->vendorConfig}.stroke_width") || $this->variantProp($template, 'stroke_width')){
+            if (config("{$this->vendorConfig}.stroke_width") || $this->variantProp($template, 'stroke_width')) {
                 $icon->setStrokeWidth($this->variantProp($template, 'stroke_width', null) ?? config("{$this->config}.default_stroke_width"));
             }
-            
-            $icon->setRaw( $this->variantProp($template, 'raw', false));
+
+            $icon->setRaw($this->variantProp($template, 'raw', false));
 
             $svg = $icon->toHtml();
             $svg = Str::of($svg)->replace('<svg', '<svg {{ $attributes->class($classes) }}');
 
-            $iconBladeFile = $iconBladeFile->replace('{'.Str::upper($variant).'}',$svg);
+            $iconBladeFile = $iconBladeFile->replace('{'.Str::upper($variant).'}', $svg);
         }
-        
+
         // if there is a name callback, call it to rename the icon
-        if($nameCallback = config("{$this->vendorConfig}.icon_name")){
+        if ($nameCallback = config("{$this->vendorConfig}.icon_name")) {
             $basename = call_user_func_array($nameCallback, [$icon]);
         }
 
         $infoUsage = "<flux:icon.{$this->namespace}.{$basename} /> or <flux:icon name=\"{$this->namespace}.{$basename}\" />";
 
-        if($build){
+        if ($build) {
             $iconBladeFile = $iconBladeFile
                 ->replace('{INFO_ICON_NAME}', $basename)
                 ->replace('{INFO_ICON_USAGE}', $infoUsage)
                 ->replace('{INFO_CREDITS}', $infoCredits)
                 ->replace('{INFO_FLUX_VERSION}', $infoFluxVersion)
                 ->replace('{INFO_BUILD_DATE}', now()->format('Y-m-d H:i:s'))
-                
-                ->replace('{BLAZE}', (PackageManager::fluxVersion() >= "2.2.6" ? '@blaze' : '') );
 
+                ->replace('{BLAZE}', (PackageManager::fluxVersion() >= '2.2.6' ? '@blaze' : ''));
 
             $put = File::put("{$this->outputDir}/{$basename}.blade.php", $iconBladeFile);
-            if($this->verbose){
-                if (!$put) {
+            if ($this->verbose) {
+                if (! $put) {
                     $this->output->writeln("<error>Failed to write {$basename}.blade.php</error>");
                 } else {
                     $this->output->writeln("<info>Wrote {$basename}.blade.php</info>");
@@ -363,49 +376,49 @@ class IconBuilder
         }
         // Update the progress bar
         $this->progressBar->advance();
-    
+
     }
 
     /**
      * determineDefaults
-     * @return void
+     *
      * @todo create tests for this method
      */
     public function determineDefaults(): void
     {
         // for each variant, we determine the defaults by recursively merging the variantDefaults with the settings in the config into $this->variants
         $settings = config("{$this->vendorConfig}.variants");
-        $this->variants = collect($this->variantDefaults)->except(['mini', 'micro'])->map(function($variant, $key) use ($settings){
+        $this->variants = collect($this->variantDefaults)->except(['mini', 'micro'])->map(function ($variant, $key) use ($settings) {
             return arrayMergeRecursive(
-                $variant, 
+                $variant,
                 Arr::get($settings, $key, [])
             );
         });
 
-        $this->variants = collect($this->variantDefaults)->map(function($variant, $key) use ($settings){
-            // for the mini and micro variants, we merge the settings with the base variant settings    
+        $this->variants = collect($this->variantDefaults)->map(function ($variant, $key) use ($settings) {
+            // for the mini and micro variants, we merge the settings with the base variant settings
             // the mini and micro variants inherit the settings from the variant listed in the base key
-            if($key == 'mini' || $key == 'micro'){
-                $base = key_exists('base', $settings) ? $this->variants[$settings['base']] : $this->variants[$variant['base']];
+            if ($key == 'mini' || $key == 'micro') {
+                $base = array_key_exists('base', $settings) ? $this->variants[$settings['base']] : $this->variants[$variant['base']];
                 $variant = arrayMergeRecursive(
-                    $variant, 
+                    $variant,
                     $base
                 );
-            }  
+            }
+
             return arrayMergeRecursive(
-                $variant, 
+                $variant,
                 Arr::get($settings, $key, [])
             );
-        });     
+        });
     }
 
     /**
      * buildIcon
      * TODO: better fallback handling
-     * @param string $variant
-     * @param string $file
-     * @param Icon $baseIcon
-     * @return Icon
+     *
+     * @param  Icon  $baseIcon
+     *
      * @todo create test for this method
      */
     public function buildIcon(string $variant, string $file): Icon
@@ -418,10 +431,9 @@ class IconBuilder
         return $icon;
     }
 
-
     /**
      * setupDirs
-     * @return void
+     *
      * @todo create tests for this method
      */
     public function setupDirs(): void
@@ -429,8 +441,8 @@ class IconBuilder
         // if we have a namespace in the vendor config, we use that as the output directory, otherwise we use the vendor name
         $this->outputDir = resource_path("views/flux/icon/{$this->namespace}");
 
-        if (!File::exists($this->outputDir)) {
-            if($this->verbose){
+        if (! File::exists($this->outputDir)) {
+            if ($this->verbose) {
                 $this->output->writeln("<info>Creating directory {$this->outputDir}</info>");
             }
             File::makeDirectory($this->outputDir, 0755, true);
@@ -440,8 +452,10 @@ class IconBuilder
     /**
      * getPackageCredits
      * get the details for the package and its authors to make a credits string
-     * @param mixed $flux
+     *
+     * @param  mixed  $flux
      * @return string
+     *
      * @todo create tests for this method
      */
     public function getPackageCredits($flux = false)
@@ -449,130 +463,122 @@ class IconBuilder
         $packageDetails = null;
 
         // if we want to get the credits for the flux package
-        if($flux){
+        if ($flux) {
             // get datails from composer.lock
             $composerLock = json_decode(File::get(base_path('composer.lock')), true);
             $packageDetails = collect($composerLock['packages'])->firstWhere('name', 'livewire/flux');
-            
+
             $name = Arr::get($packageDetails, 'name');
             $version = Arr::get($packageDetails, 'version');
 
-            return $packageDetails 
-                    ? $name. ' ('.$version.') by ' . $packageDetails['authors'][0]['name']
+            return $packageDetails
+                    ? $name.' ('.$version.') by '.$packageDetails['authors'][0]['name']
                     : '';
-        }
-        else{
+        } else {
             // get npm package details
             $packageDir = config("{$this->vendorConfig}.package");
             $packageFile = base_path("node_modules/{$packageDir}/package.json");
-            if(File::exists($packageFile)){
+            if (File::exists($packageFile)) {
                 $packageDetails = json_decode(File::get($packageFile), true);
-                
+
                 $name = Arr::get($packageDetails, 'name');
                 $version = Arr::get($packageDetails, 'version');
                 $author = Arr::get($packageDetails, 'author', null);
-            
+
                 $name = is_array($name) ? $name['name'] : $name;
                 $author = is_array($author) ? $author['name'] : $author;
 
-                return $packageDetails 
-                    ? $name . ' ('.$version.') '. ( $author ? 'by ' . $author : '')
+                return $packageDetails
+                    ? $name.' ('.$version.') '.($author ? 'by '.$author : '')
                     : '';
-            }
-            else{
+            } else {
                 return '-- Package details not found --';
             }
-        }   
+        }
     }
 
     /**
      * determineFallback
-     * @return string|bool
      */
     public function determineFallback(string $variant, Icon $baseIcon): string|bool
     {
         $fallback = $this->variantProp($variant, 'fallback', false);
         // if fallback is set to false, we don't have a fallback
-        if(!$fallback){
+        if (! $fallback) {
             return false;
         }
         // if fallback is set to 'variant', we use the variant as the fallback
-        if($fallback == 'default'){
+        if ($fallback == 'default') {
             return $this->baseVariant;
         }
 
         // in case an array is passed, we use as a callback
-        if(is_array($fallback) && is_callable($fallback)){
+        if (is_array($fallback) && is_callable($fallback)) {
             return call_user_func_array($fallback, [$baseIcon, $variant, $this->baseVariant]);
         }
 
         // if it is a string, check if the string is a variant
-        if(is_string($fallback) && $this->variants->has($fallback)){
+        if (is_string($fallback) && $this->variants->has($fallback)) {
             return $fallback;
         }
-       
+
         //
         return false;
     }
 
-
     /**
      * getVariantFile
      * Determine the file for the icon in the specified variant
-     * @param string $variant
-     * @param string $basename
-     * @return string|null
+     *
      * @todo create tests for this method
      */
-    public function getVariantIconFile(string $variant, string $basename, Icon $icon): string|null
-    {       
+    public function getVariantIconFile(string $variant, string $basename, Icon $icon): ?string
+    {
         $iconName = $basename;
 
-        if(is_array($this->variantProp($variant, 'source'))){
+        if (is_array($this->variantProp($variant, 'source'))) {
             $size = $this->variantProp($variant, 'size', 24);
-            if($prefix = $this->variantProp($variant, 'source.prefix')){
+            if ($prefix = $this->variantProp($variant, 'source.prefix')) {
                 // prefix can be either a string or a function
                 $prefix = is_array($prefix) && is_callable($prefix) ? call_user_func_array($prefix, [$variant]) : $prefix;
-                $iconName = $prefix . $iconName;
+                $iconName = $prefix.$iconName;
             }
-            if($suffix = $this->variantProp($variant, 'source.suffix')){
+            if ($suffix = $this->variantProp($variant, 'source.suffix')) {
                 // suffix can be either a string or a function
                 $suffix = is_array($suffix) && is_callable($suffix) ? call_user_func_array($suffix, [$variant]) : $suffix;
-                $iconName = $iconName . $suffix;
+                $iconName = $iconName.$suffix;
             }
 
             $dir = $this->variantProp($variant, 'source.dir');
             // $dir can be a string or a callable and should finish with a slash
             $dir = is_array($dir) && is_callable($dir) ? call_user_func_array($dir, [$variant]) : $dir;
-        }
-        else{
+        } else {
             $dir = $this->variantProp($variant, 'source');
         }
 
         $file = File::glob(
-            Str::of(base_path($dir))->finish('/'). "{$iconName}.svg"
-        ); 
+            Str::of(base_path($dir))->finish('/')."{$iconName}.svg"
+        );
 
-        if(empty($file)){
+        if (empty($file)) {
             return null;
-        }
-        else{
+        } else {
             $file = $file[0];
         }
 
-        // check if the file is actually the variant file 
+        // check if the file is actually the variant file
         if ($filter = $this->variantProp($variant, 'source.filter', false)) {
             $icons = $this->icons;
-            if(!call_user_func_array(
-                $filter, 
+            if (! call_user_func_array(
+                $filter,
                 [$file, &$icons, $variant]
-            )){
+            )) {
                 $file = null;
             }
         }
 
         // check if file exists
-        if(!File::exists($file)){
+        if (! File::exists($file)) {
             return null;
         }
 
@@ -581,63 +587,61 @@ class IconBuilder
 
     /**
      * get a property from the variant settings
-     * @param string $variant
-     * @param string $prop
-     * @param mixed $default
+     *
      * @return mixed
      */
     public function variantProp(string $variant, string $prop, mixed $default = null)
     {
         return Arr::get($this->variants, "{$variant}.{$prop}", $default);
     }
-    
+
     /**
      * getAvailableVendors
-     * @return Collection
+     *
      * @todo create tests for this method
      */
     public static function getAvailableVendors(): Collection
     {
-        return collect(config("flux-icons.vendors" ));
+        return collect(config('flux-icons.vendors'));
     }
 
     /**
      * Get the Available Icons for a specific variant, constrained by the config for that variant
-     * @param string $variant
-     * @return \Illuminate\Support\Collection
+     *
+     * @param  string  $variant
+     *
      * @todo create tests for this method
      */
     public function getAvailableIcons($variant = 'outline'): Collection
     {
         $files = [];
-        if(is_string($this->variantProp($variant, 'source'))){
+        if (is_string($this->variantProp($variant, 'source'))) {
             $files = File::glob(
-                Str::of(base_path($this->variantProp($variant, 'source')))->finish('/'). '*.svg'
-            ); 
-        }
-        else{
+                Str::of(base_path($this->variantProp($variant, 'source')))->finish('/').'*.svg'
+            );
+        } else {
             $dir = $this->variantProp($variant, 'source.dir');
             // $dir can be a string or a callable and should finish with a slash
             $dir = is_array($dir) && is_callable($dir) ? call_user_func_array($dir, [$variant]) : $dir;
 
             // if a filter is passed in the config, don't use the prefix and suffix to prefilter the files
             // the prefix and suffix are still used to determine the basename
-            if($this->variantProp($variant, 'source.filter')) {
+            if ($this->variantProp($variant, 'source.filter')) {
 
                 $files = File::glob(
-                    Str::of(base_path($dir))->finish('/') . '*' . '.svg'
+                    Str::of(base_path($dir))->finish('/').'*'.'.svg'
                 );
-            }
-            else{
+            } else {
                 $files = File::glob(
-                    Str::of(base_path($dir))->finish('/') .
-                    ($this->variantProp($variant, 'source.prefix') ?? '') . 
-                    '*' . 
-                    ($this->variantProp($variant, 'source.suffix') ?? '') . 
+                    Str::of(base_path($dir))->finish('/').
+                    ($this->variantProp($variant, 'source.prefix') ?? '').
+                    '*'.
+                    ($this->variantProp($variant, 'source.suffix') ?? '').
                     '.svg'
                 );
             }
         }
+
         return collect($files);
     }
 }

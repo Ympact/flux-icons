@@ -6,12 +6,11 @@ use Illuminate\Support\Collection;
 
 class IconManager
 {
-
     public static function currentVendors()
     {
         // get the directory names from resources/flux/icons
         return collect(glob(resource_path('views/flux/icon/*'), GLOB_ONLYDIR))
-            ->map(fn($dir) => basename($dir));
+            ->map(fn ($dir) => basename($dir));
     }
 
     public static function installedIcons(?Collection $vendors = null)
@@ -22,7 +21,7 @@ class IconManager
         return $vendors->mapWithKeys(function ($vendor) {
             return [
                 $vendor => collect(glob(resource_path("views/flux/icon/$vendor/*.blade.php")))
-                    ->map(fn($file) => basename($file, '.blade.php'))
+                    ->map(fn ($file) => basename($file, '.blade.php')),
             ];
         });
     }

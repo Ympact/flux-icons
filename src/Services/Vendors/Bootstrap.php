@@ -6,26 +6,22 @@ use Illuminate\Support\Str;
 
 class Bootstrap
 {
-    
     /**
-     * 
-     * @param $size size of the resource icon
-     * @return boolean
+     * @param  $size  size of the resource icon
      */
     public static function outlineFilter($file, &$icons): bool
     {
         $filename = pathinfo($file, PATHINFO_FILENAME);
-        if (Str::contains($filename,'-fill')) {
+        if (Str::contains($filename, '-fill')) {
             return false;
         }
+
         return true;
     }
 
     /**
-     * 
-     * @param string $file
-     * @param array|null $icons
-     * @return boolean
+     * @param  string  $file
+     * @param  array|null  $icons
      */
     public static function solidFilter($file, &$icons): bool
     {
@@ -37,5 +33,4 @@ class Bootstrap
 
         return false;
     }
-
 }

@@ -2,8 +2,8 @@
 
 namespace Ympact\FluxIcons;
 
-use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Blade;
+use Illuminate\Support\ServiceProvider;
 
 class FluxIconsServiceProvider extends ServiceProvider
 {
@@ -34,7 +34,7 @@ class FluxIconsServiceProvider extends ServiceProvider
         Blade::directive('pure', fn () => '');
         Blade::directive('blaze', fn () => '');
     }
-    
+
     public function bootCommands()
     {
         if (! $this->app->runningInConsole()) {
