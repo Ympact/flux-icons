@@ -1,7 +1,9 @@
 parameters:
-  autoload_files:
-    - vendor/autoload.php
   level: 7
   paths:
     - src
     - tests
+
+includes:
+  - phpstan-baseline.neon
+  - vendor/larastan/larastan/extension.neon
