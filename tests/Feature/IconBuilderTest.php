@@ -5,7 +5,6 @@ namespace Tests\Feature;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\File;
-use Illuminate\Support\Str;
 use Orchestra\Testbench\TestCase;
 use Ympact\FluxIcons\Services\IconBuilder;
 
@@ -43,6 +42,7 @@ class IconBuilderTest extends TestCase
             ->once()
             ->withArgs(function ($arg) {
                 $path = (string) $arg;
+
                 // Accept paths that contain the test vendor dir and end with svg pattern
                 return str_contains($path, 'tests/vendor/alpha/icons') && str_ends_with($path, 'outline/*.svg');
             })
