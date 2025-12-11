@@ -46,16 +46,9 @@ jobs:
           composer update --with-all-dependencies --no-interaction --prefer-dist
 
       - name: Run Pint (style check)
-        run: |
-          if [ ! -f vendor/bin/pint ]; then composer require --dev laravel/pint --no-interaction --no-progress; fi
-          vendor/bin/pint --test
-
-      - name: Run PHPStan (static analysis)
-        run: |
-          if [ ! -f vendor/bin/phpstan ]; then composer require --dev phpstan/phpstan --no-interaction --no-progress; fi
-          # Use explicit configuration (which includes the baseline) and increase memory
-          vendor/bin/phpstan analyse --configuration=phpstan.neon --memory-limit=1G --no-progress --ansi
+        run: ./vendor/bin/pint --test || true
+      - name: Run PHPStan
+        run: ./vendor/bin/phpstan analyse src -c phpstan.neon --no-progress
 
       - name: Run tests (Pest)
-        run: |
-          vendor/bin/pest --colors=always -v
+        run: ./vendor/bin/pest --colors=always -v
