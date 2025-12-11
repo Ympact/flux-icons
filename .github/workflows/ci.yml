@@ -1,0 +1,60 @@
+name: CI
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+    branches: ["**"]
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        php: [8.2, 8.3, 8.4, 8.5]
+        flux: ['^1.0', '^2.0']
+        livewire: ['^3.0', '4.0.x@beta']
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          extensions: mbstring, xml, json, zip
+          coverage: none
+
+      - name: Setup composer cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.composer/cache
+          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+          restore-keys: ${{ runner.os }}-composer-
+
+      - name: Install dependencies
+        run: composer install --prefer-dist --no-progress --no-suggest --no-interaction
+
+      - name: Require matrix Livewire / Flux versions
+        run: |
+          echo "Installing Livewire core variant: ${{ matrix.livewire }}"
+          composer require --dev "livewire/livewire:${{ matrix.livewire }}" --no-interaction || true
+          echo "Installing livewire/flux variant: ${{ matrix.flux }}"
+          composer require --dev "livewire/flux:${{ matrix.flux }}" --no-interaction || true
+          composer update --with-all-dependencies --no-interaction --prefer-dist
+
+      - name: Run Pint (style check)
+        run: |
+          if [ ! -f vendor/bin/pint ]; then composer require --dev laravel/pint --no-interaction --no-progress; fi
+          vendor/bin/pint --test
+
+      - name: Run PHPStan (static analysis)
+        run: |
+          if [ ! -f vendor/bin/phpstan ]; then composer require --dev phpstan/phpstan --no-interaction --no-progress; fi
+          vendor/bin/phpstan analyse --ansi
+
+      - name: Run tests (Pest)
+        run: |
+          vendor/bin/pest --colors=always -v
