@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use Flux\FluxManager;
+use Ympact\FluxIcons\FluxIconsManager;
 
 if (! function_exists('svg')) {
     /**
@@ -11,7 +11,7 @@ if (! function_exists('svg')) {
      */
     function svg(string $name, $class = '', array $attributes = []): Svg
     {
-        return app(FluxIconsManager::class)->svg($name, $class, $attributes);
+        return app('flux-icons')->svg($name, $class, $attributes);
     }
 
 }

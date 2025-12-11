@@ -2,6 +2,8 @@
 
 namespace Ympact\FluxIcons;
 
+use Ympact\FluxIcons\Exceptions\SvgNotFound;
+
 class FluxIconsManager
 {
 

@@ -9,7 +9,6 @@ class FluxIconsServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app->alias(FluxIconsManager::class, 'flux-icons');
-
         $this->app->singleton(FluxIconsManager::class);
 
         $loader = \Illuminate\Foundation\AliasLoader::getInstance();
