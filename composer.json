@@ -16,10 +16,18 @@
         "phpunit/phpunit": "^9.0|^10.0|^11.0|^12.0",
         "mockery/mockery": "^1.6|^2.0",
         "orchestra/testbench": "^9.5|^10.0",
+        "livewire/blaze": "^1.0|1.0.0@beta",
+        "pestphp/pest": "^4.0",
+        "pestphp/pest-plugin-browser": "^4.0",
+        "pestphp/pest-plugin-laravel": "^4.0",        
+        "laravel/pint": "^1.26",
         "phpstan/phpstan": "^2.1",
-        "laravel/pint": "^1.26"
+        "larastan/larastan": "^3.7"
     },
     "license": "MIT",
+    "scripts": {
+        "test": "pest"
+    },
     "autoload": {
         "psr-4": {
             "Ympact\\FluxIcons\\": "src/"
@@ -41,5 +49,10 @@
             "email": "maurits@ympact-technologies.nl"
         }
     ],
-    "minimum-stability": "stable"
+    "minimum-stability": "stable",
+    "config": {
+        "allow-plugins": {
+            "pestphp/pest-plugin": true
+        }
+    }
 }
