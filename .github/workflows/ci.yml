@@ -15,6 +15,7 @@ jobs:
         php: [8.3, 8.4, 8.5]
         laravel: [11.0, 12.0, 13.0]
         flux: [1.0, 2.0]
+        
         include:
           - laravel: 13.0
             experimental: true
@@ -46,6 +47,12 @@ jobs:
           composer require "laravel/framework:^${{ matrix.laravel }}" --no-update --no-interaction
           echo "Installing livewire/flux variant: ${{ matrix.flux }}"
           composer require --dev "livewire/flux:^${{ matrix.flux }}" --no-update --no-interaction || true
+
+          if [ "${{ matrix.flux }}" = "1.0" ]; then
+            echo "Removing livewire/blaze for livewire/flux v1 compatibility"
+            composer remove --dev livewire/blaze --no-update --no-interaction
+          fi
+
           composer update --with-all-dependencies --no-interaction --prefer-dist
 
       - name: Run Pint (style check)
