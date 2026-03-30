@@ -2,8 +2,8 @@
 
 use Ympact\FluxIcons\Types\SvgPath;
 
-$makeNode = function (string $tag, array $attributes = []): \DOMNode {
-    $dom = new \DOMDocument;
+$makeNode = function (string $tag, array $attributes = []): DOMNode {
+    $dom = new DOMDocument;
     $dom->loadXML('<svg xmlns="http://www.w3.org/2000/svg"></svg>');
 
     $node = $dom->createElement($tag);

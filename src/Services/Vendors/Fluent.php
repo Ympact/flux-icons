@@ -12,7 +12,7 @@ class Fluent
     /**
      * Determine the correct suffix for the solid icon
      *
-     * @param  \Ympact\FluxIcons\Types\Icon  $icon
+     * @param  Icon  $icon
      */
     public static function sourceSolidSuffix(?string $variant = null): string
     {

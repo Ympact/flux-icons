@@ -39,7 +39,7 @@ it('returns all configured vendors from config', function () {
     expect($vendors)
         ->toBeInstanceOf(Collection::class)
         ->toHaveCount(4)
-    ->and(array_keys($vendors->toArray()))->toMatchSortedValues(['alpha', 'beta', 'gamma', 'epsilon']);
+        ->and(array_keys($vendors->toArray()))->toMatchSortedValues(['alpha', 'beta', 'gamma', 'epsilon']);
 });
 
 it('discovers alpha outline icons from the source directory', function () {

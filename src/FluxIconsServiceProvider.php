@@ -2,9 +2,9 @@
 
 namespace Ympact\FluxIcons;
 
+use Flux\FluxServiceProvider;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\ServiceProvider;
-use Flux\FluxServiceProvider as FluxServiceProvider;
 
 class FluxIconsServiceProvider extends ServiceProvider
 {
@@ -51,9 +51,8 @@ class FluxIconsServiceProvider extends ServiceProvider
         Blade::directive('endunblaze', function () {
             return '<'.'?php if (isset($__scope)) { $scope = $__scope; unset($__scope); } ?>';
         });
-    }     
-    */
-
+    }
+     */
     public function bootCommands()
     {
         if (! $this->app->runningInConsole()) {

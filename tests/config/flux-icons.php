@@ -1,5 +1,9 @@
 <?php
 
+use Ympact\FluxIcons\Tests\Vendor\Alpha\Alpha;
+use Ympact\FluxIcons\Tests\Vendor\Beta\Beta;
+use Ympact\FluxIcons\Tests\Vendor\Epsilon\Epsilon;
+
 /**
  * Flux Icons configuration file
  * In case you have published the configuration file, you can modify the configuration here
@@ -61,8 +65,8 @@ return [
                     // 'size' => 16 // default size for the icon, not necessary to specify
                 ],
             ],
-            'transform_svg_path' => [Ympact\FluxIcons\Tests\Vendor\Alpha\Alpha::class, 'transformSvgPath'],
-            'change_stroke_width' => [Ympact\FluxIcons\Tests\Vendor\Alpha\Alpha::class, 'changeStrokeWidth'],
+            'transform_svg_path' => [Alpha::class, 'transformSvgPath'],
+            'change_stroke_width' => [Alpha::class, 'changeStrokeWidth'],
         ],
 
         /**
@@ -85,7 +89,7 @@ return [
                     'source' => [
                         'dir' => 'tests/vendor/beta/icons',
                         'prefix' => null,
-                        'suffix' => [Ympact\FluxIcons\Tests\Vendor\Beta\Beta::class, 'sourceSolidSuffix'],
+                        'suffix' => [Beta::class, 'sourceSolidSuffix'],
                     ],
                 ],
             ],
@@ -130,7 +134,7 @@ return [
                         'suffix' => '-outline',
                     ],
                     // filter function to determine if the icon is an outline icon
-                    'filter' => [Ympact\FluxIcons\Tests\Vendor\Epsilon\Epsilon::class, 'outlineFilter'],
+                    'filter' => [Epsilon::class, 'outlineFilter'],
                 ],
                 'solid' => [
                     'source' => [
@@ -140,7 +144,7 @@ return [
                     ],
 
                     // inverse of the outline filter
-                    'filter' => [Ympact\FluxIcons\Tests\Vendor\Epsilon\Epsilon::class, 'solidFilter'],
+                    'filter' => [Epsilon::class, 'solidFilter'],
                 ],
                 'mini' => [
                     'base' => 'outline',

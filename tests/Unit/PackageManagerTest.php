@@ -37,7 +37,7 @@ it('returns null when flux is not present in composer lock', function () {
 
 it('throws when composer lock is missing', function () {
     PackageManager::fluxVersion();
-})->throws(RuntimeException::class, "composer.lock not found");
+})->throws(RuntimeException::class, 'composer.lock not found');
 
 it('throws when updating an unknown vendor package', function () {
     Config::set('flux-icons', fixtureConfig());

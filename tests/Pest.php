@@ -1,8 +1,8 @@
 <?php
 
-use Tests\TestCase;
 use Illuminate\Support\Collection;
 use PHPUnit\Framework\Assert;
+use Tests\TestCase;
 use Ympact\FluxIcons\Services\IconBuilder;
 use Ympact\FluxIcons\Types\Icon;
 use Ympact\FluxIcons\Types\SvgPath;
@@ -115,7 +115,7 @@ function makeBaseBuilderIcon(IconBuilder $builder, ?string $file = null): Icon
 
 function makeSvgPath(string $d): SvgPath
 {
-    $dom = new \DOMDocument;
+    $dom = new DOMDocument;
     $dom->loadXML('<svg xmlns="http://www.w3.org/2000/svg"></svg>');
 
     $node = $dom->createElement('path');

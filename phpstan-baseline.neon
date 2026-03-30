@@ -1,7 +1,7 @@
 parameters:
 	ignoreErrors:
 		-
-			message: '#^Binary operation "\." between ''Configured icons…'' and array\|bool\|int\|string\|null results in an error\.$#'
+			message: '#^Binary operation "\." between ''Configured icons…'' and array\|bool\|float\|int\|string\|null results in an error\.$#'
 			identifier: binaryOp.invalid
 			count: 1
 			path: src/Console/BuildFluxIconsCommand.php
@@ -19,13 +19,13 @@ parameters:
 			path: src/Console/BuildFluxIconsCommand.php
 
 		-
-			message: '#^Parameter \#1 \$vendor of class Ympact\\FluxIcons\\Services\\IconBuilder constructor expects string\|null, array\|bool\|int\|string\|null given\.$#'
+			message: '#^Parameter \#1 \$vendor of class Ympact\\FluxIcons\\Services\\IconBuilder constructor expects string\|null, array\|bool\|float\|int\|string\|null given\.$#'
 			identifier: argument.type
 			count: 1
 			path: src/Console/BuildFluxIconsCommand.php
 
 		-
-			message: '#^Part \$vendor \(array\|bool\|int\|string\|null\) of encapsed string cannot be cast to string\.$#'
+			message: '#^Part \$vendor \(array\|bool\|float\|int\|string\|null\) of encapsed string cannot be cast to string\.$#'
 			identifier: encapsedStringPart.nonString
 			count: 6
 			path: src/Console/BuildFluxIconsCommand.php
@@ -56,12 +56,6 @@ parameters:
 
 		-
 			message: '#^Method Ympact\\FluxIcons\\FluxIconsServiceProvider\:\:bootCommands\(\) has no return type specified\.$#'
-			identifier: missingType.return
-			count: 1
-			path: src/FluxIconsServiceProvider.php
-
-		-
-			message: '#^Method Ympact\\FluxIcons\\FluxIconsServiceProvider\:\:bootFallbackBlazeDirectivesIfBlazeIsNotInstalled\(\) has no return type specified\.$#'
 			identifier: missingType.return
 			count: 1
 			path: src/FluxIconsServiceProvider.php

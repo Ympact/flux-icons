@@ -1,5 +1,12 @@
 <?php
 
+use Ympact\FluxIcons\Services\Vendors\Bootstrap;
+use Ympact\FluxIcons\Services\Vendors\Fluent;
+use Ympact\FluxIcons\Services\Vendors\Healthicons;
+use Ympact\FluxIcons\Services\Vendors\MaterialSymbols;
+use Ympact\FluxIcons\Services\Vendors\Mdi;
+use Ympact\FluxIcons\Services\Vendors\Tabler;
+
 /**
  * Flux Icons configuration file
  * In case you have published the configuration file, you can modify the configuration here
@@ -49,7 +56,7 @@ return [
                         'suffix' => null,
                         // since solid and outline icons are in the same directory,
                         // use a filter function to determine if the icon is an outline icon
-                        'filter' => [Ympact\FluxIcons\Services\Vendors\Bootstrap::class, 'outlineFilter'],
+                        'filter' => [Bootstrap::class, 'outlineFilter'],
                     ],
                 ],
                 'solid' => [
@@ -59,7 +66,7 @@ return [
                         'suffix' => '-fill',
                         // since solid and outline icons are in the same directory,
                         // use a filter function to determine if the icon is a solid icon
-                        'filter' => [Ympact\FluxIcons\Services\Vendors\Bootstrap::class, 'solidFilter'],
+                        'filter' => [Bootstrap::class, 'solidFilter'],
                     ],
                 ],
             ],
@@ -154,11 +161,11 @@ return [
                     'source' => [
                         'dir' => 'node_modules/@fluentui/svg-icons/icons',
                         'prefix' => null,
-                        'suffix' => [Ympact\FluxIcons\Services\Vendors\Fluent::class, 'sourceSolidSuffix'],
+                        'suffix' => [Fluent::class, 'sourceSolidSuffix'],
                     ],
                 ],
             ],
-            'transform' => [Ympact\FluxIcons\Services\Vendors\Fluent::class, 'transform'],
+            'transform' => [Fluent::class, 'transform'],
         ],
 
         /**
@@ -193,7 +200,7 @@ return [
                     'source' => 'node_modules/healthicons/public/icons/svg/filled-24px/*/',
                 ],
             ],
-            'icon_name' => [Ympact\FluxIcons\Services\Vendors\Healthicons::class, 'name'],
+            'icon_name' => [Healthicons::class, 'name'],
         ],
 
         /**
@@ -258,14 +265,14 @@ return [
                     'template' => 'solid',
                     'source' => [
                         'dir' => 'node_modules/@material-symbols/svg-300/outlined',
-                        'filter' => [Ympact\FluxIcons\Services\Vendors\MaterialSymbols::class, 'outlineFilter'],
+                        'filter' => [MaterialSymbols::class, 'outlineFilter'],
                     ],
                 ],
                 'solid' => [
                     'source' => [
                         'dir' => 'node_modules/@material-symbols/svg-300/outlined',
                         'suffix' => '-fill',
-                        'filter' => [Ympact\FluxIcons\Services\Vendors\MaterialSymbols::class, 'solidFilter'],
+                        'filter' => [MaterialSymbols::class, 'solidFilter'],
                     ],
                 ],
             ],
@@ -289,7 +296,7 @@ return [
                         'prefix' => null,
                         'suffix' => '-outline',
                         // filter function to determine if the icon is an outline icon
-                        'filter' => [Ympact\FluxIcons\Services\Vendors\Mdi::class, 'outlineFilter'],
+                        'filter' => [Mdi::class, 'outlineFilter'],
                     ],
                 ],
                 'solid' => [
@@ -299,7 +306,7 @@ return [
                         'suffix' => null,
 
                         // inverse of the outline filter
-                        'filter' => [Ympact\FluxIcons\Services\Vendors\Mdi::class, 'solidFilter'],
+                        'filter' => [Mdi::class, 'solidFilter'],
                     ],
                 ],
             ],
@@ -350,9 +357,9 @@ return [
             ],
             // adjust individual icons
             // 'name' => [ Ympact\FluxIcons\Services\Vendors\Tabler::class, 'name' ],
-            'attributes' => [Ympact\FluxIcons\Services\Vendors\Tabler::class, 'attributes'],
-            'transform' => [Ympact\FluxIcons\Services\Vendors\Tabler::class, 'transform'],
-            'stroke_width' => [Ympact\FluxIcons\Services\Vendors\Tabler::class, 'strokeWidth'],
+            'attributes' => [Tabler::class, 'attributes'],
+            'transform' => [Tabler::class, 'transform'],
+            'stroke_width' => [Tabler::class, 'strokeWidth'],
         ],
     ],
 ];
