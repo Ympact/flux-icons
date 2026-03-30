@@ -38,10 +38,7 @@ jobs:
           key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
           restore-keys: ${{ runner.os }}-composer-
 
-      - name: Install dependencies
-        run: composer install --prefer-dist --no-progress --no-suggest --no-interaction
-
-      - name: Require matrix Laravel / Flux versions
+      - name: Resolve matrix dependencies
         run: |
           echo "Installing Laravel: ${{ matrix.laravel }}"
           composer require "laravel/framework:^${{ matrix.laravel }}" --no-update --no-interaction
