@@ -26,14 +26,17 @@ class FluxIconsServiceProvider extends ServiceProvider
         ], 'flux-icons-icons');
 
         // Register the commands
-        app(FluxServiceProvider::class)->bootFallbackBlazeDirectivesIfBlazeIsNotInstalled();
+        $this->bootFallbackBlazeDirectivesIfBlazeIsNotInstalled();
+        
         $this->bootCommands();
     }
 
     /**
      * Based on livewire/flux: `FluxServiceProvider::bootFallbackBlazeDirectivesIfBlazeIsNotInstalled()`
 
-    public function bootFallbackBlazeDirectivesIfBlazeIsNotInstalled()
+     * Flux v1 does not expose this method publicly, so we keep a local fallback.
+     */
+    public function bootFallbackBlazeDirectivesIfBlazeIsNotInstalled(): void
     {
         Blade::directive('blaze', fn () => '');
 
@@ -52,7 +55,7 @@ class FluxIconsServiceProvider extends ServiceProvider
             return '<'.'?php if (isset($__scope)) { $scope = $__scope; unset($__scope); } ?>';
         });
     }
-     */
+
     public function bootCommands()
     {
         if (! $this->app->runningInConsole()) {

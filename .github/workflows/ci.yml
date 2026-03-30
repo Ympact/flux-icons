@@ -5,6 +5,9 @@ on:
     branches: ["dev","main","v1","v2"]
   pull_request:
     branches: ["v1","v2"]
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
     
 jobs:
   tests:
@@ -15,6 +18,9 @@ jobs:
         php: [8.3, 8.4, 8.5]
         laravel: ['11', '12', '13']
         flux: ['1', '2']
+        exclude:
+          - laravel: '13'
+            flux: '1'
         
         include:
           - laravel: '13'
@@ -35,8 +41,12 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/.composer/cache
-          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
-          restore-keys: ${{ runner.os }}-composer-
+          key: ${{ runner.os }}-composer-php${{ matrix.php }}-laravel${{ matrix.laravel }}-flux${{ matrix.flux }}-${{ hashFiles('composer.json') }}
+          restore-keys: |
+            ${{ runner.os }}-composer-php${{ matrix.php }}-laravel${{ matrix.laravel }}-flux${{ matrix.flux }}-
+            ${{ runner.os }}-composer-php${{ matrix.php }}-laravel${{ matrix.laravel }}-
+            ${{ runner.os }}-composer-php${{ matrix.php }}-
+            ${{ runner.os }}-composer-
 
       - name: Resolve matrix dependencies
         run: |
