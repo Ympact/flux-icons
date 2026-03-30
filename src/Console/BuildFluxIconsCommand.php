@@ -27,7 +27,7 @@ class BuildFluxIconsCommand extends Command
         $vendor = $this->argument('vendor') ?? ($noInteraction ? null :
             select(
                 label: 'From which vendor do you want to build icons?',
-                options: IconBuilder::getAvailableVendors()->keys()->toArray(),
+                options: IconBuilder::getAvailableVendors()->keys()->sort()->toArray(),
                 scroll: 5
             ));
 

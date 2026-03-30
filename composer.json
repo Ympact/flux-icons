@@ -15,8 +15,8 @@
     "require-dev": {
         "phpunit/phpunit": "^9.0|^10.0|^11.0|^12.0|^13.0",
         "mockery/mockery": "^1.6|^2.0",
-        "orchestra/testbench": "^9.5|^10.0",
-        "livewire/blaze": "^1.0|1.0.0@beta",
+        "orchestra/testbench": "^9.5|^10.0|^11.0",
+        "livewire/blaze": "^1.0",
         "pestphp/pest": "^4.0",
         "pestphp/pest-plugin-browser": "^4.0",
         "pestphp/pest-plugin-laravel": "^4.0",        
@@ -35,6 +35,12 @@
         "files": [
             "src/helpers.php"
         ]
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Tests\\": "tests/",
+            "Ympact\\FluxIcons\\Tests\\": "tests/"
+        }
     },
     "extra": {
         "laravel": {

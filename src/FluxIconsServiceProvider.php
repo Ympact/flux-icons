@@ -4,6 +4,7 @@ namespace Ympact\FluxIcons;
 
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\ServiceProvider;
+use Flux\FluxServiceProvider as FluxServiceProvider;
 
 class FluxIconsServiceProvider extends ServiceProvider
 {
@@ -25,15 +26,33 @@ class FluxIconsServiceProvider extends ServiceProvider
         ], 'flux-icons-icons');
 
         // Register the commands
-        $this->bootFallbackBlazeDirectivesIfBlazeIsNotInstalled();
+        app(FluxServiceProvider::class)->bootFallbackBlazeDirectivesIfBlazeIsNotInstalled();
         $this->bootCommands();
     }
 
+    /**
+     * Based on livewire/flux: `FluxServiceProvider::bootFallbackBlazeDirectivesIfBlazeIsNotInstalled()`
+
     public function bootFallbackBlazeDirectivesIfBlazeIsNotInstalled()
     {
-        Blade::directive('pure', fn () => '');
         Blade::directive('blaze', fn () => '');
-    }
+
+        // `@pure` directive has been replaced with `@blaze` in Blaze v1.0, but we need to keep it here for
+        // backwards compatibility as people could have published components or custom icons using it...
+        Blade::directive('pure', fn () => '');
+
+        Blade::directive('unblaze', function ($expression) {
+            return ''
+                . '<'.'?php $__getScope = fn($scope = []) => $scope; ?>'
+                . '<'.'?php if (isset($scope)) $__scope = $scope; ?>'
+                . '<'.'?php $scope = $__getScope('.$expression.'); ?>';
+        });
+
+        Blade::directive('endunblaze', function () {
+            return '<'.'?php if (isset($__scope)) { $scope = $__scope; unset($__scope); } ?>';
+        });
+    }     
+    */
 
     public function bootCommands()
     {
