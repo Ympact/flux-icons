@@ -21,7 +21,7 @@ class IconBuilder
 
     protected string $namespace;
 
-    protected ?array $icons;
+    protected ?array $icons = null;
 
     protected string $outputDir;
 
@@ -29,7 +29,7 @@ class IconBuilder
 
     protected string $vendorConfig;
 
-    protected bool $verbose;
+    protected bool $verbose = false;
 
     protected ?Collection $variants = null;
 
@@ -246,7 +246,7 @@ class IconBuilder
         $infoFluxVersion = $this->getPackageCredits(true);
 
         $npmRunning = false;
-        if (config('request_npm_dev')) {
+        if (config("{$this->config}.request_npm_dev")) {
             if ($baseIcons->count() > 100) {
                 $time = round($baseIcons->count() / 3);
 
@@ -278,7 +278,7 @@ class IconBuilder
         $this->output->writeln('');
 
         // ask to start running npm run dev again
-        if (config('request_npm_dev') && $npmRunning && confirm('Do you want to start `npm run dev`?')) {
+        if (config("{$this->config}.request_npm_dev") && $npmRunning && confirm('Do you want to start `npm run dev`?')) {
             exec('npm run dev', $output, $result);
         }
 
@@ -363,7 +363,7 @@ class IconBuilder
                 ->replace('{INFO_FLUX_VERSION}', $infoFluxVersion)
                 ->replace('{INFO_BUILD_DATE}', now()->format('Y-m-d H:i:s'))
 
-                ->replace('{BLAZE}', (PackageManager::fluxVersion() >= '2.2.6' ? '@blaze' : ''));
+                ->replace('{BLAZE}', PackageManager::fluxVersionAtLeast('2.2.6') ? '@blaze' : '');
 
             $put = File::put("{$this->outputDir}/{$basename}.blade.php", $iconBladeFile);
             if ($this->verbose) {

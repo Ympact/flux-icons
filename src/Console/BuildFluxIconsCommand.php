@@ -44,9 +44,16 @@ class BuildFluxIconsCommand extends Command
 
         $icons = $this->option('icons') ?? null;
         $all = $this->option('all');
+        $merge = $this->option('merge');
 
         if ($icons && $all) {
             $this->error("You can't use the --icons option in combination with the --all option");
+
+            return 1;
+        }
+
+        if ($merge && $all) {
+            $this->error("You can't use the --merge option in combination with the --all option");
 
             return 1;
         }
@@ -106,6 +113,10 @@ class BuildFluxIconsCommand extends Command
             }
         }
 
+        if ($merge) {
+            $icons = $this->mergeWithConfiguredIcons($icons, $configVendorIcons);
+        }
+
         $this->info('Start building icons 👀');
         $iconBuilder->setIcons($icons);
 
@@ -115,5 +126,40 @@ class BuildFluxIconsCommand extends Command
         $this->newLine()->info("Icons built successfully for vendor: $vendor");
 
         return 0;
+    }
+
+    /**
+     * Combine the requested icons with the icons configured for the vendor.
+     *
+     * @param  string|array<int,string>|null  $icons
+     * @param  array<int,string>|null  $configVendorIcons
+     * @return array<int,string>
+     */
+    protected function mergeWithConfiguredIcons($icons, $configVendorIcons): array
+    {
+        return collect($this->normalizeIcons($icons))
+            ->merge($this->normalizeIcons($configVendorIcons))
+            ->unique()
+            ->values()
+            ->all();
+    }
+
+    /**
+     * Accept both a comma separated list and an array of icon names.
+     *
+     * @param  string|array<int,string>|null  $icons
+     * @return array<int,string>
+     */
+    protected function normalizeIcons($icons): array
+    {
+        if (blank($icons)) {
+            return [];
+        }
+
+        return collect(is_string($icons) ? explode(',', $icons) : $icons)
+            ->map(fn ($icon) => trim((string) $icon))
+            ->filter()
+            ->values()
+            ->all();
     }
 }

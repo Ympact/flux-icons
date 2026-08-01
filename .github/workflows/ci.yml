@@ -63,7 +63,7 @@ jobs:
           composer update --with-all-dependencies --no-interaction --prefer-dist
 
       - name: Run Pint (style check)
-        run: ./vendor/bin/pint --test || true
+        run: ./vendor/bin/pint --test
       - name: Run PHPStan
         run: ./vendor/bin/phpstan analyse src -c phpstan.neon --no-progress
 

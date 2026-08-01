@@ -492,8 +492,10 @@ class Icon
             }
         }
 
-        $height = $svg->getAttribute('height') ?? $svg->getAttribute('width') ?? null;
-        $width = $svg->getAttribute('width') ?? $svg->getAttribute('height') ?? null;
+        // getAttribute() returns an empty string for missing attributes, so fall back on
+        // the other dimension only when the requested one is actually absent.
+        $height = $svg->getAttribute('height') ?: $svg->getAttribute('width');
+        $width = $svg->getAttribute('width') ?: $svg->getAttribute('height');
         $this->size = [(int) $width, (int) $height];
     }
 

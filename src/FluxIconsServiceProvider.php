@@ -2,7 +2,6 @@
 
 namespace Ympact\FluxIcons;
 
-use Flux\FluxServiceProvider;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\ServiceProvider;
 
@@ -27,7 +26,7 @@ class FluxIconsServiceProvider extends ServiceProvider
 
         // Register the commands
         $this->bootFallbackBlazeDirectivesIfBlazeIsNotInstalled();
-        
+
         $this->bootCommands();
     }
 
@@ -38,6 +37,13 @@ class FluxIconsServiceProvider extends ServiceProvider
      */
     public function bootFallbackBlazeDirectivesIfBlazeIsNotInstalled(): void
     {
+        // Blaze registers the real directives in its own boot(), as does Flux v2 for its
+        // no-op fallbacks. Overwriting those with no-ops here would silently disable Blaze
+        // compilation whenever this provider happens to boot after theirs.
+        if (array_key_exists('blaze', Blade::getCustomDirectives())) {
+            return;
+        }
+
         Blade::directive('blaze', fn () => '');
 
         // `@pure` directive has been replaced with `@blaze` in Blaze v1.0, but we need to keep it here for
@@ -46,9 +52,9 @@ class FluxIconsServiceProvider extends ServiceProvider
 
         Blade::directive('unblaze', function ($expression) {
             return ''
-                . '<'.'?php $__getScope = fn($scope = []) => $scope; ?>'
-                . '<'.'?php if (isset($scope)) $__scope = $scope; ?>'
-                . '<'.'?php $scope = $__getScope('.$expression.'); ?>';
+                .'<'.'?php $__getScope = fn($scope = []) => $scope; ?>'
+                .'<'.'?php if (isset($scope)) $__scope = $scope; ?>'
+                .'<'.'?php $scope = $__getScope('.$expression.'); ?>';
         });
 
         Blade::directive('endunblaze', function () {

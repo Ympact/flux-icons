@@ -39,6 +39,49 @@ it('throws when composer lock is missing', function () {
     PackageManager::fluxVersion();
 })->throws(RuntimeException::class, 'composer.lock not found');
 
+it('compares flux versions numerically instead of as strings', function () {
+    writeComposerLock($this->tempDir, [
+        'packages' => [
+            ['name' => 'livewire/flux', 'version' => 'v2.10.0'],
+        ],
+        'packages-dev' => [],
+    ]);
+
+    // a plain string comparison would place 2.10.0 below 2.2.6
+    expect(PackageManager::fluxVersionAtLeast('2.2.6'))->toBeTrue();
+});
+
+it('reports flux versions below the requested version', function () {
+    writeComposerLock($this->tempDir, [
+        'packages' => [
+            ['name' => 'livewire/flux', 'version' => 'v2.2.5'],
+        ],
+        'packages-dev' => [],
+    ]);
+
+    expect(PackageManager::fluxVersionAtLeast('2.2.6'))->toBeFalse();
+});
+
+it('treats development flux versions as up to date', function () {
+    writeComposerLock($this->tempDir, [
+        'packages' => [
+            ['name' => 'livewire/flux', 'version' => 'dev-main'],
+        ],
+        'packages-dev' => [],
+    ]);
+
+    expect(PackageManager::fluxVersionAtLeast('2.2.6'))->toBeTrue();
+});
+
+it('reports flux as outdated when it is not installed', function () {
+    writeComposerLock($this->tempDir, [
+        'packages' => [],
+        'packages-dev' => [],
+    ]);
+
+    expect(PackageManager::fluxVersionAtLeast('2.2.6'))->toBeFalse();
+});
+
 it('throws when updating an unknown vendor package', function () {
     Config::set('flux-icons', fixtureConfig());
 

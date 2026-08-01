@@ -13,7 +13,7 @@ use function Laravel\Prompts\info;
 class UpdateFluxIconsCommand extends Command
 {
     protected $signature = 'flux-icons:update
-                            {--P|vendor : The vendors for which to update the icon package}';
+                            {--P|vendor= : The vendors for which to update the icon package (single or comma separated list)}';
 
     protected $description = 'Updates icon vendor packages, built icons and adding @blaze directive';
 
@@ -21,22 +21,62 @@ class UpdateFluxIconsCommand extends Command
     {
         $verbose = $this->option('verbose');
 
-        $vendors = $this->option('vendor')
-            ? IconManager::currentVendors()->slice($this->option('vendor'))
-            : IconManager::currentVendors();
+        $currentVendors = IconManager::currentVendors();
+
+        $vendors = $currentVendors;
+
+        if ($vendorOption = $this->option('vendor')) {
+            $requested = collect(is_array($vendorOption) ? $vendorOption : explode(',', (string) $vendorOption))
+                ->map(fn ($vendor) => trim((string) $vendor))
+                ->filter();
+
+            // accept both the config key and the directory the icons were built into
+            $keysByDirectory = $currentVendors->mapWithKeys(
+                fn ($directory) => [$directory => IconManager::resolveVendorKey($directory)]
+            );
+
+            $vendors = $currentVendors->filter(
+                fn ($directory) => $requested->contains($directory)
+                    || $requested->contains($keysByDirectory->get($directory))
+            )->values();
+
+            $unknown = $requested->reject(
+                fn ($name) => $currentVendors->contains($name) || $keysByDirectory->contains($name)
+            )->all();
+
+            if ($unknown) {
+                error('No built icons found for: '.implode(', ', $unknown));
+            }
+
+            if ($vendors->isEmpty()) {
+                error('None of the requested vendors have built icons. Nothing to update.');
+
+                return 1;
+            }
+        }
 
         $installedIcons = IconManager::installedIcons($vendors);
 
         info('Updating the packages');
         $installedIcons->each(function ($vendorIcons, $vendor) use ($verbose) {
+            // built icons live in a directory named after the vendor's namespace,
+            // which is not necessarily the key used in the config
+            $vendorKey = IconManager::resolveVendorKey($vendor);
+
+            if (! $vendorKey) {
+                $verbose ? info("Skipping $vendor, it does not belong to a configured vendor.") : null;
+
+                return;
+            }
+
             // update the npm packages
             $this->components->task(
-                'Updating package '.$vendor,
-                function () use ($vendor, $verbose) {
+                'Updating package '.$vendorKey,
+                function () use ($vendorKey, $verbose) {
                     try {
-                        return PackageManager::updateVendorPackage($vendor, $verbose);
+                        return PackageManager::updateVendorPackage($vendorKey, $verbose);
                     } catch (\RuntimeException $e) {
-                        error("Failed to update the package for: $vendor. ".$e->getMessage());
+                        error("Failed to update the package for: $vendorKey. ".$e->getMessage());
 
                         return false;
                     }
@@ -44,16 +84,16 @@ class UpdateFluxIconsCommand extends Command
             );
 
             // update the icons
-            info('Updating '.count($vendorIcons).' icons for '.$vendor);
+            info('Updating '.count($vendorIcons).' icons for '.$vendorKey);
 
             try {
-                $iconBuilder = new IconBuilder($vendor);
+                $iconBuilder = new IconBuilder($vendorKey);
                 $iconBuilder->setVerbose($verbose)->requirePackage();
                 $iconBuilder->setIcons($vendorIcons->all());
                 $iconBuilder->buildIcons();
 
-            } catch (\RuntimeException $e) {
-                error("Failed to update the icons for: $vendor. ".$e->getMessage());
+            } catch (\Throwable $e) {
+                error("Failed to update the icons for: $vendorKey. ".$e->getMessage());
             }
 
         });

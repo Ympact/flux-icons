@@ -20,6 +20,32 @@ class PackageManager
         return $fluxPackage['version'] ?? null;
     }
 
+    /**
+     * Determine whether the installed Flux version is at least the given version.
+     *
+     * Versions from composer.lock may be prefixed with a "v" and are compared with
+     * version_compare() so that e.g. 2.10.0 correctly sorts above 2.2.6.
+     * Non-release versions (dev-main, branch aliases) are treated as up to date.
+     */
+    public static function fluxVersionAtLeast(string $version): bool
+    {
+        $fluxVersion = static::fluxVersion();
+
+        if (! $fluxVersion) {
+            return false;
+        }
+
+        $fluxVersion = ltrim($fluxVersion, 'vV');
+
+        // dev-main, dev-master, feature branches, ... cannot be compared reliably,
+        // assume they track the latest version.
+        if (! preg_match('/^\d+(\.\d+)*/', $fluxVersion)) {
+            return true;
+        }
+
+        return version_compare($fluxVersion, $version, '>=');
+    }
+
     // npm update vendor package
     public static function updateVendorPackage(string $vendor, $verbose = false): bool
     {
