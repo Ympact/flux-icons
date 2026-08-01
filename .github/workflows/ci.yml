@@ -17,11 +17,9 @@ jobs:
       matrix:
         php: [8.3, 8.4, 8.5]
         laravel: ['11', '12', '13']
-        flux: ['1', '2']
-        exclude:
-          - laravel: '13'
-            flux: '1'
-        
+        # v2 targets the same baseline as livewire/flux v2
+        flux: ['2']
+
         include:
           - laravel: '13'
             experimental: true
@@ -54,11 +52,6 @@ jobs:
           composer require "laravel/framework:^${{ matrix.laravel }}" --no-update --no-interaction
           echo "Installing livewire/flux variant: ${{ matrix.flux }}"
           composer require "livewire/flux:^${{ matrix.flux }}" --no-update --no-interaction || true
-
-          if [ "${{ matrix.flux }}" = "1" ]; then
-            echo "Removing livewire/blaze for livewire/flux v1 compatibility"
-            composer remove --dev livewire/blaze --no-update --no-interaction
-          fi
 
           composer update --with-all-dependencies --no-interaction --prefer-dist
 
