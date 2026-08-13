@@ -62,16 +62,36 @@ it('reports flux versions below the requested version', function () {
     expect(PackageManager::fluxVersionAtLeast('2.2.6'))->toBeFalse();
 });
 
-it('treats development flux versions as up to date', function () {
+it('treats development flux versions as up to date', function (string $version) {
     writeComposerLock($this->tempDir, [
         'packages' => [
-            ['name' => 'livewire/flux', 'version' => 'dev-main'],
+            ['name' => 'livewire/flux', 'version' => $version],
         ],
         'packages-dev' => [],
     ]);
 
     expect(PackageManager::fluxVersionAtLeast('2.2.6'))->toBeTrue();
-});
+})->with([
+    'dev-main',
+    'dev-master',
+    // version_compare ranks the "x" below any number, so this must not reach it
+    '2.x-dev',
+    'dev-feature/blaze',
+]);
+
+it('compares pre-release flux versions against the release they precede', function (string $version, bool $expected) {
+    writeComposerLock($this->tempDir, [
+        'packages' => [
+            ['name' => 'livewire/flux', 'version' => $version],
+        ],
+        'packages-dev' => [],
+    ]);
+
+    expect(PackageManager::fluxVersionAtLeast('2.2.6'))->toBe($expected);
+})->with([
+    ['2.13.1-beta.1', true],
+    ['2.0.0-beta.1', false],
+]);
 
 it('reports flux as outdated when it is not installed', function () {
     writeComposerLock($this->tempDir, [
