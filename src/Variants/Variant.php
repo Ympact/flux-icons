@@ -47,6 +47,15 @@ class Variant
         $this->fills = new Collection;
     }
 
+    /**
+     * Copies get their own fills collection, so that adding a fill to a resolved
+     * variant cannot reach back into the variant it was copied from.
+     */
+    public function __clone(): void
+    {
+        $this->fills = clone $this->fills;
+    }
+
     /*
     |--------------------------------------------------------------------------
     | Definition
@@ -250,8 +259,10 @@ class Variant
         $this->source ??= $parent->source;
         $this->fallback ??= $parent->fallback;
 
-        if (! $this->strokeDisabled) {
-            $this->stroke ??= $parent->stroke;
+        // only adopt the parent's stroke, and its disabled flag, when this variant
+        // said nothing about its own stroke either way
+        if (! $this->strokeDisabled && $this->stroke === null) {
+            $this->stroke = $parent->stroke;
             $this->strokeDisabled = $parent->strokeDisabled;
         }
 

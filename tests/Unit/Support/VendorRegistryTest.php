@@ -61,6 +61,16 @@ it('accepts an already constructed vendor instance', function () {
     expect($registry->get('fixture'))->toBe($vendor);
 });
 
+it('hands out the replacement when a key is registered again', function () {
+    $registry = new VendorRegistry(['icons' => new RegistryFixtureVendor]);
+
+    // resolve it once so the instance is cached, then replace it
+    $registry->get('icons');
+    $registry->register('icons', Tabler::class);
+
+    expect($registry->get('icons'))->toBeInstanceOf(Tabler::class);
+});
+
 it('builds itself from the vendors config', function () {
     Config::set('flux-icons.vendors', ['tabler' => Tabler::class]);
 

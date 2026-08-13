@@ -102,6 +102,70 @@ it('resolves inheritance through a chain of variants', function () {
         ->and($set->get('mini')->getTemplate())->toBe(Template::Solid);
 });
 
+it('resolves inheritance regardless of the order the variants were defined in', function () {
+    $set = VariantSet::make()
+        ->variant('mini', fn (Variant $v) => $v->basedOn('solid'))
+        ->variant('solid', fn (Variant $v) => $v->basedOn('outline')->template(Template::Solid))
+        ->variant('outline', fn (Variant $v) => $v->source(Source::dir('outline')))
+        ->resolve();
+
+    expect($set->get('mini')->getSource()?->directory())->toBe('outline')
+        ->and($set->get('solid')->getSource()?->directory())->toBe('outline');
+});
+
+it('keeps the definition order after resolving', function () {
+    $set = VariantSet::make()
+        ->variant('mini', fn (Variant $v) => $v->basedOn('solid'))
+        ->variant('solid', fn (Variant $v) => $v->source(Source::dir('filled')))
+        ->resolve();
+
+    // the first defined variant is the implicit default, so the order has to survive
+    expect($set->names())->toBe(['mini', 'solid'])
+        ->and($set->defaultName())->toBe('mini');
+});
+
+it('rejects variants that are based on each other in a cycle', function () {
+    VariantSet::make()
+        ->variant('a', fn (Variant $v) => $v->basedOn('b'))
+        ->variant('b', fn (Variant $v) => $v->basedOn('a'))
+        ->resolve();
+})->throws(InvalidArgumentException::class, 'cycle');
+
+it('leaves the original set untouched when resolving', function () {
+    $set = VariantSet::make()
+        ->variant('outline', fn (Variant $v) => $v->source(Source::dir('outline')))
+        ->variant('mini', fn (Variant $v) => $v->basedOn('outline'));
+
+    $resolved = $set->resolve();
+
+    expect($set->get('mini')->getSource())->toBeNull()
+        ->and($resolved->get('mini')->getSource()?->directory())->toBe('outline');
+});
+
+it('gives a resolved variant its own fills collection', function () {
+    $set = VariantSet::make()
+        ->variant('duotone', fn (Variant $v) => $v->fill(new Fill('background')));
+
+    $resolved = $set->resolve();
+    $resolved->get('duotone')->fill(new Fill('foreground'));
+
+    expect($set->get('duotone')->getFills())->toHaveCount(1)
+        ->and($resolved->get('duotone')->getFills())->toHaveCount(2);
+});
+
+it('keeps an explicitly set stroke when the parent has its stroke disabled', function () {
+    $set = VariantSet::make()
+        ->variant('solid', fn (Variant $v) => $v->template(Template::Solid)->stroke(false))
+        ->variant('heavy', fn (Variant $v) => $v
+            ->basedOn('solid')
+            ->template(Template::Outline)
+            ->stroke(new Stroke(2))
+        )
+        ->resolve();
+
+    expect($set->get('heavy')->getStroke()?->width)->toBe(2.0);
+});
+
 it('separates vendor variants from the variants flux asks for', function () {
     $set = fluxLikeSet()
         ->variant('duotone', fn (Variant $v) => $v->template(Template::Solid));

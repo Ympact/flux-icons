@@ -148,32 +148,63 @@ class VariantSet implements Countable, IteratorAggregate
     /**
      * Apply basedOn() inheritance and return the resolved set.
      *
-     * Inheritance is resolved in definition order, so a variant may derive from
-     * another variant that itself derives from a third.
+     * Each variant is resolved after the variant it is based on, whatever order
+     * they were defined in, and a variant may derive from another variant that
+     * itself derives from a third. The variants are copied, so resolving leaves
+     * this set untouched.
      */
     public function resolve(): static
     {
-        $resolved = new static;
+        /** @var array<string, Variant> $resolved */
+        $resolved = [];
 
-        foreach ($this->variants as $name => $variant) {
-            $resolved->variants[$name] = $variant;
+        foreach (array_keys($this->variants) as $name) {
+            $this->resolveVariant($name, $resolved, []);
+        }
 
-            if (! $parentName = $variant->getBasedOn()) {
-                continue;
-            }
+        $set = new static;
 
-            $parent = $resolved->variants[$parentName] ?? $this->variants[$parentName] ?? null;
+        // reassemble in definition order, which decides the implicit default variant
+        foreach (array_keys($this->variants) as $name) {
+            $set->variants[$name] = $resolved[$name];
+        }
 
-            if (! $parent) {
+        return $set;
+    }
+
+    /**
+     * Resolve a single variant, resolving whatever it is based on first.
+     *
+     * @param  array<string, Variant>  $resolved
+     * @param  array<int, string>  $chain  the variants currently being resolved
+     */
+    protected function resolveVariant(string $name, array &$resolved, array $chain): Variant
+    {
+        if (isset($resolved[$name])) {
+            return $resolved[$name];
+        }
+
+        if (in_array($name, $chain, true)) {
+            throw new InvalidArgumentException(
+                'Variants cannot be based on each other in a cycle: '.implode(' -> ', [...$chain, $name]).'.'
+            );
+        }
+
+        $variant = clone $this->variants[$name];
+
+        if ($parentName = $variant->getBasedOn()) {
+            if (! isset($this->variants[$parentName])) {
                 throw new InvalidArgumentException(
                     "Variant [{$name}] is based on [{$parentName}], which is not defined."
                 );
             }
 
-            $variant->inheritFrom($parent);
+            $variant->inheritFrom(
+                $this->resolveVariant($parentName, $resolved, [...$chain, $name])
+            );
         }
 
-        return $resolved;
+        return $resolved[$name] = $variant;
     }
 
     /**

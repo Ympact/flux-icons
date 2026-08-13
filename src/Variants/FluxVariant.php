@@ -47,9 +47,4 @@ enum FluxVariant: string
     {
         return array_map(fn (self $variant) => $variant->value, self::cases());
     }
-
-    public static function tryFromName(string $name): ?self
-    {
-        return self::tryFrom($name);
-    }
 }

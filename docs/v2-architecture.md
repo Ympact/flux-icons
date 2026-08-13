@@ -127,7 +127,14 @@ multitone (`Variant::isMultitone()`).
 
 `basedOn()` replaces v1's `base` config key. Inheritance copies template, source,
 stroke, fallback, fills and attributes — but deliberately not size or classes, so
-`mini` stays 20px even when it derives from a solid variant that was resized.
+`mini` stays 20px even when it derives from a solid variant that was resized. A
+variant that sets its own stroke keeps it even when its parent has the stroke
+disabled.
+
+`VariantSet::resolve()` applies that inheritance. Each variant is resolved after
+whatever it is based on, in any definition order and through chains of any depth;
+cycles are rejected. It returns copies, so the set it was called on is left
+unresolved and untouched.
 
 ## Options
 

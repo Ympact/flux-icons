@@ -63,6 +63,10 @@ class VendorRegistry
 
         $this->vendors[$key] = $vendor;
 
+        // drop any instance resolved for a previously registered class, otherwise
+        // replacing a vendor would silently keep handing out the old one
+        unset($this->resolved[$key]);
+
         return $this;
     }
 
