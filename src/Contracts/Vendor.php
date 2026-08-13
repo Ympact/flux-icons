@@ -161,12 +161,21 @@ abstract class Vendor
     protected array $selectedOptions = [];
 
     /**
+     * Return a copy of this vendor with the given options applied.
+     *
+     * A copy rather than a mutation, because VendorRegistry caches one instance per
+     * vendor: selecting an option on a shared instance would otherwise leak into
+     * every other use of that vendor.
+     *
      * @param  array<string, string|int>  $options
      */
     public function withOptions(array $options): static
     {
+        $available = $this->options();
+        $clone = clone $this;
+
         foreach ($options as $name => $value) {
-            $allowed = $this->options()[$name] ?? null;
+            $allowed = $available[$name] ?? null;
 
             if ($allowed === null) {
                 throw new \InvalidArgumentException(
@@ -181,10 +190,10 @@ abstract class Vendor
                 );
             }
 
-            $this->selectedOptions[$name] = $value;
+            $clone->selectedOptions[$name] = $value;
         }
 
-        return $this;
+        return $clone;
     }
 
     /**

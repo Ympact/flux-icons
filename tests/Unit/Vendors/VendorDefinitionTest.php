@@ -1,5 +1,6 @@
 <?php
 
+use Ympact\FluxIcons\Support\VendorRegistry;
 use Ympact\FluxIcons\Variants\Template;
 use Ympact\FluxIcons\Vendors\Phosphor;
 use Ympact\FluxIcons\Vendors\Tabler;
@@ -82,6 +83,30 @@ it('suffixes the duotone and fill sources with their own name', function () {
 
     expect($variants->get('duotone')->getSource()->fileName('heart'))->toBe('heart-duotone')
         ->and($variants->get('solid')->getSource()->fileName('heart'))->toBe('heart-fill');
+});
+
+it('leaves the original vendor untouched when options are selected', function () {
+    $vendor = new Phosphor;
+    $bold = $vendor->withOptions(['weight' => 'bold']);
+
+    expect($bold)->not->toBe($vendor)
+        ->and($vendor->option('weight'))->toBeNull()
+        ->and($bold->option('weight'))->toBe('bold')
+        ->and($vendor->variants()->get('outline')->getSource()->directory())->toBe('regular');
+});
+
+it('does not leak selected options into the instance the registry hands out', function () {
+    $registry = new VendorRegistry(['phosphor' => Phosphor::class]);
+
+    $registry->get('phosphor')->withOptions(['weight' => 'bold']);
+
+    expect($registry->get('phosphor')->option('weight'))->toBeNull();
+});
+
+it('accumulates options across successive calls', function () {
+    $vendor = (new Phosphor)->withOptions(['weight' => 'thin'])->withOptions(['weight' => 'bold']);
+
+    expect($vendor->option('weight'))->toBe('bold');
 });
 
 it('rejects an option the vendor does not expose', function () {

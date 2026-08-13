@@ -37,12 +37,16 @@ class PackageManager
 
         $fluxVersion = ltrim($fluxVersion, 'vV');
 
-        // dev-main, dev-master, feature branches, ... cannot be compared reliably,
-        // assume they track the latest version.
-        if (! preg_match('/^\d+(\.\d+)*/', $fluxVersion)) {
+        // Branch versions (dev-main, dev-master, 2.x-dev, ...) cannot be compared
+        // reliably, assume they track the latest release. Note that a leading-digit
+        // check alone is not enough: version_compare() ranks the "x" of 2.x-dev below
+        // any number, which would place it below every release.
+        if (str_contains(strtolower($fluxVersion), 'dev') || ! preg_match('/^\d/', $fluxVersion)) {
             return true;
         }
 
+        // pre-releases are left to version_compare(), which orders them correctly
+        // against a release (2.0.0-beta.1 < 2.2.6 < 2.13.1-beta.1)
         return version_compare($fluxVersion, $version, '>=');
     }
 

@@ -91,11 +91,13 @@ class Source
     {
         $name = Str::of($fileName)->basename('.svg');
 
-        if ($this->prefix !== null && $this->prefix !== '') {
+        // a prefix only counts at the start and a suffix only at the end, otherwise a
+        // file that merely contains them somewhere would be mangled
+        if ($this->prefix !== null && $this->prefix !== '' && $name->startsWith($this->prefix)) {
             $name = $name->after($this->prefix);
         }
 
-        if ($this->suffix !== null && $this->suffix !== '') {
+        if ($this->suffix !== null && $this->suffix !== '' && $name->endsWith($this->suffix)) {
             $name = $name->beforeLast($this->suffix);
         }
 

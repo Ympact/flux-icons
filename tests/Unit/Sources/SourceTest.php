@@ -40,6 +40,25 @@ it('only strips the suffix from the end of an icon name', function () {
     expect($source->iconName('fill-drip-fill.svg'))->toBe('fill-drip');
 });
 
+it('leaves a suffix that only occurs in the middle of the name alone', function () {
+    $source = Source::dir('icons')->suffix('-fill');
+
+    expect($source->iconName('fill-drip.svg'))->toBe('fill-drip')
+        ->and($source->iconName('a-fill-b.svg'))->toBe('a-fill-b');
+});
+
+it('only strips the prefix from the start of an icon name', function () {
+    $source = Source::dir('icons')->prefix('icon-');
+
+    expect($source->iconName('icon-home.svg'))->toBe('home');
+});
+
+it('leaves a prefix that only occurs later in the name alone', function () {
+    $source = Source::dir('icons')->prefix('icon-');
+
+    expect($source->iconName('my-icon-home.svg'))->toBe('my-icon-home');
+});
+
 it('globs on the prefix and suffix when no filter narrows the directory', function () {
     expect(Source::dir('icons')->suffix('-fill')->pattern())->toBe('*-fill.svg');
 });
