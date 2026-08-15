@@ -18,11 +18,15 @@ use Ympact\FluxIcons\Variants\VariantSet;
  *
  * - a variant Flux does not know about (`duotone`), emitted alongside the four
  *   Flux variants and usable as <flux:icon.phosphor.heart variant="duotone" />
- * - a build option (`weight`), which picks which of the six weights the outline
- *   variant is built from
+ * - a build option (`weight`), which picks which line weight the outline variant
+ *   is built from
  *
- * Files are laid out as assets/{weight}/{icon}-{weight}.svg, except for the
- * regular weight which carries no suffix.
+ * The package ships six styles: thin, light, regular and bold are line weights and
+ * are what the `weight` option offers, while fill and duotone are separate styles
+ * that back the `solid` and `duotone` variants and are therefore not weight choices.
+ *
+ * Files are laid out as assets/{style}/{icon}-{style}.svg, except for the regular
+ * weight which carries no suffix.
  */
 class Phosphor extends Vendor
 {
