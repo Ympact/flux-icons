@@ -111,10 +111,21 @@ class VendorRegistry
      */
     public function findByNamespace(string $namespace): ?Vendor
     {
-        if ($this->has($namespace)) {
+        // most vendors publish under their own key, so try that before looking further
+        if ($this->has($namespace) && $this->get($namespace)->namespace() === $namespace) {
             return $this->get($namespace);
         }
 
-        return $this->all()->first(fn (Vendor $vendor) => $vendor->namespace() === $namespace);
+        // resolve one vendor at a time and stop at the first match, rather than
+        // instantiating every registered vendor to answer the question
+        foreach ($this->keys() as $key) {
+            $vendor = $this->get($key);
+
+            if ($vendor->namespace() === $namespace) {
+                return $vendor;
+            }
+        }
+
+        return null;
     }
 }

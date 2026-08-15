@@ -153,6 +153,20 @@ it('gives a resolved variant its own fills collection', function () {
         ->and($resolved->get('duotone')->getFills())->toHaveCount(2);
 });
 
+it('gives an inheriting variant its own copy of the fills it inherited', function () {
+    $set = VariantSet::make()
+        ->variant('solid', fn (Variant $v) => $v->template(Template::Solid)->fill(new Fill('background')))
+        ->variant('mini', fn (Variant $v) => $v->basedOn('solid'))
+        ->resolve();
+
+    expect($set->get('mini')->getFills()->pluck('name')->all())->toBe(['background']);
+
+    $set->get('mini')->fill(new Fill('foreground'));
+
+    expect($set->get('mini')->getFills())->toHaveCount(2)
+        ->and($set->get('solid')->getFills())->toHaveCount(1);
+});
+
 it('keeps an explicitly set stroke when the parent has its stroke disabled', function () {
     $set = VariantSet::make()
         ->variant('solid', fn (Variant $v) => $v->template(Template::Solid)->stroke(false))

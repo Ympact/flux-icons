@@ -266,8 +266,10 @@ class Variant
             $this->strokeDisabled = $parent->strokeDisabled;
         }
 
+        // copy rather than adopt the parent's collection, otherwise adding a fill to
+        // either variant afterwards would show up on the other one too
         if ($this->fills->isEmpty()) {
-            $this->fills = $parent->fills;
+            $this->fills = clone $parent->fills;
         }
 
         $this->attributes = array_merge($parent->attributes, $this->attributes);
