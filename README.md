@@ -60,6 +60,49 @@ or
 <flux:icon name="tabler.confetti-off"/>
 ```
 
+## Checking references
+
+Flux resolves an icon to a Blade component and throws when it does not exist, so a template
+that asks for an icon you never built is a 500 on whichever page renders it — and nothing
+says so until that page is rendered. Whether a reference resolves is a static question, so
+you can answer it without running the application:
+
+```bash
+php artisan flux-icons:check
+```
+
+It walks every registered view path — so packages and modules are covered, not only
+`resources/views` — and reports the references that have nothing behind them:
+
+```
+  Modules/Tools/resources/views/components/ambitie/transformaties.blade.php
+    402  tabler.chart-histogram has not been built
+
+   ERROR  1 icon reference does not resolve.
+```
+
+It exits non-zero, which makes it usable as a CI step next to your other static checks.
+
+Only namespaced references are examined. A bare `icon="check"` is a Flux built-in and none
+of this package's business; `icon="tabler.check"` is. References are found wherever they are
+written — the tag form, the `name` attribute, any `icon`-like attribute, and inside a bound
+expression — because they all fail the same way.
+
+A doubled namespace such as `tabler.tabler.check` is reported as malformed rather than as a
+missing icon, since no build will ever produce it.
+
+### Options
+
+| Option | Description |
+| --- | --- |
+| `vendor` | Only check icons of this vendor |
+| `--path=` | Directories to scan, repeatable. Defaults to the registered view paths |
+| `--build` | Also print the `flux-icons:build` command that would add the missing icons |
+
+```bash
+php artisan flux-icons:check tabler --build
+```
+
 ## Publish config
 
 You can publish the config file to adjust settings for a specific vendor or add your own vendor. For example adjusting the stroke width of outline icons.
