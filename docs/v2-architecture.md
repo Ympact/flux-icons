@@ -55,9 +55,9 @@ class Tabler extends Vendor
 }
 ```
 
-Everything else — per-icon path surgery, stroke width tweaks, attribute changes,
-the published name — is an overridable method (`transform()`, `strokeWidth()`,
-`attributes()`, `iconName()`) instead of a callback tuple in the config.
+Everything else is an overridable method instead of a callback tuple in the config.
+Per-icon path surgery, stroke width tweaks, attribute changes and the published name
+live in `transform()`, `strokeWidth()`, `attributes()` and `iconName()`.
 
 Users add a vendor, or adjust a built-in one, by extending the class and
 registering it:
@@ -92,7 +92,7 @@ variant names are free-form.
 `FluxVariant` names the four the Flux component itself requests (`outline`,
 `solid`, `mini`, `micro`) and carries the size and classes Flux renders them at.
 Those four should always resolve, otherwise Flux components that ask for, say,
-`mini` get nothing — `VariantSet::missingFluxVariants()` reports the gap.
+`mini` get nothing. `VariantSet::missingFluxVariants()` reports the gap.
 
 Anything beyond them is a **vendor variant**: it is emitted into the built
 component alongside the Flux four and becomes usable directly.
@@ -126,10 +126,10 @@ multitone (`Variant::isMultitone()`).
 | `Sources\Source` | directory, prefix, suffix and an optional filter, resolved relative to the package root so a vendor names its package once. |
 
 `basedOn()` replaces v1's `base` config key. Inheritance copies template, source,
-stroke, fallback, fills and attributes — but deliberately not size or classes, so
-`mini` stays 20px even when it derives from a solid variant that was resized. A
-variant that sets its own stroke keeps it even when its parent has the stroke
-disabled.
+stroke, fallback, fills and attributes. It deliberately leaves size and classes
+alone, so `mini` stays 20px even when it derives from a solid variant that was
+resized. A variant that sets its own stroke keeps it even when its parent has the
+stroke disabled.
 
 `VariantSet::resolve()` applies that inheritance. Each variant is resolved after
 whatever it is based on, in any definition order and through chains of any depth;

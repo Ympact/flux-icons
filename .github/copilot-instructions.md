@@ -3,8 +3,8 @@
 ## Review output
 
 - Report every finding you have, including low-confidence ones. Prefer posting a
-  finding as an inline comment, stating your confidence, over suppressing it —
-  suppressed comments do not show up on the Files changed tab and get missed.
+  finding as an inline comment, stating your confidence, over suppressing it.
+  Suppressed comments do not show up on the Files changed tab and get missed.
 - Skip formatting and code-style comments. Pint runs with the Laravel preset and
   is blocking in CI, so style is already settled.
 - Skip what PHPStan already catches. It runs at level 7 over `src/` with larastan
@@ -19,15 +19,15 @@ for Livewire Flux, so they can be used as `<flux:icon.tabler.confetti />`.
 
 It is a build-time tool, normally installed with `--dev`: the artisan commands
 read SVG files out of `node_modules` and write Blade components into
-`resources/views/flux/icon/{namespace}/`. Those built components are artifacts —
+`resources/views/flux/icon/{namespace}/`. Those built components are artifacts:
 users rebuild them rather than upgrading them in place.
 
 Tests run on Pest (`composer test`).
 
 ## Branches
 
-- `main` / `v1` — the 1.x line, supporting Flux v1 and v2.
-- `v2` — the next major, Flux v2 only. Introduces class-based vendor definitions
+- `main` / `v1`: the 1.x line, supporting Flux v1 and v2.
+- `v2`: the next major, Flux v2 only. Introduces class-based vendor definitions
   (`Contracts\Vendor`, `Variants\*`, `Sources\Source`, `Support\VendorRegistry`).
   See `docs/v2-architecture.md` for the design and its current boundaries.
 
@@ -56,7 +56,7 @@ Please do not report these as problems.
 - Vendor definitions: a vendor has to be able to answer all four variants Flux
   requests (`outline`, `solid`, `mini`, `micro`), otherwise Flux components that
   ask for one render nothing.
-- SVG handling in `Types\Icon` and `Types\SvgPath` — DOM parsing, attribute
+- SVG handling in `Types\Icon` and `Types\SvgPath`: DOM parsing, attribute
   access, and the difference between a missing attribute and an empty one.
 - Version, path and name handling that only misbehaves for specific inputs
   (prefixes or suffixes appearing mid-name, branch versions, pre-releases).
