@@ -85,8 +85,8 @@ It exits non-zero, which makes it usable as a CI step next to your other static 
 
 Only namespaced references are examined. A bare `icon="check"` is a Flux built-in and none
 of this package's business; `icon="tabler.check"` is. References are found wherever they are
-written, because they all fail the same way: the tag form, the `name` attribute, any
-`icon`-like attribute, and inside a bound expression.
+written: the tag form, the `name` attribute, any `icon`-like attribute, and inside a bound
+expression. They all fail the same way.
 
 A doubled namespace such as `tabler.tabler.check` is reported as malformed rather than as a
 missing icon, since no build will ever produce it.

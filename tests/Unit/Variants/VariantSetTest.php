@@ -176,8 +176,8 @@ it('replaces the inherited fills when a variant defines any of its own', functio
         ->variant('accent', fn (Variant $v) => $v->basedOn('duotone')->fill(new Fill('accent', color: 'red')))
         ->resolve();
 
-    // fills are an ordered layer stack with the catch-all last, so there is no safe
-    // position to merge a parent's layers into: a variant with its own fills owns the stack
+    // a parent's layers have no safe position in a child's layer list, so a variant
+    // that defines fills of its own owns the whole list
     expect($set->get('accent')->getFills()->pluck('name')->all())->toBe(['accent']);
 });
 
