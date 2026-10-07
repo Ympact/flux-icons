@@ -15,7 +15,7 @@ use Ympact\FluxIcons\Services\IconReferenceScanner;
  *
  * Flux throws when an icon component does not exist, so such a reference is a 500 on
  * whichever page renders it, and nothing surfaces it until that page is rendered. Built
- * icons are files, so whether a reference resolves is a static question — this answers it
+ * icons are files, so whether a reference resolves is a static question. This answers it
  * without running the application.
  */
 class CheckFluxIconsCommand extends Command

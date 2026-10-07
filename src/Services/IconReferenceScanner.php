@@ -12,7 +12,7 @@ use Symfony\Component\Finder\Finder;
  * icon behind them.
  *
  * Flux resolves an icon to a Blade component and throws when it does not exist, so a
- * reference to an icon that was never built is a 500 on whichever page renders it — and one
+ * reference to an icon that was never built is a 500 on whichever page renders it, and one
  * that only shows up when that page is rendered. Neither the compiler nor a test suite will
  * point at it, which is why this walks the templates instead.
  *
