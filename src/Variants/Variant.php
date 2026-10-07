@@ -150,8 +150,10 @@ class Variant
     }
 
     /**
-     * Inherit template, source, stroke, fills and attributes from another variant.
+     * Inherit template, source, stroke, fallback and attributes from another variant.
      *
+     * Attributes merge, fills do not: they form an ordered layer stack, so a variant
+     * that defines any fill replaces the inherited set rather than extending it.
      * Replaces the v1 `base` config key used to derive mini/micro from solid.
      */
     public function basedOn(string $variant): static

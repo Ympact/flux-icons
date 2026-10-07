@@ -167,6 +167,20 @@ it('gives an inheriting variant its own copy of the fills it inherited', functio
         ->and($set->get('solid')->getFills())->toHaveCount(1);
 });
 
+it('replaces the inherited fills when a variant defines any of its own', function () {
+    $set = VariantSet::make()
+        ->variant('duotone', fn (Variant $v) => $v
+            ->fill(new Fill('background', matchOpacity: 0.2, opacity: 0.2))
+            ->fill(new Fill('foreground'))
+        )
+        ->variant('accent', fn (Variant $v) => $v->basedOn('duotone')->fill(new Fill('accent', color: 'red')))
+        ->resolve();
+
+    // fills are an ordered layer stack with the catch-all last, so there is no safe
+    // position to merge a parent's layers into: a variant with its own fills owns the stack
+    expect($set->get('accent')->getFills()->pluck('name')->all())->toBe(['accent']);
+});
+
 it('keeps an explicitly set stroke when the parent has its stroke disabled', function () {
     $set = VariantSet::make()
         ->variant('solid', fn (Variant $v) => $v->template(Template::Solid)->stroke(false))
