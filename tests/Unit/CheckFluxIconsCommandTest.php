@@ -94,6 +94,14 @@ it('ignores vendors other than the one asked for', function () {
         ->assertExitCode(0);
 });
 
+it('reports an unknown vendor without claiming none are configured', function () {
+    $this->artisan('flux-icons:check', ['vendor' => 'nope'])
+        ->expectsOutputToContain("Vendor configuration for 'nope' not found")
+        ->expectsOutputToContain('Configured vendors: tabler')
+        ->doesntExpectOutputToContain('No vendors are configured')
+        ->assertExitCode(1);
+});
+
 it('fails when no vendors are configured at all', function () {
     config()->set('flux-icons.vendors', []);
 

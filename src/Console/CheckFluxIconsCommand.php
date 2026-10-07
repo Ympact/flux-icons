@@ -29,12 +29,25 @@ class CheckFluxIconsCommand extends Command
 
     public function handle(): int
     {
-        $namespaces = $this->namespaces();
+        $vendors = $this->vendors();
 
-        if ($namespaces->isEmpty()) {
+        if ($vendors->isEmpty()) {
             $this->components->error('No vendors are configured, so there is nothing to check.');
 
             return self::FAILURE;
+        }
+
+        $vendor = $this->argument('vendor');
+
+        if (is_string($vendor) && $vendor !== '') {
+            if (! $vendors->has($vendor)) {
+                $this->components->error("Vendor configuration for '{$vendor}' not found.");
+                $this->line('  Configured vendors: '.$vendors->keys()->sort()->implode(', '));
+
+                return self::FAILURE;
+            }
+
+            $vendors = $vendors->only([$vendor]);
         }
 
         $paths = $this->paths();
@@ -45,7 +58,7 @@ class CheckFluxIconsCommand extends Command
             return self::FAILURE;
         }
 
-        $references = (new IconReferenceScanner($namespaces))->scan($paths);
+        $references = (new IconReferenceScanner($this->namespaces($vendors)))->scan($paths);
         $unresolved = $references->reject(fn (IconReference $reference) => $reference->exists());
 
         if ($unresolved->isEmpty()) {
@@ -117,25 +130,25 @@ class CheckFluxIconsCommand extends Command
     }
 
     /**
-     * The vendor namespaces to look for.
+     * The configured vendors, keyed by config key.
      *
-     * @return Collection<int, string>
+     * @return Collection<array-key, mixed>
      */
-    protected function namespaces(): Collection
+    protected function vendors(): Collection
     {
         $configured = config('flux-icons.vendors', []);
-        $vendors = collect(is_array($configured) ? $configured : []);
 
-        $vendor = $this->argument('vendor');
+        return collect(is_array($configured) ? $configured : []);
+    }
 
-        if (is_string($vendor) && $vendor !== '') {
-            $vendors = $vendors->only([$vendor]);
-
-            if ($vendors->isEmpty()) {
-                $this->components->warn("Vendor configuration for '{$vendor}' not found.");
-            }
-        }
-
+    /**
+     * The namespace each vendor publishes its icons under: its config key unless overridden.
+     *
+     * @param  Collection<array-key, mixed>  $vendors
+     * @return Collection<int, string>
+     */
+    protected function namespaces(Collection $vendors): Collection
+    {
         return $vendors
             ->map(fn ($config, $key) => is_array($config) && isset($config['namespace'])
                 ? (string) $config['namespace']
