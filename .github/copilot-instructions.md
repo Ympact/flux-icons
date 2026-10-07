@@ -56,6 +56,9 @@ Please do not report these as problems.
 - Vendor definitions: a vendor has to be able to answer all four variants Flux
   requests (`outline`, `solid`, `mini`, `micro`), otherwise Flux components that
   ask for one render nothing.
+- The vendor's config key and its `namespace` are not always the same, and built
+  icons live in a directory named after the namespace. Anything resolving one
+  from the other is worth checking.
 - SVG handling in `Types\Icon` and `Types\SvgPath` — DOM parsing, attribute
   access, and the difference between a missing attribute and an empty one.
 - Version, path and name handling that only misbehaves for specific inputs

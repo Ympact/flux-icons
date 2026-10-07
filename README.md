@@ -95,7 +95,7 @@ missing icon, since no build will ever produce it.
 
 | Option | Description |
 | --- | --- |
-| `vendor` | Only check icons of this vendor |
+| `vendor` | Only check icons of this vendor, given by its config key |
 | `--path=` | Directories to scan, repeatable. Defaults to the registered view paths |
 | `--build` | Also print the `flux-icons:build` command that would add the missing icons |
 

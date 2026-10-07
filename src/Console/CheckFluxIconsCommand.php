@@ -6,6 +6,7 @@ use Illuminate\Console\Command;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\View;
 use Illuminate\View\FileViewFinder;
+use Ympact\FluxIcons\Services\IconManager;
 use Ympact\FluxIcons\Services\IconReference;
 use Ympact\FluxIcons\Services\IconReferenceScanner;
 
@@ -20,7 +21,7 @@ use Ympact\FluxIcons\Services\IconReferenceScanner;
 class CheckFluxIconsCommand extends Command
 {
     protected $signature = 'flux-icons:check
-                            {vendor? : Only check icons of this vendor}
+                            {vendor? : Only check icons of this vendor, given by its config key}
                             {--P|path=* : Directories to scan (defaults to the registered view paths)}
                             {--build : Print the build command for the missing icons}';
 
@@ -106,7 +107,10 @@ class CheckFluxIconsCommand extends Command
         foreach ($buildable->groupBy(fn (IconReference $reference) => $reference->namespace) as $namespace => $forVendor) {
             $icons = $forVendor->map(fn (IconReference $reference) => $reference->icon)->unique()->sort()->implode(',');
 
-            $this->line("  php artisan flux-icons:build {$namespace} --icons={$icons} --merge");
+            // flux-icons:build takes the config key, which is not always the namespace
+            $key = IconManager::resolveVendorKey($namespace) ?? $namespace;
+
+            $this->line("  php artisan flux-icons:build {$key} --icons={$icons} --merge");
         }
 
         $this->newLine();

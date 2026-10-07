@@ -72,6 +72,16 @@ it('offers the build command for the icons that are merely missing', function ()
         ->assertExitCode(1);
 });
 
+it('suggests the build command by config key when that differs from the namespace', function () {
+    $root = fakeApp('<flux:button icon="material.missing" />');
+    app()->setBasePath($root);
+    config()->set('flux-icons.vendors', ['material-icons' => ['namespace' => 'material']]);
+
+    $this->artisan('flux-icons:check', ['--path' => [$root.'/resources/views'], '--build' => true])
+        ->expectsOutputToContain('flux-icons:build material-icons --icons=missing --merge')
+        ->assertExitCode(1);
+});
+
 it('ignores vendors other than the one asked for', function () {
     $root = fakeApp('<flux:icon.mdi.missing />', []);
     app()->setBasePath($root);
