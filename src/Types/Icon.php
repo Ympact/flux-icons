@@ -348,7 +348,7 @@ class Icon
     /**
      * Summary of getBaseName
      *
-     * @return string
+     * @return string|null
      */
     public function getBaseName()
     {
