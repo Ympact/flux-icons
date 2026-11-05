@@ -5,6 +5,8 @@ on:
     branches: ["dev","main","v1","v2"]
   pull_request:
     branches: ["v1","v2"]
+  # Lets the ympact-ci-dispatch app start a run where a push or pull request starts none.
+  workflow_dispatch:
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
