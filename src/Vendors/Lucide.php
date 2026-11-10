@@ -40,8 +40,8 @@ class Lucide extends Vendor
             ->variant('outline', fn ($variant) => $variant
                 ->template(Template::Outline)
                 ->source(Source::dir())
-                // as in v1, the root sets no caps or joins. Lucide declares its round caps only
-                // on its own root, which the build replaces, so v1 draws them as butt caps
+                // the stroke sets no caps or joins: Lucide declares round ones on its own root,
+                // which the build keeps. v1 replaced that root and drew butt caps
                 ->stroke(new Stroke(1.5, linecap: null, linejoin: null))
                 ->default()
             )

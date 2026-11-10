@@ -55,9 +55,6 @@ class Flags extends Vendor
                 ->template(Template::Raw)
                 ->source(Source::dir((string) $this->option('ratio', '4x3')))
                 ->stroke(false)
-                // v1 wraps each flag in a root filled with the text colour, which shapes
-                // without a fill of their own take on
-                ->attributes(['fill' => 'currentColor'])
                 ->default()
             )
             ->variant('solid', fn ($variant) => $variant

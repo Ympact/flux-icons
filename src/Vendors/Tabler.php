@@ -62,19 +62,26 @@ class Tabler extends Vendor
     }
 
     /**
-     * Tabler wraps every icon in a transparent bounding box path.
+     * Tabler wraps every icon in a transparent bounding box path. The filled confetti also
+     * draws its streamers as strokes, which a filled template would otherwise fill.
      *
      * @param  Collection<int, SvgPath>  $paths
      * @return Collection<int, SvgPath>
      */
     public function transform(Collection $paths, Icon $icon): Collection
     {
-        return $paths->filter(fn (SvgPath $path) => $path->getD() !== 'M0 0h24v24H0z');
+        $paths = $paths->filter(fn (SvgPath $path) => $path->getD() !== 'M0 0h24v24H0z');
+
+        if ($this->isFilled($icon) && $icon->getBaseName() === 'confetti') {
+            return $this->strokeAllButLast($paths);
+        }
+
+        return $paths;
     }
 
     /**
-     * Icons built from small circular shapes show a gap at the default stroke
-     * width, and arrows read too light.
+     * Icons built from small circular shapes show a gap at the default stroke width. Where a
+     * filled variant falls back to the outline, refresh and the arrows read too light as well.
      */
     public function strokeWidth(Icon $icon, float $default): float
     {
@@ -85,10 +92,37 @@ class Tabler extends Vendor
             return 2;
         }
 
-        if (Str::startsWith($icon->getBaseName() ?? '', 'arrow-')) {
+        $name = $icon->getBaseName() ?? '';
+
+        if ($this->isFilled($icon) && ($name === 'refresh' || Str::startsWith($name, 'arrow-'))) {
             return 2;
         }
 
         return $default;
+    }
+
+    protected function isFilled(Icon $icon): bool
+    {
+        return in_array($icon->getVariant(), ['solid', 'mini', 'micro'], true);
+    }
+
+    /**
+     * Stroke the paths v1 stroked: each whose original position is below the number of
+     * paths left minus one. With the bounding box removed, that leaves the last two filled.
+     *
+     * @param  Collection<int, SvgPath>  $paths
+     * @return Collection<int, SvgPath>
+     */
+    protected function strokeAllButLast(Collection $paths): Collection
+    {
+        $end = $paths->count() - 1;
+
+        return $paths->map(function (SvgPath $path, int $index) use ($end) {
+            if ($index < $end) {
+                $path->setAttributes(['stroke' => 'currentColor', 'stroke-width' => 1.5]);
+            }
+
+            return $path;
+        });
     }
 }

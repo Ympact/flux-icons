@@ -5,6 +5,7 @@
 namespace Ympact\FluxIcons\Types;
 
 use DOMDocument;
+use DOMElement;
 use DOMXPath;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
@@ -84,6 +85,17 @@ class Icon
         $this->variant = $variant;
         $this->determineTemplate();
         $this->setFile($filename);
+    }
+
+    /**
+     * An icon read for the vendor-class build, which applies templates, strokes and
+     * attributes itself rather than reading them from a v1 config array.
+     */
+    public static function fromFile(string $file, string $variant, string $template, string $name): self
+    {
+        $icon = new self([], $variant, $file);
+
+        return $icon->setTemplate($template)->setBaseName($name);
     }
 
     public function getVariant()
@@ -207,7 +219,7 @@ class Icon
      */
     private function determineTemplate(): static
     {
-        $this->template = Arr::get($this->config, "variants.{$this->variant}.template");
+        $this->template = Arr::get($this->config, "variants.{$this->variant}.template", $this->template);
 
         return $this;
     }
@@ -251,6 +263,47 @@ class Icon
     public function getPaths(): Collection
     {
         return $this->paths;
+    }
+
+    /**
+     * @param  Collection<int, SvgPath>  $paths
+     */
+    public function setPaths(Collection $paths): static
+    {
+        $this->paths = $paths;
+
+        return $this;
+    }
+
+    /**
+     * Replace the attributes the <svg> element is written with.
+     *
+     * @param  array<string, string>  $attributes
+     */
+    public function setAttributes(array $attributes): static
+    {
+        $this->attributes = $attributes;
+
+        return $this;
+    }
+
+    /**
+     * The attributes on the <svg> element of the source file, which carry how the vendor
+     * means the icon to be drawn. Available once the icon is processed.
+     *
+     * @return array<string, string>
+     */
+    public function getSourceAttributes(): array
+    {
+        $roots = $this->xpathSource->query('//svg');
+        $svg = $roots === false ? null : $roots->item(0);
+        $attributes = [];
+
+        foreach ($svg instanceof DOMElement ? $svg->attributes : [] as $attribute) {
+            $attributes[$attribute->nodeName] = (string) $attribute->nodeValue;
+        }
+
+        return $attributes;
     }
 
     /**
@@ -465,7 +518,7 @@ class Icon
 
         $this->attributes = arrayMergeRecursive(
             $this->variantAttributes['default'],
-            $this->variantAttributes[$this->template],
+            $this->variantAttributes[$this->template] ?? [],
             $attributes
         );
     }
