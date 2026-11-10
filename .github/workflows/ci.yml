@@ -26,10 +26,6 @@ jobs:
         exclude:
           - php: 8.2
             laravel: '13'
-        include:
-          - laravel: '13'
-            experimental: true
-    continue-on-error: ${{ matrix.experimental == true }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
