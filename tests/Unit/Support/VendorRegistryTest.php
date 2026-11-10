@@ -128,6 +128,13 @@ it('addresses a vendor by the key it is registered under', function (string|Vend
     'as an instance' => [fn () => new Tabler],
 ]);
 
+it('publishes under the key as a slug, as v1 did, and is found by that namespace', function () {
+    $registry = new VendorRegistry(['tabler_icons' => Tabler::class]);
+
+    expect($registry->get('tabler_icons')->namespace())->toBe('tabler-icons')
+        ->and($registry->findByNamespace('tabler-icons')?->key())->toBe('tabler_icons');
+});
+
 it('keeps the namespace a vendor publishes to when it is registered under another key', function () {
     $registered = (new VendorRegistry(['fixture' => RegistryFixtureVendor::class]))->get('fixture');
 

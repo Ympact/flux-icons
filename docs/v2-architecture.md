@@ -70,8 +70,9 @@ registering it:
 ```
 
 `VendorRegistry` resolves those keys to instances. A vendor is addressed by the key
-it is registered under, and publishes its icons under that key unless it overrides
-`namespace()`: a subclass registered as `tabler` still builds into `tabler`. An
+it is registered under, and publishes its icons under that key as a slug unless it
+overrides `namespace()`: a subclass registered as `tabler` still builds into
+`tabler`, and one registered as `tabler_icons` into `tabler-icons`, as in v1. An
 entry that is not a class, such as a vendor array from a v1 config, is rejected
 with a message saying so. `php artisan flux-icons:make-vendor HouseStyle
 --extends=tabler` generates such a subclass.

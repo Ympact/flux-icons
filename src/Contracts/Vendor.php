@@ -72,11 +72,12 @@ abstract class Vendor
 
     /**
      * The Flux namespace the icons are published under, which is also the
-     * directory they are written to: <flux:icon.{namespace}.{icon} />
+     * directory they are written to: <flux:icon.{namespace}.{icon} />. It is the
+     * key as a slug, as in v1: `tabler_icons` publishes to `tabler-icons`.
      */
     public function namespace(): string
     {
-        return $this->key();
+        return Str::slug($this->key());
     }
 
     /**
