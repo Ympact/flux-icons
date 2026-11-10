@@ -1,0 +1,138 @@
+=== arrow-left.blade.php ===
+{{-- 
+  Icon:     arrow-left 
+  Usage:    <flux:icon.alpha.arrow-left /> or <flux:icon name="alpha.arrow-left" /> 
+  Credits:  -- Package details not found -- 
+  Flux: <flux version>
+  Built: <build date>
+--}}
+
+
+
+@props([
+    'variant' => 'outline',
+])
+
+@php
+$classes = Flux::classes('shrink-0')
+    ->add(match($variant) {
+        'outline' => '[:where(&)]:size-6',
+        'solid' => '[:where(&)]:size-6',
+        'mini' => '[:where(&)]:size-5',
+        'micro' => '[:where(&)]:size-4',
+    });
+@endphp
+
+<?php switch ($variant): case ('outline'): ?>
+<svg {{ $attributes->class($classes) }} xmlns="http://www.w3.org/2000/svg" data-flux-icon="1" aria-hidden="true" data-slot="icon" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+
+        <?php break; ?>
+
+    <?php case ('solid'): ?>
+<svg {{ $attributes->class($classes) }} xmlns="http://www.w3.org/2000/svg" data-flux-icon="1" aria-hidden="true" data-slot="icon" fill="currentColor" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M11.03 3.97a.75.75 0 010 1.06l-6.22 6.22H21a.75.75 0 010 1.5H4.81l6.22 6.22a.75.75 0 11-1.06 1.06l-7.5-7.5a.75.75 0 010-1.06l7.5-7.5a.75.75 0 011.06 0z"></path></svg>
+
+        <?php break; ?>
+
+    <?php case ('mini'): ?>
+<svg {{ $attributes->class($classes) }} xmlns="http://www.w3.org/2000/svg" data-flux-icon="1" aria-hidden="true" data-slot="icon" fill="currentColor" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M11.03 3.97a.75.75 0 010 1.06l-6.22 6.22H21a.75.75 0 010 1.5H4.81l6.22 6.22a.75.75 0 11-1.06 1.06l-7.5-7.5a.75.75 0 010-1.06l7.5-7.5a.75.75 0 011.06 0z"></path></svg>
+
+        <?php break; ?>
+
+    <?php case ('micro'): ?>
+<svg {{ $attributes->class($classes) }} xmlns="http://www.w3.org/2000/svg" data-flux-icon="1" aria-hidden="true" data-slot="icon" fill="currentColor" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M11.03 3.97a.75.75 0 010 1.06l-6.22 6.22H21a.75.75 0 010 1.5H4.81l6.22 6.22a.75.75 0 11-1.06 1.06l-7.5-7.5a.75.75 0 010-1.06l7.5-7.5a.75.75 0 011.06 0z"></path></svg>
+
+        <?php break; ?>
+
+<?php endswitch; ?>
+=== dots.blade.php ===
+{{-- 
+  Icon:     dots 
+  Usage:    <flux:icon.alpha.dots /> or <flux:icon name="alpha.dots" /> 
+  Credits:  -- Package details not found -- 
+  Flux: <flux version>
+  Built: <build date>
+--}}
+
+
+
+@props([
+    'variant' => 'outline',
+])
+
+@php
+$classes = Flux::classes('shrink-0')
+    ->add(match($variant) {
+        'outline' => '[:where(&)]:size-6',
+        'solid' => '[:where(&)]:size-6',
+        'mini' => '[:where(&)]:size-5',
+        'micro' => '[:where(&)]:size-4',
+    });
+@endphp
+
+<?php switch ($variant): case ('outline'): ?>
+<svg {{ $attributes->class($classes) }} xmlns="http://www.w3.org/2000/svg" data-flux-icon="1" aria-hidden="true" data-slot="icon" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><circle cx="5" cy="12" r="1"></circle><circle cx="12" cy="12" r="1"></circle><circle cx="19" cy="12" r="1"></circle><path d="M5 12m-1 0a1 1 0 1 0 2 0a1 1 0 1 0-2 0"></path></svg>
+
+        <?php break; ?>
+
+    <?php case ('solid'): ?>
+<svg {{ $attributes->class($classes) }} xmlns="http://www.w3.org/2000/svg" data-flux-icon="1" aria-hidden="true" data-slot="icon" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><circle cx="5" cy="12" r="1"></circle><circle cx="12" cy="12" r="1"></circle><circle cx="19" cy="12" r="1"></circle><path d="M5 12m-1 0a1 1 0 1 0 2 0a1 1 0 1 0-2 0"></path></svg>
+
+        <?php break; ?>
+
+    <?php case ('mini'): ?>
+<svg {{ $attributes->class($classes) }} xmlns="http://www.w3.org/2000/svg" data-flux-icon="1" aria-hidden="true" data-slot="icon" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><circle cx="5" cy="12" r="1"></circle><circle cx="12" cy="12" r="1"></circle><circle cx="19" cy="12" r="1"></circle><path d="M5 12m-1 0a1 1 0 1 0 2 0a1 1 0 1 0-2 0"></path></svg>
+
+        <?php break; ?>
+
+    <?php case ('micro'): ?>
+<svg {{ $attributes->class($classes) }} xmlns="http://www.w3.org/2000/svg" data-flux-icon="1" aria-hidden="true" data-slot="icon" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><circle cx="5" cy="12" r="1"></circle><circle cx="12" cy="12" r="1"></circle><circle cx="19" cy="12" r="1"></circle><path d="M5 12m-1 0a1 1 0 1 0 2 0a1 1 0 1 0-2 0"></path></svg>
+
+        <?php break; ?>
+
+<?php endswitch; ?>
+=== home.blade.php ===
+{{-- 
+  Icon:     home 
+  Usage:    <flux:icon.alpha.home /> or <flux:icon name="alpha.home" /> 
+  Credits:  -- Package details not found -- 
+  Flux: <flux version>
+  Built: <build date>
+--}}
+
+
+
+@props([
+    'variant' => 'outline',
+])
+
+@php
+$classes = Flux::classes('shrink-0')
+    ->add(match($variant) {
+        'outline' => '[:where(&)]:size-6',
+        'solid' => '[:where(&)]:size-6',
+        'mini' => '[:where(&)]:size-5',
+        'micro' => '[:where(&)]:size-4',
+    });
+@endphp
+
+<?php switch ($variant): case ('outline'): ?>
+<svg {{ $attributes->class($classes) }} xmlns="http://www.w3.org/2000/svg" data-flux-icon="1" aria-hidden="true" data-slot="icon" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M3 9.5L12 3l9 6.5V20a1 1 0 01-1 1H4a1 1 0 01-1-1V9.5z"></path><path d="M9 21V12h6v9"></path></svg>
+
+        <?php break; ?>
+
+    <?php case ('solid'): ?>
+<svg {{ $attributes->class($classes) }} xmlns="http://www.w3.org/2000/svg" data-flux-icon="1" aria-hidden="true" data-slot="icon" fill="currentColor" viewBox="0 0 24 24"><path d="M11.47 3.84a.75.75 0 011.06 0l8.69 8.69a.75.75 0 101.06-1.06l-8.689-8.69a2.25 2.25 0 00-3.182 0l-8.69 8.69a.75.75 0 001.061 1.06l8.69-8.69z"></path><path d="M12 5.432l8.159 8.159c.03.03.06.058.091.086v6.198c0 1.035-.84 1.875-1.875 1.875H15a.75.75 0 01-.75-.75v-4.5a.75.75 0 00-.75-.75h-3a.75.75 0 00-.75.75v4.5a.75.75 0 01-.75.75H5.625a1.875 1.875 0 01-1.875-1.875v-6.198a2.29 2.29 0 00.091-.086L12 5.43z"></path></svg>
+
+        <?php break; ?>
+
+    <?php case ('mini'): ?>
+<svg {{ $attributes->class($classes) }} xmlns="http://www.w3.org/2000/svg" data-flux-icon="1" aria-hidden="true" data-slot="icon" fill="currentColor" viewBox="0 0 24 24"><path d="M11.47 3.84a.75.75 0 011.06 0l8.69 8.69a.75.75 0 101.06-1.06l-8.689-8.69a2.25 2.25 0 00-3.182 0l-8.69 8.69a.75.75 0 001.061 1.06l8.69-8.69z"></path><path d="M12 5.432l8.159 8.159c.03.03.06.058.091.086v6.198c0 1.035-.84 1.875-1.875 1.875H15a.75.75 0 01-.75-.75v-4.5a.75.75 0 00-.75-.75h-3a.75.75 0 00-.75.75v4.5a.75.75 0 01-.75.75H5.625a1.875 1.875 0 01-1.875-1.875v-6.198a2.29 2.29 0 00.091-.086L12 5.43z"></path></svg>
+
+        <?php break; ?>
+
+    <?php case ('micro'): ?>
+<svg {{ $attributes->class($classes) }} xmlns="http://www.w3.org/2000/svg" data-flux-icon="1" aria-hidden="true" data-slot="icon" fill="currentColor" viewBox="0 0 24 24"><path d="M11.47 3.84a.75.75 0 011.06 0l8.69 8.69a.75.75 0 101.06-1.06l-8.689-8.69a2.25 2.25 0 00-3.182 0l-8.69 8.69a.75.75 0 001.061 1.06l8.69-8.69z"></path><path d="M12 5.432l8.159 8.159c.03.03.06.058.091.086v6.198c0 1.035-.84 1.875-1.875 1.875H15a.75.75 0 01-.75-.75v-4.5a.75.75 0 00-.75-.75h-3a.75.75 0 00-.75.75v4.5a.75.75 0 01-.75.75H5.625a1.875 1.875 0 01-1.875-1.875v-6.198a2.29 2.29 0 00.091-.086L12 5.43z"></path></svg>
+
+        <?php break; ?>
+
+<?php endswitch; ?>
