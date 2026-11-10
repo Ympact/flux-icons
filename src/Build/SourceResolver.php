@@ -27,7 +27,7 @@ class SourceResolver
 
         $icons = [];
 
-        foreach (glob($source->path($this->packagePath).'/'.$source->pattern()) ?: [] as $file) {
+        foreach (glob($source->path(self::literal($this->packagePath)).'/'.$source->pattern()) ?: [] as $file) {
             if ($source->accepts($file)) {
                 $icons[$source->iconName($file)] ??= $file;
             }
@@ -47,8 +47,17 @@ class SourceResolver
             return null;
         }
 
-        $file = (glob($source->path($this->packagePath).'/'.$source->fileName($name).'.svg') ?: [])[0] ?? null;
+        $file = (glob($source->path(self::literal($this->packagePath)).'/'.self::literal($source->fileName($name)).'.svg') ?: [])[0] ?? null;
 
         return $file !== null && $source->accepts($file) ? $file : null;
+    }
+
+    /**
+     * A path glob() matches as written: each wildcard character is wrapped in brackets. The
+     * source directory is left alone, since a vendor may glob with it (Healthicons' `outline/*`).
+     */
+    protected static function literal(string $path): string
+    {
+        return (string) preg_replace('/[*?\[]/', '[$0]', $path);
     }
 }

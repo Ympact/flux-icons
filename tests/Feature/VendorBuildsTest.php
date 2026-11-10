@@ -385,7 +385,7 @@ describe('Healthicons', function () {
     it('publishes icons under usable component names', function () {
         $result = $this->builder->build(new Healthicons);
 
-        expect($result->built)->toBe(['blood-a-n', 'stethoscope', 'zero'])
+        expect($result->built)->toBe(['blood-a-n', 'ecg', 'stethoscope', 'zero'])
             ->and(slotSources("{$this->output}/healthicons/zero.blade.php", $this->drawings))->toBe([
                 'outline' => 'outline/symbols/0.svg',
                 'solid' => 'filled/symbols/0.svg',
@@ -401,12 +401,17 @@ describe('Healthicons', function () {
             ->and($result->missing)->toBe([]);
     });
 
-    // mini falls back to solid, and a fallback is followed once, so it never reaches the outline
-    it('skips an icon that has no filled drawing', function () {
+    // mini falls back to solid, which falls back to the outline
+    it('draws an icon without a filled drawing from its outline in every slot', function () {
         $result = $this->builder->build(new Healthicons);
 
-        expect($result->skipped)->toBe(['ecg' => 'no source for its mini variant'])
-            ->and("{$this->output}/healthicons/ecg.blade.php")->not->toBeFile();
+        expect($result->skipped)->toBe([])
+            ->and(slotSources("{$this->output}/healthicons/ecg.blade.php", $this->drawings))->toBe([
+                'outline' => 'outline/devices/ecg.svg',
+                'solid' => 'outline/devices/ecg.svg',
+                'mini' => 'outline/devices/ecg.svg',
+                'micro' => 'outline/devices/ecg.svg',
+            ]);
     });
 });
 

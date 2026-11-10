@@ -178,13 +178,16 @@ $result->missing; // requested icons the vendor does not ship
 ```
 
 Every icon of the default variant becomes one component. For each Flux variant
-the builder looks for the icon's own file, then follows the variant's fallback
-once. A fallback to the default variant reuses the file the icon was listed from:
+the builder looks for the icon's own file, then follows the variant's fallbacks
+until one has it; a fallback that leads back to a variant already tried ends the
+search. Reaching the default variant reuses the file the icon was listed from:
 an MDI icon without an `-outline` sibling is its own outline, so there is no
 outline file to look up by name. A variant that falls back is drawn exactly as
 the variant it falls back to: with its template, stroke and attributes. An icon
 with a Flux variant that has neither a file nor a fallback is skipped, and the
-result says which variant was missing.
+result says which variant was missing. When `iconName()` publishes two icons under
+one name, the first keeps it and the second is skipped. A vendor whose package is
+not installed throws a `RuntimeException` instead of building nothing.
 `IconsBuilt` is dispatched once per build, with the published names, when
 anything was written.
 
@@ -204,7 +207,9 @@ are taken, each overriding the one before, from:
    `clip-rule`, where nothing above set them
 5. the variant's `attributes()`, then the vendor class's `attributes()` hook
 
-A `null` value removes an attribute. Beyond those four, only the `viewBox` is
+A `null` value in step 5 removes an attribute. A stroke without a linecap or
+linejoin sets none, which leaves the vendor's own from step 4 in place: that is how
+Lucide keeps its round caps. Beyond those four, only the `viewBox` is
 taken from the vendor's root. Its width, height, fill, stroke and stroke width give
 way to Flux's size classes, the template and the stroke, so the icon follows
 `currentColor` and the variant's stroke width.

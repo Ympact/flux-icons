@@ -37,30 +37,6 @@ parameters:
 			path: src/Services/IconManager.php
 
 		-
-			message: '#^Method Ympact\\FluxIcons\\Services\\PackageManager\:\:fluxVersion\(\) has no return type specified\.$#'
-			identifier: missingType.return
-			count: 1
-			path: src/Services/PackageManager.php
-
-		-
-			message: '#^Parameter \#1 \$json of function json_decode expects string, string\|false given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/Services/PackageManager.php
-
-		-
-			message: '#^Unable to resolve the template type TKey in call to function collect$#'
-			identifier: argument.templateType
-			count: 1
-			path: src/Services/PackageManager.php
-
-		-
-			message: '#^Unable to resolve the template type TValue in call to function collect$#'
-			identifier: argument.templateType
-			count: 1
-			path: src/Services/PackageManager.php
-
-		-
 			message: '#^Argument of an invalid type DOMNodeList\<DOMNameSpaceNode\|DOMNode\>\|false supplied for foreach, only iterables are supported\.$#'
 			identifier: foreach.nonIterable
 			count: 1

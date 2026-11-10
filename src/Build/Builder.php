@@ -3,8 +3,10 @@
 namespace Ympact\FluxIcons\Build;
 
 use Closure;
+use RuntimeException;
 use Ympact\FluxIcons\Contracts\Vendor;
 use Ympact\FluxIcons\Events\IconsBuilt;
+use Ympact\FluxIcons\Services\PackageManager;
 use Ympact\FluxIcons\Variants\Variant;
 use Ympact\FluxIcons\Variants\VariantSet;
 
@@ -13,10 +15,14 @@ use Ympact\FluxIcons\Variants\VariantSet;
  *
  * Every icon of the vendor's default variant becomes one component holding the four
  * variants Flux asks for. An icon is skipped when one of them has neither a source nor a
- * fallback. Vendor variants such as duotone reach the component with #18.
+ * fallback, or when an earlier icon took its published name. Vendor variants such as
+ * duotone reach the component with #18.
  */
 class Builder
 {
+    /** The first Flux version whose icon components take the `@blaze` directive. */
+    protected const BLAZE_SINCE = '2.2.6';
+
     protected string $packagesPath;
 
     protected string $outputPath;
@@ -36,6 +42,8 @@ class Builder
      * Every icon the vendor ships, as icon name to the file of its default variant.
      *
      * @return array<string, string>
+     *
+     * @throws RuntimeException When the vendor's npm package is not installed.
      */
     public function available(Vendor $vendor): array
     {
@@ -47,6 +55,8 @@ class Builder
      *                                          name; null builds every icon the vendor ships.
      * @param  (Closure(string, int, int): void)|null  $progress  Called once each icon is handled, with
      *                                                            its name, the number handled and the total.
+     *
+     * @throws RuntimeException When the vendor's npm package is not installed.
      */
     public function build(Vendor $vendor, ?array $icons = null, ?Closure $progress = null): BuildResult
     {
@@ -57,26 +67,32 @@ class Builder
         [$selected, $missing] = $this->select($vendor, $resolver->icons($variants->default()), $icons);
 
         $directory = $this->outputPath.'/'.$vendor->namespace();
-        $credits = [$this->credits->package($packageRoot), $this->credits->flux()];
-        $built = [];
+        $header = [$this->credits->package($packageRoot), $this->credits->flux(), PackageManager::fluxVersionAtLeast(self::BLAZE_SINCE)];
+        $publishedFrom = [];
         $skipped = [];
         $handled = 0;
 
         foreach ($selected as $name => $file) {
-            $markup = $this->renderVariants($vendor, $variants, $resolver, $name, $file);
+            $published = $vendor->iconName($name);
+
+            // iconName() can map two files to one name; the first keeps it rather than being overwritten
+            $markup = isset($publishedFrom[$published])
+                ? "{$publishedFrom[$published]} is already published as {$published}"
+                : $this->renderVariants($vendor, $variants, $resolver, $name, $file);
 
             if (is_string($markup)) {
                 $skipped[$name] = $markup;
             } else {
-                $published = $vendor->iconName($name);
-                $this->writer->write($directory, $vendor->namespace(), $published, $markup, ...$credits);
-                $built[] = $published;
+                $this->writer->write($directory, $vendor->namespace(), $published, $markup, ...$header);
+                $publishedFrom[$published] = $name;
             }
 
             if ($progress !== null) {
                 $progress($name, ++$handled, count($selected));
             }
         }
+
+        $built = array_map('strval', array_keys($publishedFrom));
 
         if ($built !== []) {
             IconsBuilt::dispatch($vendor->key(), $vendor->namespace(), $directory, $built);
@@ -85,9 +101,18 @@ class Builder
         return new BuildResult($built, $skipped, $missing);
     }
 
+    /**
+     * @throws RuntimeException When the vendor's npm package is not installed.
+     */
     protected function resolver(Vendor $vendor): SourceResolver
     {
-        return new SourceResolver(rtrim($this->packagesPath.'/'.$vendor->package().'/'.$vendor->basePath(), '/'));
+        $packageRoot = $this->packagesPath.'/'.$vendor->package();
+
+        if (! is_dir($packageRoot)) {
+            throw new RuntimeException("The npm package {$vendor->package()} is not installed in {$this->packagesPath}.");
+        }
+
+        return new SourceResolver(rtrim($packageRoot.'/'.$vendor->basePath(), '/'));
     }
 
     /**
@@ -141,17 +166,16 @@ class Builder
     }
 
     /**
-     * The variant to render an icon with and the file to render it from, following a fallback
-     * once. A fallback to the default variant reuses the file the icon was listed from: an
+     * The variant to render an icon with and the file to render it from, following fallbacks
+     * until one has the icon. The default variant reuses the file the icon was listed from: an
      * MDI icon that is its own outline has no `-outline` file to look up by name.
      *
+     * @param  list<string>  $tried  The variants already looked in, which ends a fallback cycle.
      * @return array{0: Variant, 1: string}|null
      */
-    protected function source(VariantSet $variants, SourceResolver $resolver, Variant $variant, string $name, string $file): ?array
+    protected function source(VariantSet $variants, SourceResolver $resolver, Variant $variant, string $name, string $file, array $tried = []): ?array
     {
-        $default = $variants->defaultName();
-
-        if ($variant->getName() === $default) {
+        if ($variant->getName() === $variants->defaultName()) {
             return [$variant, $file];
         }
 
@@ -160,17 +184,12 @@ class Builder
         }
 
         $fallback = $variants->fallbackFor($variant->getName());
+        $tried[] = $variant->getName();
 
-        if ($fallback === null) {
+        if ($fallback === null || in_array($fallback->getName(), $tried, true)) {
             return null;
         }
 
-        if ($fallback->getName() === $default) {
-            return [$fallback, $file];
-        }
-
-        $found = $resolver->file($fallback, $name);
-
-        return $found ? [$fallback, $found] : null;
+        return $this->source($variants, $resolver, $fallback, $name, $file, $tried);
     }
 }

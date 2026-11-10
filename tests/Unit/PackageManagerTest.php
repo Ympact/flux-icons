@@ -35,9 +35,11 @@ it('returns null when flux is not present in composer lock', function () {
     expect(PackageManager::fluxVersion())->toBeNull();
 });
 
-it('throws when composer lock is missing', function () {
-    PackageManager::fluxVersion();
-})->throws(RuntimeException::class, 'composer.lock not found');
+it('knows no flux version without a composer lock, so a build gets no @blaze', function () {
+    expect(PackageManager::fluxVersion())->toBeNull()
+        ->and(PackageManager::fluxPackage())->toBeNull()
+        ->and(PackageManager::fluxVersionAtLeast('2.2.6'))->toBeFalse();
+});
 
 it('compares flux versions numerically instead of as strings', function () {
     writeComposerLock($this->tempDir, [

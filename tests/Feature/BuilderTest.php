@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
 use Ympact\FluxIcons\Build\Builder;
 use Ympact\FluxIcons\Events\IconsBuilt;
+use Ympact\FluxIcons\Sources\Source;
 use Ympact\FluxIcons\Tests\Fixtures\Vendors\Alpha;
 use Ympact\FluxIcons\Tests\Fixtures\Vendors\Epsilon;
 use Ympact\FluxIcons\Variants\Fallback;
@@ -23,6 +24,21 @@ beforeEach(function () {
 afterEach(function () {
     File::deleteDirectory($this->output);
 });
+
+/**
+ * The components in a directory by file name, with the build time masked.
+ *
+ * @return array<string, string>
+ */
+function componentsIn(string $directory): array
+{
+    return collect(File::files($directory))
+        ->mapWithKeys(fn (SplFileInfo $file) => [
+            $file->getFilename() => (string) preg_replace('/^(\s*Built:).*$/m', '$1', (string) file_get_contents($file->getPathname())),
+        ])
+        ->sortKeys()
+        ->all();
+}
 
 it('announces the components it wrote', function () {
     $result = $this->builder->build(new Alpha, ['home', 'dots']);
@@ -138,3 +154,106 @@ it('draws a variant that falls back exactly as the variant it falls back to', fu
 it('lists the icons a vendor ships by name', function () {
     expect(array_keys($this->builder->available(new Epsilon)))->toBe(['arrow-left', 'home']);
 });
+
+it('follows a fallback that itself falls back', function () {
+    $vendor = new class extends Alpha
+    {
+        public function key(): string
+        {
+            return 'alpha';
+        }
+
+        public function variants(): VariantSet
+        {
+            return parent::variants()->variant('mini', fn (Variant $variant) => $variant
+                ->source(Source::dir('mini'))
+                ->fallback(Fallback::variant('solid'))
+            );
+        }
+    };
+
+    $result = $this->builder->build($vendor, ['dots']);
+
+    expect($result->built)->toBe(['dots']);
+
+    preg_match_all("/case \\('(\\w+)'\\): \\?>\\s*(.*?)\\s*<\\?php break; \\?>/s", (string) file_get_contents("{$this->output}/alpha/dots.blade.php"), $slots);
+    $slots = array_combine($slots[1], $slots[2]);
+
+    expect($slots['mini'])->toBe($slots['outline']);
+});
+
+it('skips an icon whose fallbacks lead back to a variant already tried', function () {
+    $vendor = new class extends Alpha
+    {
+        public function key(): string
+        {
+            return 'alpha';
+        }
+
+        public function variants(): VariantSet
+        {
+            return parent::variants()
+                ->variant('solid', fn (Variant $variant) => $variant->fallback(Fallback::variant('mini')))
+                ->variant('mini', fn (Variant $variant) => $variant
+                    ->source(Source::dir('mini'))
+                    ->fallback(Fallback::variant('solid'))
+                );
+        }
+    };
+
+    $result = $this->builder->build($vendor, ['dots']);
+
+    expect($result->built)->toBe([])
+        ->and($result->skipped)->toBe(['dots' => 'no source for its solid variant']);
+});
+
+it('keeps the first icon when two are published under one name', function () {
+    $vendor = new class extends Alpha
+    {
+        public function key(): string
+        {
+            return 'alpha';
+        }
+
+        public function iconName(string $name): string
+        {
+            return $name === 'dots' ? 'home' : $name;
+        }
+    };
+
+    $result = $this->builder->build($vendor);
+
+    expect($result->built)->toBe(['arrow-left', 'home'])
+        ->and($result->skipped)->toBe(['home' => 'dots is already published as home'])
+        ->and((string) file_get_contents("{$this->output}/alpha/home.blade.php"))
+        ->toContain('cx="5"')
+        ->not->toContain('M3 9.5');
+});
+
+it('finds the icons of a package whose path holds glob characters', function () {
+    $packages = sys_get_temp_dir().'/flux-icons [packages] '.Str::random(8);
+    File::copyDirectory(base_path('tests/vendor/alpha'), "{$packages}/alpha");
+
+    try {
+        $result = (new Builder($packages, "{$this->output}/glob"))->build(new Alpha);
+    } finally {
+        File::deleteDirectory($packages);
+    }
+
+    $this->builder->build(new Alpha);
+
+    expect($result->built)->toBe(['arrow-left', 'dots', 'home'])
+        ->and(componentsIn("{$this->output}/glob/alpha"))->toBe(componentsIn("{$this->output}/alpha"));
+});
+
+it('refuses a vendor whose package is not installed, rather than building nothing', function () {
+    $vendor = new class extends Alpha
+    {
+        public function package(): string
+        {
+            return 'not-installed';
+        }
+    };
+
+    $this->builder->build($vendor);
+})->throws(RuntimeException::class, 'The npm package not-installed is not installed');

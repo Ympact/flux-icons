@@ -3,6 +3,7 @@
 namespace Ympact\FluxIcons\Build;
 
 use Illuminate\Support\Arr;
+use Ympact\FluxIcons\Services\PackageManager;
 
 /**
  * The credit lines written into the header of a built component.
@@ -34,17 +35,10 @@ class Credits
      */
     public function flux(): string
     {
-        $lock = base_path('composer.lock');
+        $flux = PackageManager::fluxPackage();
 
-        if (! is_file($lock)) {
-            return '';
-        }
-
-        $packages = (array) (json_decode((string) file_get_contents($lock), true)['packages'] ?? []);
-        $flux = collect($packages)->firstWhere('name', 'livewire/flux');
-
-        return is_array($flux)
-            ? $flux['name'].' ('.$flux['version'].') by '.Arr::get($flux, 'authors.0.name')
+        return $flux !== null
+            ? Arr::get($flux, 'name').' ('.Arr::get($flux, 'version').') by '.Arr::get($flux, 'authors.0.name')
             : '';
     }
 }
