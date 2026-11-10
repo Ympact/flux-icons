@@ -26,6 +26,7 @@ class UpdateFluxIconsCommand extends Command
         $vendors = $currentVendors;
 
         $vendorOption = $this->option('vendor');
+        $requested = null;
 
         if ($vendorOption !== null) {
             $requested = collect(is_array($vendorOption) ? $vendorOption : explode(',', (string) $vendorOption))
@@ -68,12 +69,20 @@ class UpdateFluxIconsCommand extends Command
         $failedVendors = [];
 
         info('Updating the packages');
-        $installedIcons->each(function ($vendorIcons, $vendor) use ($verbose, &$failedVendors) {
+        $installedIcons->each(function ($vendorIcons, $vendor) use ($verbose, $requested, &$failedVendors) {
             // built icons live in a directory named after the vendor's namespace,
             // which is not necessarily the key used in the config
             $vendorKey = IconManager::resolveVendorKey($vendor);
 
             if (! $vendorKey) {
+                // a directory that was asked for by name is a failure, any other is skipped
+                if ($requested?->contains($vendor)) {
+                    error("Cannot update $vendor, it does not belong to a configured vendor.");
+                    $failedVendors[] = $vendor;
+
+                    return;
+                }
+
                 $verbose ? info("Skipping $vendor, it does not belong to a configured vendor.") : null;
 
                 return;

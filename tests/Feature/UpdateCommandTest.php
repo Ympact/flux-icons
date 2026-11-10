@@ -70,3 +70,17 @@ it('rebuilds an icon that the icon_name callback renamed', function () {
 
     expect(File::get($renamed))->toContain('<svg');
 });
+
+it('fails when a requested directory belongs to no configured vendor', function () {
+    File::ensureDirectoryExists(resource_path('views/flux/icon/retired'));
+    File::put(resource_path('views/flux/icon/retired/old.blade.php'), 'stale');
+
+    $this->artisan('flux-icons:update', ['--vendor' => 'retired'])->assertExitCode(1);
+});
+
+it('skips such a directory when it was not asked for', function () {
+    File::ensureDirectoryExists(resource_path('views/flux/icon/retired'));
+    File::put(resource_path('views/flux/icon/retired/old.blade.php'), 'stale');
+
+    $this->artisan('flux-icons:update')->assertExitCode(0);
+});

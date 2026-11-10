@@ -62,7 +62,7 @@ php artisan flux-icons:update --vendor=tabler,lucide
 |-----------------|----------------------------------------------------------------------------------------------------|
 | `-P\|--vendor=` | Limit the update to these vendors (single or comma separated list), named by config key or by the directory their icons were built into. |
 
-The command exits with status 1 when a package could not be updated or a vendor's icons could not be rebuilt.
+The command exits with status 1 when a package could not be updated, a vendor's icons could not be rebuilt, or a directory named with `--vendor` belongs to no configured vendor.
 
 ### Usage
 
