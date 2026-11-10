@@ -70,22 +70,22 @@ $classes = Flux::classes('shrink-0')
 @endphp
 
 <?php switch ($variant): case ('outline'): ?>
-<svg {{ $attributes->class($classes) }} xmlns="http://www.w3.org/2000/svg" data-flux-icon="1" aria-hidden="true" data-slot="icon" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><circle cx="5" cy="12" r="1"></circle><circle cx="12" cy="12" r="1"></circle><circle cx="19" cy="12" r="1"></circle><path d="M5 12m-1 0a1 1 0 1 0 2 0a1 1 0 1 0-2 0"></path></svg>
+<svg {{ $attributes->class($classes) }} xmlns="http://www.w3.org/2000/svg" data-flux-icon="1" aria-hidden="true" data-slot="icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="5" cy="12" r="1"></circle><circle cx="12" cy="12" r="1"></circle><circle cx="19" cy="12" r="1"></circle><path d="M5 12m-1 0a1 1 0 1 0 2 0a1 1 0 1 0-2 0"></path></svg>
 
         <?php break; ?>
 
     <?php case ('solid'): ?>
-<svg {{ $attributes->class($classes) }} xmlns="http://www.w3.org/2000/svg" data-flux-icon="1" aria-hidden="true" data-slot="icon" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><circle cx="5" cy="12" r="1"></circle><circle cx="12" cy="12" r="1"></circle><circle cx="19" cy="12" r="1"></circle><path d="M5 12m-1 0a1 1 0 1 0 2 0a1 1 0 1 0-2 0"></path></svg>
+<svg {{ $attributes->class($classes) }} xmlns="http://www.w3.org/2000/svg" data-flux-icon="1" aria-hidden="true" data-slot="icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="5" cy="12" r="1"></circle><circle cx="12" cy="12" r="1"></circle><circle cx="19" cy="12" r="1"></circle><path d="M5 12m-1 0a1 1 0 1 0 2 0a1 1 0 1 0-2 0"></path></svg>
 
         <?php break; ?>
 
     <?php case ('mini'): ?>
-<svg {{ $attributes->class($classes) }} xmlns="http://www.w3.org/2000/svg" data-flux-icon="1" aria-hidden="true" data-slot="icon" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><circle cx="5" cy="12" r="1"></circle><circle cx="12" cy="12" r="1"></circle><circle cx="19" cy="12" r="1"></circle><path d="M5 12m-1 0a1 1 0 1 0 2 0a1 1 0 1 0-2 0"></path></svg>
+<svg {{ $attributes->class($classes) }} xmlns="http://www.w3.org/2000/svg" data-flux-icon="1" aria-hidden="true" data-slot="icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="5" cy="12" r="1"></circle><circle cx="12" cy="12" r="1"></circle><circle cx="19" cy="12" r="1"></circle><path d="M5 12m-1 0a1 1 0 1 0 2 0a1 1 0 1 0-2 0"></path></svg>
 
         <?php break; ?>
 
     <?php case ('micro'): ?>
-<svg {{ $attributes->class($classes) }} xmlns="http://www.w3.org/2000/svg" data-flux-icon="1" aria-hidden="true" data-slot="icon" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><circle cx="5" cy="12" r="1"></circle><circle cx="12" cy="12" r="1"></circle><circle cx="19" cy="12" r="1"></circle><path d="M5 12m-1 0a1 1 0 1 0 2 0a1 1 0 1 0-2 0"></path></svg>
+<svg {{ $attributes->class($classes) }} xmlns="http://www.w3.org/2000/svg" data-flux-icon="1" aria-hidden="true" data-slot="icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="5" cy="12" r="1"></circle><circle cx="12" cy="12" r="1"></circle><circle cx="19" cy="12" r="1"></circle><path d="M5 12m-1 0a1 1 0 1 0 2 0a1 1 0 1 0-2 0"></path></svg>
 
         <?php break; ?>
 
