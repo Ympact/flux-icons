@@ -77,6 +77,18 @@ it('overwrites a vendor class that exists when forced', function () {
     expect(File::get("{$this->vendors}/Existing.php"))->toContain('class Existing extends Tabler');
 });
 
+it('refuses to replace the registered vendor it would extend, even when forced', function () {
+    $this->artisan('flux-icons:make-vendor', ['name' => 'HouseStyle', '--extends' => 'tabler'])->assertExitCode(0);
+    require "{$this->vendors}/HouseStyle.php";
+    $class = "{$this->namespace}\\FluxIcons\\Vendors\\HouseStyle";
+    Config::set('flux-icons.vendors', ['tabler' => Tabler::class, 'house' => $class]);
+
+    $this->artisan('flux-icons:make-vendor', ['name' => 'HouseStyle', '--extends' => 'house', '--force' => true])
+        ->expectsOutputToContain("HouseStyle cannot extend itself: 'house' is registered as {$class}.");
+
+    expect(File::get("{$this->vendors}/HouseStyle.php"))->toContain('class HouseStyle extends Tabler');
+});
+
 it('fails for a vendor to extend that is not registered', function () {
     $this->artisan('flux-icons:make-vendor', ['name' => 'HouseStyle', '--extends' => 'nope'])
         ->expectsOutputToContain("Vendor configuration for 'nope' not found.");

@@ -60,6 +60,13 @@ class MakeVendorCommand extends GeneratorCommand
             }
 
             $this->parent = $registry->get($extends)::class;
+
+            // with --force this would replace the registered class with one that extends itself
+            if ($this->parent === $this->qualifyClass($class)) {
+                $this->components->error("{$class} cannot extend itself: '{$extends}' is registered as {$this->parent}. Choose another name.");
+
+                return false;
+            }
         }
 
         if (parent::handle() === false) {
