@@ -9,15 +9,19 @@ next step and is tracked on the v2 milestone.
 
 ## Baseline
 
-v2 targets the same baseline as `livewire/flux` v2:
+v2 supports the Laravel releases that still get security fixes, 12 and 13, on PHP
+8.2 and later, the lowest PHP Laravel 12 supports. `livewire/flux` v2 also allows
+Laravel 10 and 11, but both are past their security support, and Composer refuses
+to install Laravel 11's releases because of their unpatched advisories.
 
 | | |
 |---|---|
-| PHP | `^8.1` |
-| Illuminate | `^10.0 \| ^11.0 \| ^12.0 \| ^13.0` |
+| PHP | `^8.2` |
+| Illuminate | `^12.0 \| ^13.0` |
 | Flux | `^2.0` |
 
-Flux v1 is no longer supported; use the 1.x releases of this package for it.
+Flux v1, Laravel 10 and Laravel 11 are not supported; use the 1.x releases of this
+package, which support Flux v1 and v2, for them.
 
 ## Defining a vendor
 

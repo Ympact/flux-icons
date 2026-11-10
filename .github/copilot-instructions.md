@@ -35,12 +35,14 @@ Tests run on Pest (`composer test`).
 
 Please do not report these as problems.
 
-- `php ^8.1` and `illuminate/* ^10|^11|^12|^13` intentionally mirror what
-  `livewire/flux` v2 itself declares. Do not suggest raising or narrowing them.
-- Laravel 11 is absent from the CI matrix on purpose: it is past its security
-  support window, so every 11.x release carries unpatched advisories that
-  Composer refuses to install. The composer constraint still allows `^11` so the
-  package stays in step with Flux.
+- `php ^8.2` and `illuminate/* ^12|^13` are the Laravel releases that still get
+  security fixes, on the lowest PHP Laravel 12 supports. `livewire/flux` v2 also
+  allows Laravel 10 and 11; apps on those stay on the 1.x line. PHPStan checks
+  `src/` against the PHP range CI runs, in `phpVersion`. Do not suggest widening
+  the constraints.
+- `pestphp/pest ^3.8|^4.0|^5.0` and its Laravel plugin are wide on purpose: Pest 4
+  needs PHP 8.3, and Pest 5 needs PHP 8.4 and Laravel 13, so every CI leg installs
+  the newest Pest it can. Tests use only what Pest 3 offers.
 - On the v2 line the build pipeline (`Services\IconBuilder`) and
   `config/flux-icons.php` are still the v1 array-based versions. The vendor
   definition layer is deliberately not wired into them yet; that migration is

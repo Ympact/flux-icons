@@ -44,11 +44,15 @@ function builtComponents(string $namespace): string
         ->implode("\n");
 }
 
-it('writes the components it has always written', function (string $vendor) {
-    (new IconBuilder($vendor))->buildIcons();
+// one test per vendor rather than a dataset: Pest 3 names a dataset's snapshot files
+// differently from Pest 4 and 5, so it would never find the committed ones
+foreach (SNAPSHOT_VENDORS as $vendor) {
+    it("writes the {$vendor} components it has always written", function () use ($vendor) {
+        (new IconBuilder($vendor))->buildIcons();
 
-    expect(builtComponents($vendor))->toMatchSnapshot();
-})->with(SNAPSHOT_VENDORS);
+        expect(builtComponents($vendor))->toMatchSnapshot();
+    });
+}
 
 it('marks components for Blaze only on a Flux version that has it', function () {
     (new IconBuilder('alpha', ['home']))->buildIcons();

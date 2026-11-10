@@ -17,19 +17,15 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        php: [8.3, 8.4, 8.5]
-        # Laravel 11 is past its security support window: every 11.x release carries
-        # unpatched advisories, which Composer refuses to install, so the leg cannot
-        # resolve at all. The composer.json constraint still allows ^11 to stay in
-        # step with livewire/flux, it is simply no longer testable.
+        php: [8.2, 8.3, 8.4, 8.5]
         laravel: ['12', '13']
-        # v2 targets the same baseline as livewire/flux v2
+        # v2 supports Flux 2 only
         flux: ['2']
 
-        include:
-          - laravel: '13'
-            experimental: true
-    continue-on-error: ${{ matrix.experimental == true }}
+        # Laravel 13 requires PHP 8.3
+        exclude:
+          - php: 8.2
+            laravel: '13'
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -68,3 +64,14 @@ jobs:
 
       - name: Run tests (Pest)
         run: ./vendor/bin/pest --colors=always -v
+
+      # Pest 3 and 4 write a missing snapshot and pass the test as incomplete, which does not
+      # fail the run, so an uncommitted or differently named snapshot would go unnoticed
+      - name: Check that the tests wrote no snapshots
+        run: |
+          written=$(git status --porcelain --untracked-files=all -- tests/.pest/snapshots)
+          if [ -n "$written" ]; then
+            echo "::error::The tests wrote snapshots that are not committed. Commit them; if they appear on one Pest version only, that version names them differently."
+            echo "$written"
+            exit 1
+          fi
