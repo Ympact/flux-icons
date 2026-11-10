@@ -1,7 +1,6 @@
 <?php
 
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\Config;
 use Ympact\FluxIcons\Services\IconManager;
 
 beforeEach(function () {
@@ -62,38 +61,6 @@ it('groups installed icon names by vendor', function () {
         ->toHaveKey('tabler')
         ->and($icons['heroicons']->toArray())->toContain('home')
         ->and($icons['tabler']->toArray())->toContain('star');
-});
-
-it('resolves a vendor directory that matches the config key', function () {
-    Config::set('flux-icons.vendors', [
-        'tabler' => ['namespace' => 'tabler'],
-    ]);
-
-    expect(IconManager::resolveVendorKey('tabler'))->toBe('tabler');
-});
-
-it('resolves a vendor directory that uses a different namespace than the config key', function () {
-    Config::set('flux-icons.vendors', [
-        'material-icons' => ['namespace' => 'material'],
-    ]);
-
-    expect(IconManager::resolveVendorKey('material'))->toBe('material-icons');
-});
-
-it('falls back to the config key when a vendor defines no namespace', function () {
-    Config::set('flux-icons.vendors', [
-        'tabler' => ['package' => '@tabler/icons'],
-    ]);
-
-    expect(IconManager::resolveVendorKey('tabler'))->toBe('tabler');
-});
-
-it('returns null for directories that do not belong to a configured vendor', function () {
-    Config::set('flux-icons.vendors', [
-        'tabler' => ['namespace' => 'tabler'],
-    ]);
-
-    expect(IconManager::resolveVendorKey('flux-icons'))->toBeNull();
 });
 
 it('discovers vendors automatically when none are provided', function () {

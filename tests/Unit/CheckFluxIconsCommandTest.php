@@ -3,6 +3,9 @@
 use Illuminate\Contracts\Console\Kernel;
 use Illuminate\Support\Str;
 use Ympact\FluxIcons\Console\CheckFluxIconsCommand;
+use Ympact\FluxIcons\Vendors\MaterialIcons;
+use Ympact\FluxIcons\Vendors\Mdi;
+use Ympact\FluxIcons\Vendors\Tabler;
 
 /**
  * Lay out a fake application: a template referencing icons, and a resources/views/flux/icon
@@ -31,7 +34,7 @@ beforeEach(function () {
     // rather than through the service provider's boot.
     $this->app[Kernel::class]->registerCommand(new CheckFluxIconsCommand);
 
-    config()->set('flux-icons.vendors', ['tabler' => ['namespace' => 'tabler']]);
+    config()->set('flux-icons.vendors', ['tabler' => Tabler::class]);
 });
 
 it('passes when every referenced icon has been built', function () {
@@ -75,7 +78,7 @@ it('offers the build command for the icons that are merely missing', function ()
 it('suggests the build command by config key when that differs from the namespace', function () {
     $root = fakeApp('<flux:button icon="material.missing" />');
     app()->setBasePath($root);
-    config()->set('flux-icons.vendors', ['material-icons' => ['namespace' => 'material']]);
+    config()->set('flux-icons.vendors', ['material-icons' => MaterialIcons::class]);
 
     $this->artisan('flux-icons:check', ['--path' => [$root.'/resources/views'], '--build' => true])
         ->expectsOutputToContain('flux-icons:build material-icons --icons=missing --merge')
@@ -86,8 +89,8 @@ it('ignores vendors other than the one asked for', function () {
     $root = fakeApp('<flux:icon.mdi.missing />', []);
     app()->setBasePath($root);
     config()->set('flux-icons.vendors', [
-        'tabler' => ['namespace' => 'tabler'],
-        'mdi' => ['namespace' => 'mdi'],
+        'tabler' => Tabler::class,
+        'mdi' => Mdi::class,
     ]);
 
     $this->artisan('flux-icons:check', ['vendor' => 'tabler', '--path' => [$root.'/resources/views']])

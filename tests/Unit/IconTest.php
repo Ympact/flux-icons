@@ -1,7 +1,17 @@
 <?php
 
-use Ympact\FluxIcons\Tests\Vendor\Beta\Beta;
 use Ympact\FluxIcons\Types\Icon;
+
+/**
+ * A suffix callback in the shape the v1 array config used, which Icon still accepts.
+ */
+class IconTestSuffix
+{
+    public static function solid(string $variant): string
+    {
+        return '_24_filled';
+    }
+}
 
 it('loads the icon filename from a file path', function () {
     $icon = new Icon(alphaIconConfig(), 'outline', alphaOutlineFile());
@@ -89,7 +99,7 @@ it('strips a configured callable suffix from the base name', function () {
                 'source' => [
                     'dir' => 'tests/vendor/beta/icons',
                     'prefix' => null,
-                    'suffix' => [Beta::class, 'sourceSolidSuffix'],
+                    'suffix' => [IconTestSuffix::class, 'solid'],
                 ],
             ],
         ],

@@ -33,14 +33,25 @@ class Builder
     }
 
     /**
+     * Every icon the vendor ships, as icon name to the file of its default variant.
+     *
+     * @return array<string, string>
+     */
+    public function available(Vendor $vendor): array
+    {
+        return $this->resolver($vendor)->icons($vendor->resolvedVariants()->default());
+    }
+
+    /**
      * @param  array<int, string>|null  $icons  The icons to build, by name, file name or published
      *                                          name; null builds every icon the vendor ships.
-     * @param  (Closure(string): void)|null  $progress  Called with each icon's name once it is handled.
+     * @param  (Closure(string, int, int): void)|null  $progress  Called once each icon is handled, with
+     *                                                            its name, the number handled and the total.
      */
     public function build(Vendor $vendor, ?array $icons = null, ?Closure $progress = null): BuildResult
     {
         $packageRoot = $this->packagesPath.'/'.$vendor->package();
-        $resolver = new SourceResolver(rtrim($packageRoot.'/'.$vendor->basePath(), '/'));
+        $resolver = $this->resolver($vendor);
         $variants = $vendor->resolvedVariants();
 
         [$selected, $missing] = $this->select($vendor, $resolver->icons($variants->default()), $icons);
@@ -49,6 +60,7 @@ class Builder
         $credits = [$this->credits->package($packageRoot), $this->credits->flux()];
         $built = [];
         $skipped = [];
+        $handled = 0;
 
         foreach ($selected as $name => $file) {
             $markup = $this->renderVariants($vendor, $variants, $resolver, $name, $file);
@@ -62,7 +74,7 @@ class Builder
             }
 
             if ($progress !== null) {
-                $progress($name);
+                $progress($name, ++$handled, count($selected));
             }
         }
 
@@ -71,6 +83,11 @@ class Builder
         }
 
         return new BuildResult($built, $skipped, $missing);
+    }
+
+    protected function resolver(Vendor $vendor): SourceResolver
+    {
+        return new SourceResolver(rtrim($this->packagesPath.'/'.$vendor->package().'/'.$vendor->basePath(), '/'));
     }
 
     /**

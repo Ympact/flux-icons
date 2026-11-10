@@ -3,6 +3,7 @@
 namespace Ympact\FluxIcons\Services;
 
 use Illuminate\Support\Facades\File;
+use Ympact\FluxIcons\Contracts\Vendor;
 
 class PackageManager
 {
@@ -50,23 +51,51 @@ class PackageManager
         return version_compare($fluxVersion, $version, '>=');
     }
 
-    // npm update vendor package
-    public static function updateVendorPackage(string $vendor, $verbose = false): bool
+    /**
+     * Install the vendor's npm package unless node_modules already holds it.
+     *
+     * @return bool Whether the package had to be installed.
+     *
+     * @throws \RuntimeException When npm fails to install it.
+     */
+    public static function requirePackage(Vendor $vendor, bool $verbose = false): bool
     {
-        $baseConfig = "flux-icons.vendors.{$vendor}";
+        $package = $vendor->package();
 
-        if (! config()->has("{$baseConfig}")) {
-            throw new \RuntimeException("Vendor {$vendor} not found in config.");
+        if (File::exists(base_path("node_modules/{$package}/package.json"))) {
+            return false;
         }
 
-        $package = config("{$baseConfig}.package");
-        $arg = $verbose ? '' : '-s';
-        exec("npm update {$package} {$arg}", $output, $result);
-
-        if ($result !== 0) {
-            throw new \RuntimeException("Failed to update package: {$package}. ".implode("\n", $output));
-        }
+        static::npm('install', $package, $verbose, '--save');
 
         return true;
+    }
+
+    /**
+     * @throws \RuntimeException When npm fails to update the package.
+     */
+    public static function updateVendorPackage(Vendor $vendor, bool $verbose = false): bool
+    {
+        static::npm('update', $vendor->package(), $verbose);
+
+        return true;
+    }
+
+    /**
+     * Replaced by an NpmManager with #23.
+     *
+     * @throws \RuntimeException
+     */
+    protected static function npm(string $action, string $package, bool $verbose, string ...$flags): void
+    {
+        if (! $verbose) {
+            $flags[] = '-s';
+        }
+
+        exec("npm {$action} ".escapeshellarg($package).' '.implode(' ', $flags).' 2>&1', $output, $result);
+
+        if ($result !== 0) {
+            throw new \RuntimeException("npm could not {$action} {$package}: ".implode("\n", $output));
+        }
     }
 }

@@ -71,7 +71,7 @@ class FluxIconsServiceProvider extends ServiceProvider
         $this->commands([
             Console\BuildFluxIconsCommand::class,
             Console\CheckFluxIconsCommand::class,
-            Console\PublishFluxIconsVendorFileCommmand::class,
+            Console\MakeVendorCommand::class,
             Console\UpdateFluxIconsCommand::class,
         ]);
     }

@@ -3,10 +3,8 @@
 v2 replaces the v1 combination of a config array plus loose `[Class::class, 'method']`
 callbacks with a **vendor class** as the single source of truth for an icon package.
 
-This document describes the definition layer and the build pipeline that renders
-from it. The artisan commands still run the v1 `IconBuilder` from the array config;
-moving them onto the new pipeline is tracked in
-[#17](https://github.com/Ympact/flux-icons/issues/17).
+This document describes the vendor classes and the build pipeline that renders from
+them, which the artisan commands run.
 
 ## Baseline
 
@@ -71,8 +69,15 @@ registering it:
 ],
 ```
 
-`VendorRegistry` resolves those keys to instances. Because a variant can be
-redefined by name, a subclass can adjust one variant without restating the set:
+`VendorRegistry` resolves those keys to instances. A vendor is addressed by the key
+it is registered under, and publishes its icons under that key unless it overrides
+`namespace()`: a subclass registered as `tabler` still builds into `tabler`. An
+entry that is not a class, such as a vendor array from a v1 config, is rejected
+with a message saying so. `php artisan flux-icons:make-vendor HouseStyle
+--extends=tabler` generates such a subclass.
+
+Because a variant can be redefined by name, a subclass can adjust one variant
+without restating the set:
 
 ```php
 class HouseStyle extends Tabler
@@ -224,16 +229,20 @@ Present and tested:
 - `Variants\{Variant, VariantSet, Template, FluxVariant, Stroke, Fill, Fallback}`
 - `Sources\Source`
 - every v1 vendor as a class: `Vendors\{Bootstrap, Codicons, Flags, Flowbite,
-  Fluent, Healthicons, Lucide, MaterialIcons, MaterialSymbols, Mdi, Tabler}`, each
-  reading the same files as its v1 config entry, plus `Vendors\Phosphor` (duotone +
-  weights)
+  Fluent, Healthicons, Lucide, MaterialIcons, MaterialSymbols, Mdi, Tabler}`, plus
+  `Vendors\Phosphor` (duotone + weights)
 - `Build\{Builder, SourceResolver, IconRenderer, ComponentWriter, Credits,
   BuildResult}`, which build from those classes
+- the artisan commands and `config/flux-icons.php`, which map vendor keys to classes
 
-Not yet migrated, tracked on the v2 milestone:
+Not yet done, tracked on the v2 milestone:
 
-- the artisan commands and `config/flux-icons.php`, which still run the v1
-  `IconBuilder` from the array config
 - the blade stub, which still has fixed `{OUTLINE}`/`{SOLID}`/`{MINI}`/`{MICRO}`
   placeholders and has to be generated from the variant set before vendor
-  variants can actually be emitted
+  variants can actually be emitted ([#18](https://github.com/Ympact/flux-icons/issues/18))
+- vendor options and a default vendor on the command line
+  ([#21](https://github.com/Ympact/flux-icons/issues/21))
+- `Types\Icon` still reads a v1 config array, which the build no longer passes it;
+  parsing is reworked in [#22](https://github.com/Ympact/flux-icons/issues/22)
+- npm is still driven with `exec()` ([#23](https://github.com/Ympact/flux-icons/issues/23))
+- the upgrade guide ([#20](https://github.com/Ympact/flux-icons/issues/20))
