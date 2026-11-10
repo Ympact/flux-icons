@@ -407,6 +407,14 @@ class Icon
     }
 
     /**
+     * The source file the icon was read from, or null when it was given as content.
+     */
+    public function getFile(): ?string
+    {
+        return $this->file;
+    }
+
+    /**
      * Summary of readFile
      *
      * @param  mixed  $file
