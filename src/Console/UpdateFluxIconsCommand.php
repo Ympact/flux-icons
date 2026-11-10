@@ -4,6 +4,7 @@ namespace Ympact\FluxIcons\Console;
 
 use Illuminate\Console\Command;
 use Ympact\FluxIcons\Build\Builder;
+use Ympact\FluxIcons\Console\Concerns\ReportsBuildResult;
 use Ympact\FluxIcons\Services\IconManager;
 use Ympact\FluxIcons\Services\PackageManager;
 use Ympact\FluxIcons\Support\VendorRegistry;
@@ -16,6 +17,8 @@ use function Laravel\Prompts\info;
  */
 class UpdateFluxIconsCommand extends Command
 {
+    use ReportsBuildResult;
+
     protected $signature = 'flux-icons:update
                             {--P|vendor= : The vendors for which to update the icon package (single or comma separated list)}';
 
@@ -72,7 +75,8 @@ class UpdateFluxIconsCommand extends Command
 
             try {
                 PackageManager::requirePackage($vendor, $verbose);
-                $builder->build($vendor, $icons->all());
+                // a component whose icon left the package is reported as not found, and kept
+                $this->report($builder->build($vendor, $icons->all()), $verbose);
             } catch (\Throwable $exception) {
                 error("Failed to update the icons for: {$vendor->key()}. ".$exception->getMessage());
             }

@@ -7,6 +7,7 @@ use Illuminate\Support\Str;
 use Symfony\Component\Console\Helper\ProgressBar;
 use Ympact\FluxIcons\Build\Builder;
 use Ympact\FluxIcons\Build\BuildResult;
+use Ympact\FluxIcons\Console\Concerns\ReportsBuildResult;
 use Ympact\FluxIcons\Contracts\Vendor;
 use Ympact\FluxIcons\Services\PackageManager;
 use Ympact\FluxIcons\Support\VendorRegistry;
@@ -21,6 +22,8 @@ use function Laravel\Prompts\select;
  */
 class BuildFluxIconsCommand extends Command
 {
+    use ReportsBuildResult;
+
     /** Builds this large compete with a running `npm run dev` for file watchers. */
     protected const LARGE_BUILD = 100;
 
@@ -196,25 +199,6 @@ class BuildFluxIconsCommand extends Command
         info("In case npm run dev is running, we'll introduce a timeout between processing icons to prevent memory issues. \nThis will make this script take {$seconds} seconds. \nIt is better to stop `npm run dev` first before continuing.");
 
         return confirm('Is `npm run dev` running?');
-    }
-
-    protected function report(BuildResult $result, bool $verbose): void
-    {
-        if ($result->missing !== []) {
-            $this->warn('Icons not found: '.implode(', ', $result->missing));
-        }
-
-        if ($result->skipped === []) {
-            return;
-        }
-
-        $this->warn(count($result->skipped).' icons were skipped'.($verbose ? ':' : '; run with -v to see why.'));
-
-        if ($verbose) {
-            foreach ($result->skipped as $name => $reason) {
-                $this->line("  {$name}: {$reason}");
-            }
-        }
     }
 
     /**
