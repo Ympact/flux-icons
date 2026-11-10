@@ -152,6 +152,7 @@ public function options(): array
 
 ```php
 (new Phosphor)->withOptions(['weight' => 'bold']);
+(new Flags)->withOptions(['ratio' => '1x1']);
 ```
 
 Unknown option names and values are rejected with a message listing what is
@@ -165,7 +166,10 @@ Present and tested:
 - `Contracts\Vendor`, `Support\VendorRegistry`
 - `Variants\{Variant, VariantSet, Template, FluxVariant, Stroke, Fill, Fallback}`
 - `Sources\Source`
-- `Vendors\Tabler` (reference vendor), `Vendors\Phosphor` (duotone + weights)
+- every v1 vendor as a class: `Vendors\{Bootstrap, Codicons, Flags, Flowbite,
+  Fluent, Healthicons, Lucide, MaterialIcons, MaterialSymbols, Mdi, Tabler}`, each
+  reading the same files as its v1 config entry, plus `Vendors\Phosphor` (duotone +
+  weights). Nothing builds from them until the pipeline is migrated.
 
 Not yet migrated, tracked on the v2 milestone:
 
@@ -174,5 +178,4 @@ Not yet migrated, tracked on the v2 milestone:
 - the blade stub, which still has fixed `{OUTLINE}`/`{SOLID}`/`{MINI}`/`{MICRO}`
   placeholders and has to be generated from the variant set before vendor
   variants can actually be emitted
-- porting the remaining v1 vendors to vendor classes
 - the artisan commands
