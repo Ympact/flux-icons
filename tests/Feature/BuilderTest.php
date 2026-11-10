@@ -246,3 +246,19 @@ it('keeps the first icon when two are published under one name', function () {
         ->toContain('cx="5"')
         ->not->toContain('M3 9.5');
 });
+
+it('finds the icons of a package whose path holds glob characters', function () {
+    $packages = sys_get_temp_dir().'/flux-icons [packages] '.Str::random(8);
+    File::copyDirectory(base_path('tests/vendor/alpha'), "{$packages}/alpha");
+
+    try {
+        $result = (new Builder($packages, "{$this->output}/glob"))->build(new Alpha);
+    } finally {
+        File::deleteDirectory($packages);
+    }
+
+    $this->builder->build(new Alpha);
+
+    expect($result->built)->toBe(['arrow-left', 'dots', 'home'])
+        ->and(componentsIn("{$this->output}/glob/alpha"))->toBe(componentsIn("{$this->output}/alpha"));
+});
