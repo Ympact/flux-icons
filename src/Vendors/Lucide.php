@@ -4,6 +4,7 @@ namespace Ympact\FluxIcons\Vendors;
 
 use Ympact\FluxIcons\Contracts\Vendor;
 use Ympact\FluxIcons\Sources\Source;
+use Ympact\FluxIcons\Variants\Fallback;
 use Ympact\FluxIcons\Variants\Stroke;
 use Ympact\FluxIcons\Variants\Template;
 use Ympact\FluxIcons\Variants\VariantSet;
@@ -39,10 +40,15 @@ class Lucide extends Vendor
             ->variant('outline', fn ($variant) => $variant
                 ->template(Template::Outline)
                 ->source(Source::dir())
+                // as in v1, the root sets no caps or joins. Lucide declares its round caps only
+                // on its own root, which the build replaces, so v1 draws them as butt caps
                 ->stroke(new Stroke(1.5, linecap: null, linejoin: null))
                 ->default()
             )
-            ->variant('solid', fn ($variant) => $variant->basedOn('outline'))
+            ->variant('solid', fn ($variant) => $variant
+                ->basedOn('outline')
+                ->fallback(Fallback::defaultVariant())
+            )
             ->variant('mini', fn ($variant) => $variant->basedOn('solid'))
             ->variant('micro', fn ($variant) => $variant->basedOn('solid'));
     }

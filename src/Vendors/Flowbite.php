@@ -40,6 +40,7 @@ class Flowbite extends Vendor
             ->variant('outline', fn ($variant) => $variant
                 ->template(Template::Outline)
                 ->source(Source::dir('outline/*'))
+                // as in v1, the root sets no caps or joins: Flowbite's paths carry their own
                 ->stroke(new Stroke(1.5, linecap: null, linejoin: null))
                 ->default()
             )

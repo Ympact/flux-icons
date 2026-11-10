@@ -4,6 +4,7 @@ namespace Ympact\FluxIcons\Vendors;
 
 use Ympact\FluxIcons\Contracts\Vendor;
 use Ympact\FluxIcons\Sources\Source;
+use Ympact\FluxIcons\Variants\Fallback;
 use Ympact\FluxIcons\Variants\Template;
 use Ympact\FluxIcons\Variants\VariantSet;
 
@@ -41,7 +42,10 @@ class Codicons extends Vendor
                 ->stroke(false)
                 ->default()
             )
-            ->variant('solid', fn ($variant) => $variant->basedOn('outline'))
+            ->variant('solid', fn ($variant) => $variant
+                ->basedOn('outline')
+                ->fallback(Fallback::defaultVariant())
+            )
             ->variant('mini', fn ($variant) => $variant->basedOn('solid'))
             ->variant('micro', fn ($variant) => $variant->basedOn('solid'));
     }

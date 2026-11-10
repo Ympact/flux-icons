@@ -1,8 +1,10 @@
 <?php
 
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
-use Ympact\FluxIcons\Contracts\Vendor;
+use Ympact\FluxIcons\Services\IconBuilder;
+use Ympact\FluxIcons\Types\Icon;
 use Ympact\FluxIcons\Variants\Template;
 use Ympact\FluxIcons\Vendors\Bootstrap;
 use Ympact\FluxIcons\Vendors\Codicons;
@@ -31,11 +33,6 @@ dataset('v1 vendors', [
     'tabler' => ['tabler', Tabler::class],
 ]);
 
-function packagePath(Vendor $vendor): string
-{
-    return 'node_modules/'.$vendor->package().'/'.$vendor->basePath();
-}
-
 it('answers every variant flux asks for', function (string $key, string $class) {
     expect((new $class)->resolvedVariants()->missingFluxVariants())->toBe([]);
 })->with('v1 vendors');
@@ -46,56 +43,57 @@ it('also answers every flux variant for phosphor, which v1 never shipped', funct
 
 /*
  * The vendor classes replace the entries of config/flux-icons.php. Until #20 removes that
- * config, each class has to read the same files, under the same key and namespace, as the
- * entry it replaces; otherwise moving the build onto the classes changes what gets built.
+ * config, each class has to define what the v1 builder derives from its entry, or moving
+ * the build onto the classes changes what gets built. The v1 builder itself is the oracle.
  */
-it('reads the same files as the v1 config entry it replaces', function (string $key, string $class) {
-    $config = (require dirname(__DIR__, 3).'/config/flux-icons.php')['vendors'][$key];
+it('defines the same variants as the v1 config entry it replaces', function (string $key, string $class) {
+    config()->set('flux-icons', require dirname(__DIR__, 3).'/config/flux-icons.php');
+    $builder = new IconBuilder($key);
+    $anyIcon = new Icon(alphaIconConfig(), 'outline', alphaOutlineFile());
+    $v1TemplateAttributes = (new ReflectionProperty(Icon::class, 'variantAttributes'))->getDefaultValue();
+
     $vendor = new $class;
     $variants = $vendor->resolvedVariants();
+    $packagePath = 'node_modules/'.$vendor->package().'/'.$vendor->basePath();
 
     expect($vendor->key())->toBe($key)
-        ->and($vendor->namespace())->toBe($config['namespace'])
-        ->and($vendor->package())->toBe($config['package']);
+        ->and($vendor->namespace())->toBe(config("flux-icons.vendors.{$key}.namespace"))
+        ->and($vendor->package())->toBe(config("flux-icons.vendors.{$key}.package"));
 
     foreach (['outline', 'solid', 'mini', 'micro'] as $name) {
-        $settings = v1VariantSettings($config, $name);
-        $v1Source = $settings['source'];
-        $source = $variants->get($name)?->getSource();
+        $variant = $variants->get($name);
+        $source = $variant->getSource();
 
-        expect($source?->path(packagePath($vendor)))
-            ->toBe(rtrim(is_array($v1Source) ? $v1Source['dir'] : $v1Source, '/'), "{$key} {$name} reads another directory");
+        $v1Source = $builder->variantProp($name, 'source');
+        $affix = function (string $part) use ($v1Source, $name) {
+            $value = is_array($v1Source) ? ($v1Source[$part] ?? null) : null;
 
-        // v1 calls a suffix callback with the variant being built, which is how fluent picks a size
-        $suffix = is_array($v1Source) ? ($v1Source['suffix'] ?? null) : null;
-        $suffix = is_array($suffix) ? call_user_func($suffix, $name) : $suffix;
+            // v1 calls an affix callback with the variant being built, which is how fluent picks a size
+            return is_array($value) ? call_user_func($value, $name) : $value;
+        };
 
-        expect($source->fileName('icon'))->toBe('icon'.$suffix, "{$key} {$name} names its files differently")
-            ->and($source->hasFilter())->toBe(is_array($v1Source) && isset($v1Source['filter']), "{$key} {$name} filters differently");
+        expect($source?->path($packagePath))->toBe(rtrim(is_array($v1Source) ? $v1Source['dir'] : $v1Source, '/'), "{$key} {$name}: directory")
+            ->and($source->fileName('icon'))->toBe($affix('prefix').'icon'.$affix('suffix'), "{$key} {$name}: file name")
+            ->and($source->hasFilter())->toBe(is_array($v1Source) && isset($v1Source['filter']), "{$key} {$name}: filter");
 
-        $template = ($settings['raw'] ?? false) ? Template::Raw : Template::from($settings['template'] ?? ($name === 'outline' ? 'outline' : 'solid'));
+        // v1 reads `raw` and the stroke width from the variant named after the template
+        $v1Template = $builder->variantProp($name, 'template');
+        $template = $builder->variantProp($v1Template, 'raw', false) ? Template::Raw : Template::from($v1Template);
+        $strokeWidth = $v1Template === 'outline' ? (float) ($builder->variantProp('outline', 'stroke_width') ?: 1.5) : null;
 
-        expect($variants->get($name)->getTemplate())->toBe($template, "{$key} {$name} renders with another template");
+        expect($variant->getTemplate())->toBe($template, "{$key} {$name}: template")
+            ->and($variant->getStroke()?->width)->toBe($strokeWidth, "{$key} {$name}: stroke width")
+            ->and($variants->fallbackFor($name)?->getName())->toBe($builder->determineFallback($name, $anyIcon) ?: null, "{$key} {$name}: fallback");
+
+        // the root attributes beyond the fixed ones: v1 takes its template's and the variant's own
+        $v1Root = array_merge(Arr::except($v1TemplateAttributes[$v1Template], 'stroke-width'), $builder->variantProp($name, 'attributes', []));
+        $root = array_merge($variant->getTemplate()->attributes(), Arr::except($variant->getStroke()?->attributes() ?? [], 'stroke-width'), $variant->getAttributes());
+        ksort($v1Root);
+        ksort($root);
+
+        expect($root)->toBe($v1Root, "{$key} {$name}: root attributes");
     }
 })->with('v1 vendors');
-
-/**
- * A variant's settings as v1 applies them: mini and micro without a source of their own take
- * the settings of the variant they are based on, solid unless they say otherwise.
- *
- * @param  array<string, mixed>  $config
- * @return array<string, mixed>
- */
-function v1VariantSettings(array $config, string $name): array
-{
-    $settings = $config['variants'][$name] ?? [];
-
-    if (in_array($name, ['mini', 'micro'], true) && ! isset($settings['source'])) {
-        return array_merge(v1VariantSettings($config, $settings['base'] ?? 'solid'), $settings);
-    }
-
-    return $settings;
-}
 
 it('publishes material icons under a namespace that differs from its key', function () {
     $vendor = new MaterialIcons;
@@ -131,18 +129,20 @@ it('treats an mdi icon as solid only when an outline sibling exists', function (
         File::put("{$directory}/{$name}.svg", '<svg/>');
     }
 
-    $variants = (new Mdi)->resolvedVariants();
-    $outline = $variants->get('outline')->getSource();
-    $solid = $variants->get('solid')->getSource();
+    try {
+        $variants = (new Mdi)->resolvedVariants();
+        $outline = $variants->get('outline')->getSource();
+        $solid = $variants->get('solid')->getSource();
 
-    expect($outline->accepts("{$directory}/abacus.svg"))->toBeTrue()
-        ->and($outline->accepts("{$directory}/account-outline.svg"))->toBeTrue()
-        ->and($outline->accepts("{$directory}/account.svg"))->toBeFalse()
-        ->and($solid->accepts("{$directory}/account.svg"))->toBeTrue()
-        ->and($solid->accepts("{$directory}/abacus.svg"))->toBeFalse()
-        ->and($outline->iconName('account-outline.svg'))->toBe('account');
-
-    File::deleteDirectory($directory);
+        expect($outline->accepts("{$directory}/abacus.svg"))->toBeTrue()
+            ->and($outline->accepts("{$directory}/account-outline.svg"))->toBeTrue()
+            ->and($outline->accepts("{$directory}/account.svg"))->toBeFalse()
+            ->and($solid->accepts("{$directory}/account.svg"))->toBeTrue()
+            ->and($solid->accepts("{$directory}/abacus.svg"))->toBeFalse()
+            ->and($outline->iconName('account-outline.svg'))->toBe('account');
+    } finally {
+        File::deleteDirectory($directory);
+    }
 });
 
 it('builds each fluent variant from the drawing at the size it is shown', function () {
@@ -209,6 +209,6 @@ it('keeps the adjustable stroke on every lucide variant', function () {
 it('spans the category directories of flowbite', function () {
     $variants = (new Flowbite)->resolvedVariants();
 
-    expect($variants->get('outline')->getSource()->path(packagePath(new Flowbite)))->toBe('node_modules/flowbite-icons/src/outline/*')
+    expect($variants->get('outline')->getSource()->path('node_modules/flowbite-icons/src'))->toBe('node_modules/flowbite-icons/src/outline/*')
         ->and($variants->get('mini')->getSource()->directory())->toBe('solid/*');
 });

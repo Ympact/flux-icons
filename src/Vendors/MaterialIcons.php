@@ -40,6 +40,7 @@ class MaterialIcons extends Vendor
                 ->template(Template::Solid)
                 ->source(Source::dir('outlined'))
                 ->stroke(false)
+                // carried over from v1; the shapes are filled, so these change nothing yet
                 ->attributes([
                     'stroke-linecap' => 'round',
                     'stroke-linejoin' => 'round',
