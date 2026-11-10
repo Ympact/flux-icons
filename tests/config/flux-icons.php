@@ -65,8 +65,8 @@ return [
                     // 'size' => 16 // default size for the icon, not necessary to specify
                 ],
             ],
-            'transform_svg_path' => [Alpha::class, 'transformSvgPath'],
-            'change_stroke_width' => [Alpha::class, 'changeStrokeWidth'],
+            'transform' => [Alpha::class, 'transform'],
+            'stroke_width' => [Alpha::class, 'strokeWidth'],
         ],
 
         /**
@@ -93,8 +93,8 @@ return [
                     ],
                 ],
             ],
-            'transform_svg_path' => null,
-            'change_stroke_width' => null,
+            'transform' => null,
+            'stroke_width' => null,
         ],
 
         /**
@@ -112,8 +112,8 @@ return [
                     'source' => 'tests/vendor/gamma/icons/solid/*/',
                 ],
             ],
-            'transform_svg_path' => null,
-            'change_stroke_width' => null,
+            'transform' => null,
+            'stroke_width' => null,
         ],
 
         /**
@@ -153,8 +153,8 @@ return [
                     'base' => 'outline',
                 ],
             ],
-            'transform_svg_path' => null,
-            'change_stroke_width' => null,
+            'transform' => null,
+            'stroke_width' => null,
         ],
 
     ],
