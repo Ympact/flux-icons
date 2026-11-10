@@ -142,6 +142,14 @@ describe('building', function () {
             ->assertExitCode(0);
     });
 
+    it('fails when none of the icons asked for could be built', function () {
+        $this->artisan('flux-icons:build', ['vendor' => 'alpha', '--icons' => 'nope', '--no-interaction' => true])
+            ->expectsOutputToContain('Icons not found: nope')
+            ->expectsOutputToContain('No icons were built for vendor: alpha')
+            ->doesntExpectOutputToContain('Icons built successfully')
+            ->assertExitCode(1);
+    });
+
     it('fails for a vendor that is not registered', function () {
         $this->artisan('flux-icons:build', ['vendor' => 'nope', '--no-interaction' => true])
             ->expectsOutputToContain("Vendor configuration for 'nope' not found.")

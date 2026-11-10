@@ -101,6 +101,13 @@ class BuildFluxIconsCommand extends Command
         $result = $this->build($builder, $vendor, $icons);
 
         $this->report($result, $verbose);
+
+        if ($result->built === []) {
+            $this->error("No icons were built for vendor: {$key}");
+
+            return self::FAILURE;
+        }
+
         $this->newLine()->info("Icons built successfully for vendor: {$key}");
 
         return self::SUCCESS;
