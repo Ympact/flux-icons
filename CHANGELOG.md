@@ -14,6 +14,8 @@ All notable changes to this package are documented here. Releases before 1.2.1 a
 - `flux-icons:build --merge` adds the icons configured for the vendor to the ones passed with `--icons`. The option was declared but never read.
 - `flux-icons:update --vendor=` limits the update to the given vendors, by config key or by the directory their icons were built into. It was declared as a flag and passed to `Collection::slice()`, so it could not select a vendor.
 - `flux-icons:update` exits with status 1 when a package could not be updated or a vendor's icons could not be rebuilt. It exited 0, and on Laravel 13 labelled the failed package update as done. ([#44](https://github.com/Ympact/flux-icons/pull/44))
+- `flux-icons:update` rebuilds icons that the vendor's `icon_name` callback renames, such as the Healthicons names with an underscore (`blood-a_n`, built as `blood-a-n`). It asked for the built name, which matched no source file, so those icons were never rebuilt. `flux-icons:build --icons=` accepts the built name as well. ([#45](https://github.com/Ympact/flux-icons/issues/45), [#44](https://github.com/Ympact/flux-icons/pull/44))
+- `flux-icons:update --vendor=` reports a named directory that belongs to no configured vendor and exits with status 1. It skipped the directory with a message only under `-v`. ([#46](https://github.com/Ympact/flux-icons/issues/46), [#44](https://github.com/Ympact/flux-icons/pull/44))
 - `flux-icons:update` no longer crashes on a vendor whose namespace differs from its config key (`material-icons` builds into `material/`). It skips the `flux-icons` directory of published helper icons instead of failing on it.
 - `request_npm_dev` is read from the package config. It was read without the `flux-icons.` prefix, so the `npm run dev` prompt and the pause between icons never ran. The prompt defaults to no, so a build without a terminal is not paused, and the build does not start `npm run dev` itself. ([#44](https://github.com/Ympact/flux-icons/pull/44))
 - Built components get `@blaze` only on Flux 2.2.6 and later. `composer.lock` records Flux with a `v` prefix (`v2.13.1`), so comparing that string with `2.2.6` was always true, and Flux 1.x builds got the directive too. Branch versions such as `dev-main` and `2.x-dev` count as current.
@@ -27,12 +29,8 @@ All notable changes to this package are documented here. Releases before 1.2.1 a
 - `flux-icons:build --merge` builds the icons configured for the vendor as well as those passed with `--icons`. Before, the option was accepted and ignored.
 - `flux-icons:build --merge --all` stops with an error, as `--icons` with `--all` already did.
 - `flux-icons:update --vendor` needs a value, and stops with an error without one or with an empty one. Before, it skipped the first vendor with built icons.
-- `flux-icons:update` exits with status 1 when a package update or a rebuild fails. Before, it exited 0.
+- `flux-icons:update` exits with status 1 when a package update or a rebuild fails, or when a directory named with `--vendor` belongs to no configured vendor. Before, it exited 0.
+- `flux-icons:update` rebuilds renamed icons, so the first update of a Healthicons build rewrites components it used to leave alone.
 - `flux-icons:update --vendor=` exits with status 1 when none of the named vendors has built icons.
-
-### Known limitations
-
-- `flux-icons:update` does not rebuild icons whose name is changed by an `icon_name` callback, such as the Healthicons names with an underscore. Rebuild those with `flux-icons:build`.
-- `flux-icons:update --vendor=` skips a directory that belongs to no configured vendor without a message.
 
 [1.2.1]: https://github.com/Ympact/flux-icons/compare/v1.2.0...v1.2.1
