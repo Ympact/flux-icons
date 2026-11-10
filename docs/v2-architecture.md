@@ -55,9 +55,9 @@ class Tabler extends Vendor
 }
 ```
 
-Everything else — per-icon path surgery, stroke width tweaks, attribute changes,
-the published name — is an overridable method (`transform()`, `strokeWidth()`,
-`attributes()`, `iconName()`) instead of a callback tuple in the config.
+Everything else is an overridable method instead of a callback tuple in the config.
+Per-icon path surgery, stroke width tweaks, attribute changes and the published name
+live in `transform()`, `strokeWidth()`, `attributes()` and `iconName()`.
 
 Users add a vendor, or adjust a built-in one, by extending the class and
 registering it:
@@ -92,7 +92,7 @@ variant names are free-form.
 `FluxVariant` names the four the Flux component itself requests (`outline`,
 `solid`, `mini`, `micro`) and carries the size and classes Flux renders them at.
 Those four should always resolve, otherwise Flux components that ask for, say,
-`mini` get nothing — `VariantSet::missingFluxVariants()` reports the gap.
+`mini` get nothing. `VariantSet::missingFluxVariants()` reports the gap.
 
 Anything beyond them is a **vendor variant**: it is emitted into the built
 component alongside the Flux four and becomes usable directly.

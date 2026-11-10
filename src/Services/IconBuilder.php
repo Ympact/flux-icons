@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
 use Symfony\Component\Console\Helper\ProgressBar;
 use Symfony\Component\Console\Output\ConsoleOutput;
+use Ympact\FluxIcons\Events\IconsBuilt;
 use Ympact\FluxIcons\Types\Icon;
 
 use function Laravel\Prompts\confirm;
@@ -73,6 +74,13 @@ class IconBuilder
     protected $chunckSize = 50;
 
     protected $timeout = 1000000 / 3; // in microseconds
+
+    /**
+     * The names of the icons the current build wrote, for the IconsBuilt event.
+     *
+     * @var list<string>
+     */
+    protected array $built = [];
 
     public function __construct(?string $vendor = null, ?array $icons = null, $verbose = false)
     {
@@ -200,6 +208,7 @@ class IconBuilder
     {
         // only setup the dirs once we're sure we're gonna build some icons
         $this->setupDirs();
+        $this->built = [];
 
         // get all files that match the base variant icons config
         $files = $this->getAvailableIcons($this->baseVariant);
@@ -276,6 +285,10 @@ class IconBuilder
 
         // write empty line
         $this->output->writeln('');
+
+        if ($this->built !== []) {
+            IconsBuilt::dispatch($this->vendor, $this->namespace, $this->outputDir, $this->built);
+        }
 
         // ask to start running npm run dev again
         if (config("{$this->config}.request_npm_dev") && $npmRunning && confirm('Do you want to start `npm run dev`?')) {
@@ -372,6 +385,10 @@ class IconBuilder
                 } else {
                     $this->output->writeln("<info>Wrote {$basename}.blade.php</info>");
                 }
+            }
+
+            if ($put !== false) {
+                $this->built[] = $basename;
             }
         }
         // Update the progress bar
