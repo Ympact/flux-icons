@@ -16,7 +16,8 @@ use Ympact\FluxIcons\Services\Vendors\Tabler;
 return [
 
     /**
-     * Request to restart npm dev after building icons
+     * Ask whether `npm run dev` is running before building more than 100 icons,
+     * and pause between icons when it is, so the dev server keeps up
      */
     'request_npm_dev' => true,
 

@@ -251,7 +251,8 @@ class IconBuilder
                 $time = round($baseIcons->count() / 3);
 
                 info("In case npm run dev is running, we'll introduce a timeout between processing icons to prevent memory issues. \nThis will make this script take $time seconds. \nIt is better to stop `npm run dev` first before continuing.");
-                $npmRunning = confirm('Is `npm run dev` running?');
+                // defaults to no, so a run without a terminal does not pause
+                $npmRunning = confirm('Is `npm run dev` running?', default: false);
             }
         }
 
@@ -277,9 +278,8 @@ class IconBuilder
         // write empty line
         $this->output->writeln('');
 
-        // ask to start running npm run dev again
-        if (config("{$this->config}.request_npm_dev") && $npmRunning && confirm('Do you want to start `npm run dev`?')) {
-            exec('npm run dev', $output, $result);
+        if ($npmRunning) {
+            info('In case `npm run dev` stopped during the build, start it again.');
         }
 
     }
