@@ -104,16 +104,6 @@ abstract class Vendor
     */
 
     /**
-     * Icons built when no icons are passed to the build command.
-     *
-     * @return array<int, string>
-     */
-    public function defaultIcons(): array
-    {
-        return [];
-    }
-
-    /**
      * Adjust the name a built icon is published under.
      */
     public function iconName(string $name): string
