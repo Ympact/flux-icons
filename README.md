@@ -127,7 +127,7 @@ Each vendor is a class. To change how its icons are built, extend it:
 php artisan flux-icons:make-vendor Tabler --extends=tabler
 ```
 
-This writes `app/FluxIcons/Vendors/Tabler.php`, a subclass of the registered vendor, and prints the line that registers it in your published config: `'tabler' => \App\FluxIcons\Vendors\Tabler::class`. Override any of these methods:
+This writes `app/FluxIcons/Vendors/Tabler.php`, a subclass of the registered vendor in your application's namespace, and prints the line that registers it in your published config: `'tabler' => \App\FluxIcons\Vendors\Tabler::class`. It leaves an existing class alone unless you pass `--force`. Override any of these methods:
 
 | Method | Adjusts |
 |--------|---------|

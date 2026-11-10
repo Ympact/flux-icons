@@ -1,7 +1,5 @@
 <?php
 
-use App\FluxIcons\Vendors\HandDrawn;
-use App\FluxIcons\Vendors\HouseStyle;
 use Illuminate\Contracts\Console\Kernel;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\File;
@@ -11,66 +9,104 @@ use Ympact\FluxIcons\Contracts\Vendor;
 use Ympact\FluxIcons\Support\VendorRegistry;
 use Ympact\FluxIcons\Vendors\Tabler;
 
+// every test gets an application namespace of its own, so the classes it generates and
+// loads never collide with another test's, also under --repeat
 beforeEach(function () {
     $this->root = sys_get_temp_dir().'/flux-icons-make-vendor-'.Str::random(8);
-    File::ensureDirectoryExists($this->root);
+    $this->namespace = 'Site'.Str::random(8);
+    $this->vendors = "{$this->root}/app/FluxIcons/Vendors";
+
+    File::ensureDirectoryExists("{$this->root}/app");
+    File::put("{$this->root}/composer.json", json_encode(['autoload' => ['psr-4' => ["{$this->namespace}\\" => 'app/']]]));
 
     $this->app->setBasePath($this->root);
-    $this->app[Kernel::class]->registerCommand(new MakeVendorCommand);
+    $this->app[Kernel::class]->registerCommand($this->app->make(MakeVendorCommand::class));
     Config::set('flux-icons.vendors', ['tabler' => Tabler::class]);
 });
 
 afterEach(fn () => File::deleteDirectory($this->root));
 
-it('generates a subclass of a registered vendor', function () {
+it('generates a subclass of a registered vendor in the application namespace', function () {
     $this->artisan('flux-icons:make-vendor', ['name' => 'HouseStyle', '--extends' => 'tabler'])
-        ->expectsOutputToContain("'tabler' => \\App\\FluxIcons\\Vendors\\HouseStyle::class")
+        ->expectsOutputToContain("'tabler' => \\{$this->namespace}\\FluxIcons\\Vendors\\HouseStyle::class")
         ->assertExitCode(0);
 
-    require "{$this->root}/app/FluxIcons/Vendors/HouseStyle.php";
+    require "{$this->vendors}/HouseStyle.php";
+    $class = "{$this->namespace}\\FluxIcons\\Vendors\\HouseStyle";
 
-    expect(new HouseStyle)->toBeInstanceOf(Tabler::class);
+    expect(new $class)->toBeInstanceOf(Tabler::class);
 });
 
 it('generates a subclass that shares the name of the vendor it extends', function () {
     $this->artisan('flux-icons:make-vendor', ['name' => 'Tabler', '--extends' => 'tabler'])->assertExitCode(0);
 
-    require "{$this->root}/app/FluxIcons/Vendors/Tabler.php";
+    require "{$this->vendors}/Tabler.php";
+    $class = "{$this->namespace}\\FluxIcons\\Vendors\\Tabler";
 
-    expect(new App\FluxIcons\Vendors\Tabler)->toBeInstanceOf(Tabler::class);
+    expect(new $class)->toBeInstanceOf(Tabler::class);
 });
 
 it('generates a new vendor that answers every variant Flux asks for', function () {
     $this->artisan('flux-icons:make-vendor', ['name' => 'hand-drawn'])
-        ->expectsOutputToContain("'hand-drawn' => \\App\\FluxIcons\\Vendors\\HandDrawn::class")
+        ->expectsOutputToContain("'hand-drawn' => \\{$this->namespace}\\FluxIcons\\Vendors\\HandDrawn::class")
         ->assertExitCode(0);
 
-    require "{$this->root}/app/FluxIcons/Vendors/HandDrawn.php";
-    $vendor = (new VendorRegistry(['hand-drawn' => HandDrawn::class]))->get('hand-drawn');
+    require "{$this->vendors}/HandDrawn.php";
+    $vendor = (new VendorRegistry(['hand-drawn' => "{$this->namespace}\\FluxIcons\\Vendors\\HandDrawn"]))->get('hand-drawn');
 
     expect($vendor)->toBeInstanceOf(Vendor::class)
         ->and($vendor->resolvedVariants()->missingFluxVariants())->toBe([]);
 });
 
 it('does not overwrite a vendor class that exists', function () {
-    File::ensureDirectoryExists("{$this->root}/app/FluxIcons/Vendors");
-    File::put("{$this->root}/app/FluxIcons/Vendors/Existing.php", '<?php // adjusted');
+    File::ensureDirectoryExists($this->vendors);
+    File::put("{$this->vendors}/Existing.php", '<?php // adjusted');
 
-    $this->artisan('flux-icons:make-vendor', ['name' => 'Existing', '--extends' => 'tabler'])->assertExitCode(1);
+    $this->artisan('flux-icons:make-vendor', ['name' => 'Existing', '--extends' => 'tabler'])
+        ->expectsOutputToContain('already exists');
 
-    expect(File::get("{$this->root}/app/FluxIcons/Vendors/Existing.php"))->toBe('<?php // adjusted');
+    expect(File::get("{$this->vendors}/Existing.php"))->toBe('<?php // adjusted');
+});
+
+it('overwrites a vendor class that exists when forced', function () {
+    File::ensureDirectoryExists($this->vendors);
+    File::put("{$this->vendors}/Existing.php", '<?php // adjusted');
+
+    $this->artisan('flux-icons:make-vendor', ['name' => 'Existing', '--extends' => 'tabler', '--force' => true])->assertExitCode(0);
+
+    expect(File::get("{$this->vendors}/Existing.php"))->toContain('class Existing extends Tabler');
 });
 
 it('fails for a vendor to extend that is not registered', function () {
     $this->artisan('flux-icons:make-vendor', ['name' => 'HouseStyle', '--extends' => 'nope'])
-        ->expectsOutputToContain("Vendor configuration for 'nope' not found.")
-        ->assertExitCode(1);
+        ->expectsOutputToContain("Vendor configuration for 'nope' not found.");
 
-    expect("{$this->root}/app/FluxIcons/Vendors/HouseStyle.php")->not->toBeFile();
+    expect("{$this->vendors}/HouseStyle.php")->not->toBeFile();
 });
 
-it('refuses a name that cannot be a class name', function () {
-    $this->artisan('flux-icons:make-vendor', ['name' => '3d-icons'])->assertExitCode(1);
+// like Laravel's make commands, a refusal prints why and exits with 0
+it('refuses a name that cannot be a class name', function (string $name, string $reason) {
+    $this->artisan('flux-icons:make-vendor', ['name' => $name])
+        ->expectsOutputToContain($reason);
 
-    expect("{$this->root}/app")->not->toBeDirectory();
+    expect($this->vendors)->not->toBeDirectory();
+})->with([
+    'starting with a digit' => ['3d-icons', "'3d-icons' is not a valid class name."],
+    'reserved by PHP' => ['list', 'The name "List" is reserved by PHP.'],
+    'imported by the new vendor' => ['template', 'would clash with the Template class it imports'],
+]);
+
+it('says to publish the config when the application has none', function () {
+    $this->artisan('flux-icons:make-vendor', ['name' => 'HouseStyle', '--extends' => 'tabler'])
+        ->expectsOutputToContain('php artisan vendor:publish --tag=flux-icons-config')
+        ->assertExitCode(0);
+});
+
+it('does not ask to publish a config the application already has', function () {
+    File::ensureDirectoryExists("{$this->root}/config");
+    File::put("{$this->root}/config/flux-icons.php", '<?php return [];');
+
+    $this->artisan('flux-icons:make-vendor', ['name' => 'HouseStyle', '--extends' => 'tabler'])
+        ->doesntExpectOutputToContain('vendor:publish')
+        ->assertExitCode(0);
 });
