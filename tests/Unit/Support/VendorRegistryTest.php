@@ -97,11 +97,32 @@ it('rejects a class that is not a vendor', function () {
     new VendorRegistry(['broken' => stdClass::class]);
 })->throws(InvalidArgumentException::class, 'must be registered as a subclass');
 
+it('explains that a v1 vendor array has to become a vendor class', function () {
+    new VendorRegistry(['tabler' => ['package' => '@tabler/icons']]);
+})->throws(InvalidArgumentException::class, 'Vendor [tabler] must map to a vendor class');
+
 it('accepts an already constructed vendor instance', function () {
     $vendor = new RegistryFixtureVendor;
     $registry = new VendorRegistry(['fixture' => $vendor]);
 
     expect($registry->get('fixture'))->toBe($vendor);
+});
+
+it('addresses a vendor by the key it is registered under', function (string|Vendor $vendor) {
+    $registered = (new VendorRegistry(['icons' => $vendor]))->get('icons');
+
+    expect($registered->key())->toBe('icons')
+        ->and($registered->namespace())->toBe('icons');
+})->with([
+    'as a class' => [Tabler::class],
+    'as an instance' => [fn () => new Tabler],
+]);
+
+it('keeps the namespace a vendor publishes to when it is registered under another key', function () {
+    $registered = (new VendorRegistry(['fixture' => RegistryFixtureVendor::class]))->get('fixture');
+
+    expect($registered->key())->toBe('fixture')
+        ->and($registered->namespace())->toBe('fixture-ns');
 });
 
 it('hands out the replacement when a key is registered again', function () {

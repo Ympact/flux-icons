@@ -38,11 +38,28 @@ abstract class Vendor
     */
 
     /**
-     * The key the vendor is addressed by on the command line.
+     * The key the vendor is registered under, set by VendorRegistry.
+     */
+    private ?string $registeredKey = null;
+
+    /**
+     * The key the vendor is addressed by on the command line: the one it is registered under
+     * in the config, or else its class name in kebab case.
      */
     public function key(): string
     {
-        return Str::kebab(class_basename(static::class));
+        return $this->registeredKey ?? Str::kebab(class_basename(static::class));
+    }
+
+    /**
+     * Address this vendor by the key it is registered under, so that a subclass registered
+     * as `tabler` still builds into the `tabler` namespace, as a v1 config key did.
+     */
+    public function registerAs(string $key): static
+    {
+        $this->registeredKey = $key;
+
+        return $this;
     }
 
     /**
