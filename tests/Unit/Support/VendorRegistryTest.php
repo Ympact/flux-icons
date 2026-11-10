@@ -105,7 +105,17 @@ it('accepts an already constructed vendor instance', function () {
     $vendor = new RegistryFixtureVendor;
     $registry = new VendorRegistry(['fixture' => $vendor]);
 
-    expect($registry->get('fixture'))->toBe($vendor);
+    expect($registry->get('fixture'))->toBeInstanceOf(RegistryFixtureVendor::class)
+        ->and($registry->get('fixture')->key())->toBe('fixture');
+});
+
+it('registers a copy of an instance, so one instance can sit under two keys', function () {
+    $vendor = new Tabler;
+    $registry = new VendorRegistry(['first' => $vendor, 'second' => $vendor]);
+
+    expect($registry->get('first')->namespace())->toBe('first')
+        ->and($registry->get('second')->namespace())->toBe('second')
+        ->and($vendor->key())->toBe('tabler');
 });
 
 it('addresses a vendor by the key it is registered under', function (string|Vendor $vendor) {

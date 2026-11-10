@@ -60,7 +60,8 @@ class VendorRegistry
     public function register(string $key, string|Vendor $vendor): static
     {
         if ($vendor instanceof Vendor) {
-            $this->resolved[$key] = $vendor->registerAs($key);
+            // a copy, so one instance registered under two keys answers to each
+            $this->resolved[$key] = (clone $vendor)->registerAs($key);
             $this->vendors[$key] = $vendor::class;
 
             return $this;
