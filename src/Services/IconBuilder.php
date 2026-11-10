@@ -318,7 +318,12 @@ class IconBuilder
                         continue;
                     }
 
-                    $file = $this->getVariantIconFile($fallback, $basename, $baseIcon);
+                    // the base icon was found by listing its own variant, so reuse its file rather
+                    // than looking it up by name: an MDI icon that is its own outline has no
+                    // `-outline` file for that lookup to find
+                    $file = $fallback === $this->baseVariant
+                        ? $baseIcon->getFile()
+                        : $this->getVariantIconFile($fallback, $basename, $baseIcon);
                     if (! $file) {
                         $this->verbose ? error("No source found for $basename $fallback. We cannot build this icon.") : null;
                         $build = false;
