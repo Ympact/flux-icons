@@ -51,6 +51,8 @@ class Source
      *
      * Needed for vendors that keep several variants in one directory, telling
      * them apart by their file name (Bootstrap's `-fill`, MDI's `-outline`).
+     * The filter receives the full path of each candidate, so it can look for
+     * sibling files as MDI does.
      *
      * @param  Closure(string $file): bool  $filter
      */
