@@ -4,6 +4,10 @@ All notable changes to this package are documented here. Releases before 1.2.1 a
 
 ## [1.2.1] - 2026-11-10
 
+### Changed
+
+- The fallback Blaze directives are not registered when a `@blaze` directive already exists. Blaze, and Flux 2 itself, register directives with the same effect, so rendering does not change.
+
 ### Fixed
 
 - **MDI icons that are their own outline are built.** An MDI icon without an `-outline` sibling serves as its own outline, but its fallback looked for `{name}-outline.svg` and skipped the icon, with a message only under `-v`: 3,618 of the 5,558 icons in `@mdi/svg` 7.4.47. A fallback to the base variant now reuses the file the icon was read from. ([#38](https://github.com/Ympact/flux-icons/issues/38), [#39](https://github.com/Ympact/flux-icons/pull/39))
