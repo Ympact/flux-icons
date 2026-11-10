@@ -10,7 +10,7 @@ use Ympact\FluxIcons\Support\VendorRegistry;
 use Ympact\FluxIcons\Vendors\Tabler;
 
 // every test gets an application namespace of its own, so the classes it generates and
-// loads never collide with another test's, also under --repeat
+// loads never collide with another test's, also when a test is repeated with ->repeat()
 beforeEach(function () {
     $this->root = sys_get_temp_dir().'/flux-icons-make-vendor-'.Str::random(8);
     $this->namespace = 'Site'.Str::random(8);
