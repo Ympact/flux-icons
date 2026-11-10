@@ -64,3 +64,14 @@ jobs:
 
       - name: Run tests (Pest)
         run: ./vendor/bin/pest --colors=always -v
+
+      # Pest 3 and 4 write a missing snapshot and pass the test as incomplete, which does not
+      # fail the run, so an uncommitted or differently named snapshot would go unnoticed
+      - name: Check that the tests wrote no snapshots
+        run: |
+          written=$(git status --porcelain --untracked-files=all -- tests/.pest/snapshots)
+          if [ -n "$written" ]; then
+            echo "::error::The tests wrote snapshots that are not committed. Commit them; if they appear on one Pest version only, that version names them differently."
+            echo "$written"
+            exit 1
+          fi
