@@ -200,7 +200,9 @@ are taken, each overriding the one before, from:
    `clip-rule`, where nothing above set them
 5. the variant's `attributes()`, then the vendor class's `attributes()` hook
 
-A `null` value removes an attribute. Beyond those four, only the `viewBox` is
+A `null` value in step 5 removes an attribute. A stroke without a linecap or
+linejoin sets none, which leaves the vendor's own from step 4 in place: that is how
+Lucide keeps its round caps. Beyond those four, only the `viewBox` is
 taken from the vendor's root. Its width, height, fill, stroke and stroke width give
 way to Flux's size classes, the template and the stroke, so the icon follows
 `currentColor` and the variant's stroke width.
