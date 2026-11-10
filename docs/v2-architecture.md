@@ -9,9 +9,10 @@ next step and is tracked on the v2 milestone.
 
 ## Baseline
 
-v2 follows `livewire/flux` v2, except that it leaves out PHP 8.1 and Laravel 10.
-Both are past their security support, and Laravel 10 is the only Laravel that
-still runs on PHP 8.1.
+v2 follows `livewire/flux` v2, except that it requires PHP 8.2, the lowest PHP
+Laravel 12 supports. That leaves out Laravel 10, the only Laravel that still runs
+on PHP 8.1. Laravel 11 stays allowed, to stay in step with Flux, but is not tested:
+it is past its security support, and Composer refuses to install its releases.
 
 | | |
 |---|---|

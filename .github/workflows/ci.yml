@@ -23,7 +23,7 @@ jobs:
         # resolve at all. The composer.json constraint still allows ^11 to stay in
         # step with livewire/flux, it is simply no longer testable.
         laravel: ['12', '13']
-        # v2 targets the same baseline as livewire/flux v2
+        # v2 supports Flux 2 only
         flux: ['2']
 
         # Laravel 13 requires PHP 8.3

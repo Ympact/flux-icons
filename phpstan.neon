@@ -1,6 +1,6 @@
 parameters:
   level: 7
-  # the PHP versions composer.json allows, so syntax newer than the lowest is reported
+  # the PHP versions CI runs, from the ^8.2 floor up, so syntax newer than 8.2 is reported
   phpVersion:
     min: 80200
     max: 80599
