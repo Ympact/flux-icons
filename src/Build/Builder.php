@@ -15,7 +15,8 @@ use Ympact\FluxIcons\Variants\VariantSet;
  *
  * Every icon of the vendor's default variant becomes one component holding the four
  * variants Flux asks for. An icon is skipped when one of them has neither a source nor a
- * fallback. Vendor variants such as duotone reach the component with #18.
+ * fallback, or when an earlier icon took its published name. Vendor variants such as
+ * duotone reach the component with #18.
  */
 class Builder
 {

@@ -180,7 +180,9 @@ an MDI icon without an `-outline` sibling is its own outline, so there is no
 outline file to look up by name. A variant that falls back is drawn exactly as
 the variant it falls back to: with its template, stroke and attributes. An icon
 with a Flux variant that has neither a file nor a fallback is skipped, and the
-result says which variant was missing.
+result says which variant was missing. When `iconName()` publishes two icons under
+one name, the first keeps it and the second is skipped. A vendor whose package is
+not installed throws a `RuntimeException` instead of building nothing.
 `IconsBuilt` is dispatched once per build, with the published names, when
 anything was written.
 
