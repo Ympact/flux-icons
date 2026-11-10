@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\File;
 use PHPUnit\Framework\Assert;
 use Tests\TestCase;
 use Ympact\FluxIcons\Services\IconBuilder;
@@ -149,4 +150,65 @@ function removeDirectory(string $dir): void
 function writeComposerLock(string $dir, array $data): void
 {
     file_put_contents($dir.'/composer.lock', json_encode($data, JSON_PRETTY_PRINT));
+}
+
+/**
+ * Point the application at a temporary project that holds the alpha fixture icons and a
+ * stand-in `npm` logging its calls, so commands run without writing into the package.
+ * FAKE_NPM_UPDATE_EXIT sets the exit status of `npm update`.
+ */
+function enterTemporaryProject(): string
+{
+    $project = sys_get_temp_dir().'/flux-icons-'.uniqid();
+
+    File::copyDirectory(fixturePath('vendor/alpha'), $project.'/tests/vendor/alpha');
+    File::put($project.'/package-lock.json', '{"packages": {}}');
+    writeComposerLock($project, ['packages' => [
+        ['name' => 'livewire/flux', 'version' => 'v2.13.1', 'authors' => [['name' => 'Caleb Porzio']]],
+    ]]);
+
+    File::makeDirectory($project.'/bin');
+    File::put($project.'/bin/npm', implode("\n", [
+        '#!/bin/sh',
+        'echo "$@" >> "'.$project.'/npm.log"',
+        '[ "$1" = update ] && exit "${FAKE_NPM_UPDATE_EXIT:-0}"',
+        'exit 0',
+        '',
+    ]));
+    chmod($project.'/bin/npm', 0755);
+    putenv('PATH='.$project.'/bin'.PATH_SEPARATOR.getenv('PATH'));
+
+    app()->setBasePath($project);
+
+    return $project;
+}
+
+function leaveTemporaryProject(string $project): void
+{
+    putenv('PATH='.str_replace($project.'/bin'.PATH_SEPARATOR, '', (string) getenv('PATH')));
+    putenv('FAKE_NPM_UPDATE_EXIT');
+
+    File::deleteDirectory($project);
+}
+
+/**
+ * @return array<int,string> the arguments of every call to the stand-in npm
+ */
+function npmCalls(string $project): array
+{
+    $log = $project.'/npm.log';
+
+    return is_file($log) ? file($log, FILE_IGNORE_NEW_LINES) : [];
+}
+
+/**
+ * @return array<int,string> the names of the components built for a namespace
+ */
+function builtIcons(string $namespace): array
+{
+    return collect(glob(resource_path("views/flux/icon/{$namespace}/*.blade.php")))
+        ->map(fn ($file) => basename($file, '.blade.php'))
+        ->sort()
+        ->values()
+        ->all();
 }

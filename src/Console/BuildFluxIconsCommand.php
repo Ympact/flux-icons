@@ -113,7 +113,8 @@ class BuildFluxIconsCommand extends Command
             }
         }
 
-        if ($merge) {
+        // null stands for every icon of the vendor, which leaves nothing to merge
+        if ($merge && $icons !== null) {
             $icons = $this->mergeWithConfiguredIcons($icons, $configVendorIcons);
         }
 
@@ -158,7 +159,7 @@ class BuildFluxIconsCommand extends Command
 
         return collect(is_string($icons) ? explode(',', $icons) : $icons)
             ->map(fn ($icon) => trim((string) $icon))
-            ->filter()
+            ->filter(fn ($icon) => $icon !== '')
             ->values()
             ->all();
     }

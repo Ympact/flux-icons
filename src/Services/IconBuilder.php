@@ -228,7 +228,9 @@ class IconBuilder
             $icons = $this->icons;
 
             $baseIcons = $baseIcons->filter(function (Icon $icon) use ($icons) {
-                return in_array($icon->getName(), $icons) || in_array($icon->getBaseName(), $icons);
+                return in_array($icon->getName(), $icons)
+                    || in_array($icon->getBaseName(), $icons)
+                    || in_array($this->builtName($icon), $icons);
             });
 
             if ($this->verbose) {
@@ -251,7 +253,8 @@ class IconBuilder
                 $time = round($baseIcons->count() / 3);
 
                 info("In case npm run dev is running, we'll introduce a timeout between processing icons to prevent memory issues. \nThis will make this script take $time seconds. \nIt is better to stop `npm run dev` first before continuing.");
-                $npmRunning = confirm('Is `npm run dev` running?');
+                // defaults to no, so a run without a terminal does not pause
+                $npmRunning = confirm('Is `npm run dev` running?', default: false);
             }
         }
 
@@ -277,11 +280,23 @@ class IconBuilder
         // write empty line
         $this->output->writeln('');
 
-        // ask to start running npm run dev again
-        if (config("{$this->config}.request_npm_dev") && $npmRunning && confirm('Do you want to start `npm run dev`?')) {
-            exec('npm run dev', $output, $result);
+        if ($npmRunning) {
+            info('In case `npm run dev` stopped during the build, start it again.');
         }
 
+    }
+
+    /**
+     * The name an icon is built under: its basename, unless the vendor's `icon_name`
+     * callback renames it.
+     */
+    protected function builtName(Icon $icon): string
+    {
+        $nameCallback = config("{$this->vendorConfig}.icon_name");
+
+        return $nameCallback
+            ? (string) call_user_func_array($nameCallback, [$icon])
+            : (string) $icon->getBaseName();
     }
 
     /**
@@ -353,10 +368,7 @@ class IconBuilder
             $iconBladeFile = $iconBladeFile->replace('{'.Str::upper($variant).'}', $svg);
         }
 
-        // if there is a name callback, call it to rename the icon
-        if ($nameCallback = config("{$this->vendorConfig}.icon_name")) {
-            $basename = call_user_func_array($nameCallback, [$icon]);
-        }
+        $basename = $this->builtName($icon);
 
         $infoUsage = "<flux:icon.{$this->namespace}.{$basename} /> or <flux:icon name=\"{$this->namespace}.{$basename}\" />";
 

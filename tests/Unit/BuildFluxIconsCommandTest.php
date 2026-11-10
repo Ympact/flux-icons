@@ -60,3 +60,8 @@ it('trims whitespace and drops empty entries from an icon list', function () {
     expect(iconListHelper()->normalize(' home , , star '))
         ->toBe(['home', 'star']);
 });
+
+it('keeps an icon named 0', function () {
+    expect(iconListHelper()->normalize('0,home'))
+        ->toBe(['0', 'home']);
+});

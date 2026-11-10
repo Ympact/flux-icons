@@ -21,7 +21,7 @@ composer require --dev ympact/flux-icons
 | Flowbite     | `flowbite`  | [Preview](https://flowbite.com/icons/) |  |
 | Flags        | `flags`     |  [Repo](https://github.com/lipis/flag-icons/) | There is only one variant (solid and outline show the same flag). Currently the 4x3 AR version is configured. The rectangle version can also be used by adjusting the config |
 | Fluent UI    | `fluent`    | [Preview (unofficial)](https://fluenticons.co/) - [Repo](https://github.com/microsoft/fluentui-system-icons) | Stroke width of outline icons cannot be adjusted |
-| Google Material Design Icons | `material-icons` | [Preview](https://fonts.google.com/icons) | Stroke width of outline icons cannot be adjusted |
+| Google Material Design Icons | `material` | [Preview](https://fonts.google.com/icons) | Stroke width of outline icons cannot be adjusted |
 | Google Material Symbols (300) | `material-symbols` | [Preview](https://fonts.google.com/icons?icon.set=Material+Symbols) | Stroke width of outline icons cannot be adjusted |
 | Healthicons  | `healthicons` | [Preview](https://healthicons.org) | Stroke width cannot be adjusted. |
 | Lucide       | `lucide`    | [Preview](https://lucide.dev/icons/) | Only outline icons available |
@@ -45,10 +45,24 @@ In case you did not provide any arguments, the script will walk you through all 
 
 | Option          | Description                                                                                        |
 |-----------------|----------------------------------------------------------------------------------------------------|
-| `--icons=`      | The icons to build (single or comma separated list). Cannot be used in combination with `--all`. |
-| `-m\|--merge`   | Merge the icons listed in the `--icons` option with the icons defined in the config. Cannot be used in combination with `--all`. |
-| `-a\|--all`     | Build all icons from the vendor. **Note:** this might generate over thousands of files and cause `npm run dev` to crash due to memory issues. |
+| `-I\|--icons=` | The icons to build (single or comma separated list). Cannot be used in combination with `--all`. |
+| `-M\|--merge`   | Merge the icons listed in the `--icons` option with the icons defined in the config. Cannot be used in combination with `--all`. |
+| `-A\|--all`     | Build all icons from the vendor. **Note:** this might generate over thousands of files and cause `npm run dev` to crash due to memory issues. |
 | `-v\|--verbose` | Show additional messages during build. |
+
+### Updating icons
+
+`flux-icons:update` updates the npm package of every vendor that has built icons and rebuilds those icons.
+
+```cmd
+php artisan flux-icons:update --vendor=tabler,lucide
+```
+
+| Option          | Description                                                                                        |
+|-----------------|----------------------------------------------------------------------------------------------------|
+| `-P\|--vendor=` | Limit the update to these vendors (single or comma separated list), named by config key or by the directory their icons were built into. |
+
+The command exits with status 1 when a package could not be updated, a vendor's icons could not be rebuilt, or a directory named with `--vendor` belongs to no configured vendor.
 
 ### Usage
 
@@ -86,6 +100,7 @@ When adjusting the callback for a vendor, make sure you also publish the config 
 | Option     | Valaue     | Description                                                                 |
 |------------|------------|-----------------------------------------------------------------------------|
 | `icons`    |  `null` or `['vendorName' => ['icon-name', ...] ]` | A list of icons that will be build/updated by default in case no icons are passed to `flux-icons:build` command.  |
+| `request_npm_dev` | `bool` | Before a build of more than 100 icons, ask whether `npm run dev` is running and, if so, pause a third of a second between icons so the dev server keeps up. The answer defaults to no, which is also what a run without a terminal gets. Enabled by default. |
 | `default_stroke_width` | `float` | For outline icons a default stroke width can be configured. The default Flux Heroicons uses a width of 1.5. |
 
 ### Vendor specific configuration
