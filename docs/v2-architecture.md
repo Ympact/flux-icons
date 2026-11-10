@@ -126,10 +126,12 @@ multitone (`Variant::isMultitone()`).
 | `Sources\Source` | directory, prefix, suffix and an optional filter, resolved relative to the package root so a vendor names its package once. |
 
 `basedOn()` replaces v1's `base` config key. Inheritance copies template, source,
-stroke, fallback, fills and attributes. It deliberately leaves size and classes
+stroke and fallback, and merges attributes. It deliberately leaves size and classes
 alone, so `mini` stays 20px even when it derives from a solid variant that was
 resized. A variant that sets its own stroke keeps it even when its parent has the
-stroke disabled.
+stroke disabled. Fills are inherited all or nothing: a parent's layers have no safe
+position in a child's layer list, so a variant that defines any fill replaces the
+inherited set rather than adding to it.
 
 `VariantSet::resolve()` applies that inheritance. Each variant is resolved after
 whatever it is based on, in any definition order and through chains of any depth;
