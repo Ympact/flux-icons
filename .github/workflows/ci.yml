@@ -17,7 +17,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        php: [8.3, 8.4, 8.5]
+        php: [8.2, 8.3, 8.4, 8.5]
         # Laravel 11 is past its security support window: every 11.x release carries
         # unpatched advisories, which Composer refuses to install, so the leg cannot
         # resolve at all. The composer.json constraint still allows ^11 to stay in
@@ -26,6 +26,10 @@ jobs:
         # v2 targets the same baseline as livewire/flux v2
         flux: ['2']
 
+        # Laravel 13 requires PHP 8.3
+        exclude:
+          - php: 8.2
+            laravel: '13'
         include:
           - laravel: '13'
             experimental: true

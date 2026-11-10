@@ -1,5 +1,9 @@
 parameters:
   level: 7
+  # the PHP versions composer.json allows, so syntax newer than the lowest is reported
+  phpVersion:
+    min: 80200
+    max: 80599
   paths:
     - src
 

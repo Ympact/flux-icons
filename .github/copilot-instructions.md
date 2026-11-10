@@ -35,8 +35,10 @@ Tests run on Pest (`composer test`).
 
 Please do not report these as problems.
 
-- `php ^8.1` and `illuminate/* ^10|^11|^12|^13` intentionally mirror what
-  `livewire/flux` v2 itself declares. Do not suggest raising or narrowing them.
+- `php ^8.2` and `illuminate/* ^11|^12|^13` follow `livewire/flux` v2 minus PHP
+  8.1 and Laravel 10, which are past their security support. Laravel 10 apps
+  stay on the 1.x line. PHPStan checks `src/` against the whole PHP range in
+  `phpVersion`. Do not suggest widening the constraints.
 - Laravel 11 is absent from the CI matrix on purpose: it is past its security
   support window, so every 11.x release carries unpatched advisories that
   Composer refuses to install. The composer constraint still allows `^11` so the
