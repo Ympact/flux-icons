@@ -5,6 +5,10 @@ namespace Ympact\FluxIcons\Services;
 use Illuminate\Support\Facades\File;
 use Ympact\FluxIcons\Contracts\Vendor;
 
+/**
+ * Reads the installed Flux version from composer.lock, and installs and updates the npm
+ * packages vendors draw their icons from.
+ */
 class PackageManager
 {
     /**
