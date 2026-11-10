@@ -236,6 +236,19 @@ php artisan vendor:publish --tag=flux-icons-icons
   - **name** `(string)`: instead of an icon two initials of a name will be shown. You can pass the full name (Maurits Korse) or just the initials (MK)
   - **color** `(string)`: colorizing the icon using the same as Flux badges
 
+## Events
+
+After a build has written at least one icon, `Ympact\FluxIcons\Events\IconsBuilt` is dispatched. Listen for it to refresh anything that catalogues your icons, such as a cache.
+
+| Property | Description |
+| --- | --- |
+| `vendor` | The vendor's key in the config, e.g. `tabler`. |
+| `namespace` | The directory the icons were written to, and their prefix: `<flux:icon.{namespace}.{name} />`. |
+| `directory` | The absolute path of that directory. |
+| `icons` | The names of the icons written. |
+
+A build that writes nothing, for example because no requested icon exists, dispatches nothing.
+
 ## Roadmap
 
 - Add/Improve command for updating/rebuilding icons
