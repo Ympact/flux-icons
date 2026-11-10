@@ -6,8 +6,8 @@ use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
 use Ympact\FluxIcons\Build\Builder;
 use Ympact\FluxIcons\Events\IconsBuilt;
-use Ympact\FluxIcons\Sources\Source;
 use Ympact\FluxIcons\Services\IconBuilder;
+use Ympact\FluxIcons\Sources\Source;
 use Ympact\FluxIcons\Tests\Fixtures\Vendors\Alpha;
 use Ympact\FluxIcons\Tests\Fixtures\Vendors\Beta;
 use Ympact\FluxIcons\Tests\Fixtures\Vendors\Epsilon;
@@ -262,3 +262,15 @@ it('finds the icons of a package whose path holds glob characters', function () 
     expect($result->built)->toBe(['arrow-left', 'dots', 'home'])
         ->and(componentsIn("{$this->output}/glob/alpha"))->toBe(componentsIn("{$this->output}/alpha"));
 });
+
+it('refuses a vendor whose package is not installed, rather than building nothing', function () {
+    $vendor = new class extends Alpha
+    {
+        public function package(): string
+        {
+            return 'not-installed';
+        }
+    };
+
+    $this->builder->build($vendor);
+})->throws(RuntimeException::class, 'The npm package not-installed is not installed');

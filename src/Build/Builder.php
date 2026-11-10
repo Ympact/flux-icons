@@ -3,6 +3,7 @@
 namespace Ympact\FluxIcons\Build;
 
 use Closure;
+use RuntimeException;
 use Ympact\FluxIcons\Contracts\Vendor;
 use Ympact\FluxIcons\Events\IconsBuilt;
 use Ympact\FluxIcons\Services\PackageManager;
@@ -40,10 +41,16 @@ class Builder
      * @param  array<int, string>|null  $icons  The icons to build, by name, file name or published
      *                                          name; null builds every icon the vendor ships.
      * @param  (Closure(string): void)|null  $progress  Called with each icon's name once it is handled.
+     *
+     * @throws RuntimeException When the vendor's npm package is not installed.
      */
     public function build(Vendor $vendor, ?array $icons = null, ?Closure $progress = null): BuildResult
     {
         $packageRoot = $this->packagesPath.'/'.$vendor->package();
+
+        if (! is_dir($packageRoot)) {
+            throw new RuntimeException("The npm package {$vendor->package()} is not installed in {$this->packagesPath}.");
+        }
         $resolver = new SourceResolver(rtrim($packageRoot.'/'.$vendor->basePath(), '/'));
         $variants = $vendor->resolvedVariants();
 
