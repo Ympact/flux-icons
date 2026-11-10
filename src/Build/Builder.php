@@ -5,6 +5,7 @@ namespace Ympact\FluxIcons\Build;
 use Closure;
 use Ympact\FluxIcons\Contracts\Vendor;
 use Ympact\FluxIcons\Events\IconsBuilt;
+use Ympact\FluxIcons\Services\PackageManager;
 use Ympact\FluxIcons\Variants\Variant;
 use Ympact\FluxIcons\Variants\VariantSet;
 
@@ -17,6 +18,9 @@ use Ympact\FluxIcons\Variants\VariantSet;
  */
 class Builder
 {
+    /** The first Flux version whose icon components take the `@blaze` directive. */
+    protected const BLAZE_SINCE = '2.2.6';
+
     protected string $packagesPath;
 
     protected string $outputPath;
@@ -46,7 +50,7 @@ class Builder
         [$selected, $missing] = $this->select($vendor, $resolver->icons($variants->default()), $icons);
 
         $directory = $this->outputPath.'/'.$vendor->namespace();
-        $credits = [$this->credits->package($packageRoot), $this->credits->flux()];
+        $header = [$this->credits->package($packageRoot), $this->credits->flux(), PackageManager::fluxVersionAtLeast(self::BLAZE_SINCE)];
         $built = [];
         $skipped = [];
 
@@ -57,7 +61,7 @@ class Builder
                 $skipped[$name] = $markup;
             } else {
                 $published = $vendor->iconName($name);
-                $this->writer->write($directory, $vendor->namespace(), $published, $markup, ...$credits);
+                $this->writer->write($directory, $vendor->namespace(), $published, $markup, ...$header);
                 $built[] = $published;
             }
 

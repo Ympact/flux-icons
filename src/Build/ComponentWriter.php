@@ -4,24 +4,26 @@ namespace Ympact\FluxIcons\Build;
 
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
-use Ympact\FluxIcons\Services\PackageManager;
 
 /**
  * Writes the Blade component of one icon from the stub and the markup of its variants.
  */
 class ComponentWriter
 {
+    protected ?string $template = null;
+
     public function __construct(
         protected string $stub = __DIR__.'/../../resources/stubs/icon.blade.stub',
     ) {}
 
     /**
      * @param  array<string, string>  $variants  The <svg> markup of each Flux variant.
+     * @param  bool  $blaze  Whether the installed Flux compiles components with Blaze.
      * @return string The path of the component written.
      */
-    public function write(string $directory, string $namespace, string $name, array $variants, string $credits, string $fluxCredits): string
+    public function write(string $directory, string $namespace, string $name, array $variants, string $credits, string $fluxCredits, bool $blaze): string
     {
-        $component = Str::of(File::get($this->stub));
+        $component = Str::of($this->template ??= File::get($this->stub));
 
         foreach ($variants as $variant => $svg) {
             // only the outer <svg> takes the component's attributes; a raw icon nests the source's own
@@ -35,7 +37,7 @@ class ComponentWriter
             ->replace('{INFO_CREDITS}', $credits)
             ->replace('{INFO_FLUX_VERSION}', $fluxCredits)
             ->replace('{INFO_BUILD_DATE}', now()->format('Y-m-d H:i:s'))
-            ->replace('{BLAZE}', PackageManager::fluxVersionAtLeast('2.2.6') ? '@blaze' : '');
+            ->replace('{BLAZE}', $blaze ? '@blaze' : '');
 
         File::ensureDirectoryExists($directory);
         File::put($path = "{$directory}/{$name}.blade.php", (string) $component);

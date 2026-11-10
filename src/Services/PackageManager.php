@@ -6,18 +6,31 @@ use Illuminate\Support\Facades\File;
 
 class PackageManager
 {
-    public static function fluxVersion()
+    /**
+     * The livewire/flux entry of the application's composer.lock: null when there is no lock
+     * or it does not list Flux.
+     *
+     * @return array<string, mixed>|null
+     */
+    public static function fluxPackage(): ?array
     {
-        $composerFile = base_path('composer.lock');
+        $lock = base_path('composer.lock');
 
-        if (! File::exists($composerFile)) {
-            throw new \RuntimeException("composer.lock not found. Can't determine Livewire\Flux version.");
+        if (! File::exists($lock)) {
+            return null;
         }
-        $composerLock = json_decode(file_get_contents($composerFile), true);
-        $packages = collect($composerLock['packages']);
-        $fluxPackage = $packages->firstWhere('name', 'livewire/flux');
 
-        return $fluxPackage['version'] ?? null;
+        $packages = (array) (json_decode((string) file_get_contents($lock), true)['packages'] ?? []);
+        $flux = collect($packages)->firstWhere('name', 'livewire/flux');
+
+        return is_array($flux) ? $flux : null;
+    }
+
+    public static function fluxVersion(): ?string
+    {
+        $version = static::fluxPackage()['version'] ?? null;
+
+        return is_string($version) ? $version : null;
     }
 
     /**
