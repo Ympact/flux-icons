@@ -1,6 +1,7 @@
 <?php
 
 use Ympact\FluxIcons\Types\Icon;
+use Ympact\FluxIcons\Types\SvgPath;
 
 /**
  * A suffix callback in the shape the v1 array config used, which Icon still accepts.
@@ -140,6 +141,15 @@ it('accepts path attributes without throwing', function () {
     $icon = new Icon(alphaIconConfig(), 'outline', alphaOutlineFile());
 
     expect(fn () => $icon->process()->setPathAttributes(['data-test' => 'yes']))->not->toThrow(Throwable::class);
+});
+
+it('keeps its paths when path attributes are set', function () {
+    $icon = new Icon(alphaIconConfig(), 'outline', alphaOutlineFile());
+    $icon->process()->setPathAttributes(['data-test' => 'yes']);
+
+    expect($icon->getPaths())->not->toBeEmpty()
+        ->each->toBeInstanceOf(SvgPath::class)
+        ->and($icon->toHtml())->toContain('data-test="yes"');
 });
 
 it('sets the stroke width directly', function () {
