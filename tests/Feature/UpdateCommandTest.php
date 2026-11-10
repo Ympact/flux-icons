@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\File;
 use Ympact\FluxIcons\FluxIconsServiceProvider;
 use Ympact\FluxIcons\Services\IconBuilder;
+use Ympact\FluxIcons\Services\Vendors\Healthicons;
 
 /*
  * Updates a project in which one alpha icon (home) has been built.
@@ -48,4 +49,24 @@ it('refuses an empty --vendor instead of updating every vendor', function () {
 
     expect(npmCalls($this->project))->not->toContain('update alpha/icons -s')
         ->and(File::get($this->component))->toBe('stale');
+});
+
+it('rebuilds an icon that the icon_name callback renamed', function () {
+    Config::set('flux-icons.vendors.alpha.icon_name', [Healthicons::class, 'name']);
+
+    foreach (['outline', 'filled'] as $directory) {
+        File::copy(
+            "{$this->project}/tests/vendor/alpha/icons/{$directory}/home.svg",
+            "{$this->project}/tests/vendor/alpha/icons/{$directory}/home_alt.svg"
+        );
+    }
+
+    (new IconBuilder('alpha', ['home_alt']))->buildIcons();
+
+    $renamed = resource_path('views/flux/icon/alpha/home-alt.blade.php');
+    File::put($renamed, 'stale');
+
+    $this->artisan('flux-icons:update')->assertExitCode(0);
+
+    expect(File::get($renamed))->toContain('<svg');
 });
