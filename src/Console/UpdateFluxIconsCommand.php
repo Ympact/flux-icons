@@ -25,10 +25,18 @@ class UpdateFluxIconsCommand extends Command
 
         $vendors = $currentVendors;
 
-        if ($vendorOption = $this->option('vendor')) {
+        $vendorOption = $this->option('vendor');
+
+        if ($vendorOption !== null) {
             $requested = collect(is_array($vendorOption) ? $vendorOption : explode(',', (string) $vendorOption))
                 ->map(fn ($vendor) => trim((string) $vendor))
                 ->filter();
+
+            if ($requested->isEmpty()) {
+                error('The --vendor option needs at least one vendor.');
+
+                return 1;
+            }
 
             // accept both the config key and the directory the icons were built into
             $keysByDirectory = $currentVendors->mapWithKeys(
@@ -57,8 +65,10 @@ class UpdateFluxIconsCommand extends Command
 
         $installedIcons = IconManager::installedIcons($vendors);
 
+        $failedVendors = [];
+
         info('Updating the packages');
-        $installedIcons->each(function ($vendorIcons, $vendor) use ($verbose) {
+        $installedIcons->each(function ($vendorIcons, $vendor) use ($verbose, &$failedVendors) {
             // built icons live in a directory named after the vendor's namespace,
             // which is not necessarily the key used in the config
             $vendorKey = IconManager::resolveVendorKey($vendor);
@@ -69,19 +79,17 @@ class UpdateFluxIconsCommand extends Command
                 return;
             }
 
-            // update the npm packages
-            $this->components->task(
-                'Updating package '.$vendorKey,
-                function () use ($vendorKey, $verbose) {
-                    try {
-                        return PackageManager::updateVendorPackage($vendorKey, $verbose);
-                    } catch (\RuntimeException $e) {
-                        error("Failed to update the package for: $vendorKey. ".$e->getMessage());
-
-                        return false;
-                    }
-                }
-            );
+            // update the npm packages; the exception leaves the task so that it is labelled
+            // as failed on every supported Laravel version
+            try {
+                $this->components->task(
+                    'Updating package '.$vendorKey,
+                    fn () => PackageManager::updateVendorPackage($vendorKey, $verbose)
+                );
+            } catch (\RuntimeException $e) {
+                error("Failed to update the package for: $vendorKey. ".$e->getMessage());
+                $failedVendors[] = $vendorKey;
+            }
 
             // update the icons
             info('Updating '.count($vendorIcons).' icons for '.$vendorKey);
@@ -94,10 +102,11 @@ class UpdateFluxIconsCommand extends Command
 
             } catch (\Throwable $e) {
                 error("Failed to update the icons for: $vendorKey. ".$e->getMessage());
+                $failedVendors[] = $vendorKey;
             }
 
         });
 
-        return 0;
+        return $failedVendors ? 1 : 0;
     }
 }
