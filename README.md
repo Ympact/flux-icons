@@ -140,8 +140,11 @@ This writes `app/FluxIcons/Vendors/Tabler.php`, a subclass of the registered ven
 For example, a heavier stroke for Tabler's outline icons:
 
 ```php
+namespace App\FluxIcons\Vendors;
+
 use Ympact\FluxIcons\Variants\Stroke;
 use Ympact\FluxIcons\Variants\VariantSet;
+use Ympact\FluxIcons\Vendors\Tabler as BaseVendor;
 
 class Tabler extends BaseVendor
 {
