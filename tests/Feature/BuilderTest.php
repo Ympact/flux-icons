@@ -223,3 +223,26 @@ it('skips an icon whose fallbacks lead back to a variant already tried', functio
     expect($result->built)->toBe([])
         ->and($result->skipped)->toBe(['dots' => 'no source for its solid variant']);
 });
+
+it('keeps the first icon when two are published under one name', function () {
+    $vendor = new class extends Alpha
+    {
+        public function key(): string
+        {
+            return 'alpha';
+        }
+
+        public function iconName(string $name): string
+        {
+            return $name === 'dots' ? 'home' : $name;
+        }
+    };
+
+    $result = $this->builder->build($vendor);
+
+    expect($result->built)->toBe(['arrow-left', 'home'])
+        ->and($result->skipped)->toBe(['home' => 'dots is already published as home'])
+        ->and((string) file_get_contents("{$this->output}/alpha/home.blade.php"))
+        ->toContain('cx="5"')
+        ->not->toContain('M3 9.5');
+});

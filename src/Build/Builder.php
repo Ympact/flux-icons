@@ -51,24 +51,30 @@ class Builder
 
         $directory = $this->outputPath.'/'.$vendor->namespace();
         $header = [$this->credits->package($packageRoot), $this->credits->flux(), PackageManager::fluxVersionAtLeast(self::BLAZE_SINCE)];
-        $built = [];
+        $publishedFrom = [];
         $skipped = [];
 
         foreach ($selected as $name => $file) {
-            $markup = $this->renderVariants($vendor, $variants, $resolver, $name, $file);
+            $published = $vendor->iconName($name);
+
+            // iconName() can map two files to one name; the first keeps it rather than being overwritten
+            $markup = isset($publishedFrom[$published])
+                ? "{$publishedFrom[$published]} is already published as {$published}"
+                : $this->renderVariants($vendor, $variants, $resolver, $name, $file);
 
             if (is_string($markup)) {
                 $skipped[$name] = $markup;
             } else {
-                $published = $vendor->iconName($name);
                 $this->writer->write($directory, $vendor->namespace(), $published, $markup, ...$header);
-                $built[] = $published;
+                $publishedFrom[$published] = $name;
             }
 
             if ($progress !== null) {
                 $progress($name);
             }
         }
+
+        $built = array_map('strval', array_keys($publishedFrom));
 
         if ($built !== []) {
             IconsBuilt::dispatch($vendor->key(), $vendor->namespace(), $directory, $built);
