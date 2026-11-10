@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
 use Ympact\FluxIcons\Build\Builder;
 use Ympact\FluxIcons\Events\IconsBuilt;
+use Ympact\FluxIcons\Sources\Source;
 use Ympact\FluxIcons\Services\IconBuilder;
 use Ympact\FluxIcons\Tests\Fixtures\Vendors\Alpha;
 use Ympact\FluxIcons\Tests\Fixtures\Vendors\Beta;
@@ -169,4 +170,56 @@ it('draws a variant that falls back exactly as the variant it falls back to', fu
     expect($slots['outline'])->toContain('stroke-linecap="round"')
         ->and($slots['solid'])->toBe($slots['outline'])
         ->and($slots['micro'])->toBe($slots['outline']);
+});
+
+it('follows a fallback that itself falls back', function () {
+    $vendor = new class extends Alpha
+    {
+        public function key(): string
+        {
+            return 'alpha';
+        }
+
+        public function variants(): VariantSet
+        {
+            return parent::variants()->variant('mini', fn (Variant $variant) => $variant
+                ->source(Source::dir('mini'))
+                ->fallback(Fallback::variant('solid'))
+            );
+        }
+    };
+
+    $result = $this->builder->build($vendor, ['dots']);
+
+    expect($result->built)->toBe(['dots']);
+
+    preg_match_all("/case \\('(\\w+)'\\): \\?>\\s*(.*?)\\s*<\\?php break; \\?>/s", (string) file_get_contents("{$this->output}/alpha/dots.blade.php"), $slots);
+    $slots = array_combine($slots[1], $slots[2]);
+
+    expect($slots['mini'])->toBe($slots['outline']);
+});
+
+it('skips an icon whose fallbacks lead back to a variant already tried', function () {
+    $vendor = new class extends Alpha
+    {
+        public function key(): string
+        {
+            return 'alpha';
+        }
+
+        public function variants(): VariantSet
+        {
+            return parent::variants()
+                ->variant('solid', fn (Variant $variant) => $variant->fallback(Fallback::variant('mini')))
+                ->variant('mini', fn (Variant $variant) => $variant
+                    ->source(Source::dir('mini'))
+                    ->fallback(Fallback::variant('solid'))
+                );
+        }
+    };
+
+    $result = $this->builder->build($vendor, ['dots']);
+
+    expect($result->built)->toBe([])
+        ->and($result->skipped)->toBe(['dots' => 'no source for its solid variant']);
 });

@@ -173,8 +173,9 @@ $result->missing; // requested icons the vendor does not ship
 ```
 
 Every icon of the default variant becomes one component. For each Flux variant
-the builder looks for the icon's own file, then follows the variant's fallback
-once. A fallback to the default variant reuses the file the icon was listed from:
+the builder looks for the icon's own file, then follows the variant's fallbacks
+until one has it; a fallback that leads back to a variant already tried ends the
+search. Reaching the default variant reuses the file the icon was listed from:
 an MDI icon without an `-outline` sibling is its own outline, so there is no
 outline file to look up by name. A variant that falls back is drawn exactly as
 the variant it falls back to: with its template, stroke and attributes. An icon

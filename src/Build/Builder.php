@@ -124,17 +124,16 @@ class Builder
     }
 
     /**
-     * The variant to render an icon with and the file to render it from, following a fallback
-     * once. A fallback to the default variant reuses the file the icon was listed from: an
+     * The variant to render an icon with and the file to render it from, following fallbacks
+     * until one has the icon. The default variant reuses the file the icon was listed from: an
      * MDI icon that is its own outline has no `-outline` file to look up by name.
      *
+     * @param  list<string>  $tried  The variants already looked in, which ends a fallback cycle.
      * @return array{0: Variant, 1: string}|null
      */
-    protected function source(VariantSet $variants, SourceResolver $resolver, Variant $variant, string $name, string $file): ?array
+    protected function source(VariantSet $variants, SourceResolver $resolver, Variant $variant, string $name, string $file, array $tried = []): ?array
     {
-        $default = $variants->defaultName();
-
-        if ($variant->getName() === $default) {
+        if ($variant->getName() === $variants->defaultName()) {
             return [$variant, $file];
         }
 
@@ -143,17 +142,12 @@ class Builder
         }
 
         $fallback = $variants->fallbackFor($variant->getName());
+        $tried[] = $variant->getName();
 
-        if ($fallback === null) {
+        if ($fallback === null || in_array($fallback->getName(), $tried, true)) {
             return null;
         }
 
-        if ($fallback->getName() === $default) {
-            return [$fallback, $file];
-        }
-
-        $found = $resolver->file($fallback, $name);
-
-        return $found ? [$fallback, $found] : null;
+        return $this->source($variants, $resolver, $fallback, $name, $file, $tried);
     }
 }
