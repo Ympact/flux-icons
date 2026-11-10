@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
+use Ympact\FluxIcons\Build\Builder;
 use Ympact\FluxIcons\Console\BuildFluxIconsCommand;
 use Ympact\FluxIcons\Events\IconsBuilt;
 use Ympact\FluxIcons\Tests\Fixtures\Vendors\Alpha;
@@ -147,6 +148,15 @@ describe('building', function () {
             ->expectsOutputToContain('Icons not found: nope')
             ->expectsOutputToContain('No icons were built for vendor: alpha')
             ->doesntExpectOutputToContain('Icons built successfully')
+            ->assertExitCode(1);
+    });
+
+    it('fails with the reason when the package is not where the builder looks', function () {
+        // an npm workspace can hoist the package out of the application's own node_modules
+        $this->app->bind(Builder::class, fn () => new Builder("{$this->root}/elsewhere", "{$this->root}/resources/views/flux/icon"));
+
+        $this->artisan('flux-icons:build', ['vendor' => 'alpha', '--icons' => 'home', '--no-interaction' => true])
+            ->expectsOutputToContain('The npm package alpha is not installed')
             ->assertExitCode(1);
     });
 

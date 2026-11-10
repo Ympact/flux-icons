@@ -86,22 +86,30 @@ class BuildFluxIconsCommand extends Command
             return self::FAILURE;
         }
 
-        $builder = new Builder;
-        $icons = $this->icons($builder, $vendor, $all, $noInteraction);
+        $builder = $this->laravel->make(Builder::class);
 
-        if ($icons === []) {
-            $this->error('You did not select any icons. Exiting...');
+        // npm may install the package where the builder does not look, such as a workspace root
+        try {
+            $icons = $this->icons($builder, $vendor, $all, $noInteraction);
+
+            if ($icons === []) {
+                $this->error('You did not select any icons. Exiting...');
+
+                return self::FAILURE;
+            }
+
+            // building every icon already includes the configured ones
+            if ($merge && $icons !== null) {
+                $icons = $this->mergeWithConfiguredIcons($icons, config("flux-icons.icons.{$key}"));
+            }
+
+            $this->info("Building icons for vendor: {$key}");
+            $result = $this->build($builder, $vendor, $icons);
+        } catch (\RuntimeException $exception) {
+            $this->error($exception->getMessage());
 
             return self::FAILURE;
         }
-
-        // building every icon already includes the configured ones
-        if ($merge && $icons !== null) {
-            $icons = $this->mergeWithConfiguredIcons($icons, config("flux-icons.icons.{$key}"));
-        }
-
-        $this->info("Building icons for vendor: {$key}");
-        $result = $this->build($builder, $vendor, $icons);
 
         $this->report($result, $verbose);
 
