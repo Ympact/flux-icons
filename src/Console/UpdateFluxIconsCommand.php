@@ -86,7 +86,7 @@ class UpdateFluxIconsCommand extends Command
                     'Updating package '.$vendorKey,
                     fn () => PackageManager::updateVendorPackage($vendorKey, $verbose)
                 );
-            } catch (\RuntimeException $e) {
+            } catch (\Throwable $e) {
                 error("Failed to update the package for: $vendorKey. ".$e->getMessage());
                 $failedVendors[] = $vendorKey;
             }
