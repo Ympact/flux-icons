@@ -1,6 +1,8 @@
 <?php
 
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\File;
+use Illuminate\Support\Str;
 use Ympact\FluxIcons\Services\IconManager;
 
 beforeEach(function () {
@@ -69,4 +71,18 @@ it('discovers vendors automatically when none are provided', function () {
     file_put_contents($dir.'/icon1.blade.php', '');
 
     expect(IconManager::installedIcons()->toArray())->toHaveKey('alpha');
+});
+
+it('lists built icons in a project whose path holds glob characters', function () {
+    $root = sys_get_temp_dir().'/flux-icons [site] '.Str::random(8);
+    File::ensureDirectoryExists("{$root}/resources/views/flux/icon/tabler");
+    File::put("{$root}/resources/views/flux/icon/tabler/home.blade.php", '');
+    $this->app->setBasePath($root);
+
+    try {
+        expect(IconManager::currentVendors()->all())->toBe(['tabler'])
+            ->and(IconManager::installedIcons()->map->all()->all())->toBe(['tabler' => ['home']]);
+    } finally {
+        File::deleteDirectory($root);
+    }
 });
