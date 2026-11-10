@@ -187,7 +187,9 @@ outline file to look up by name. A variant that falls back is drawn exactly as
 the variant it falls back to: with its template, stroke and attributes. An icon
 with a Flux variant that has neither a file nor a fallback is skipped, and the
 result says which variant was missing. When `iconName()` publishes two icons under
-one name, the first keeps it and the second is skipped. A vendor whose package is
+one name, the first keeps it and the second is skipped. A source file that does not
+parse as XML with an `<svg>` root skips its icon, and the reason names the file and
+the parser's error. A vendor whose package is
 not installed throws a `RuntimeException` instead of building nothing.
 `IconsBuilt` is dispatched once per build, with the published names, when
 anything was written.
@@ -226,6 +228,10 @@ Where this departs from v1 output:
 - MDI icons without an `-outline` file are built; v1 skipped them.
 - Only the outermost `<svg>` receives the component's `$attributes`; v1 also gave
   them to the vendor's own `<svg>` nested inside a `Raw` icon.
+- Sources are parsed as XML, not HTML, so a `Raw` icon keeps the case of names such
+  as `viewBox`, `clipPath` and `linearGradient`; v1 wrote them in lower case. The
+  vendor's `<svg>` is nested as markup rather than as a CDATA section, with its
+  attributes in the order the vendor wrote them.
 
 ## Status
 

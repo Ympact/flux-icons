@@ -295,8 +295,7 @@ class Icon
      */
     public function getSourceAttributes(): array
     {
-        $roots = $this->xpathSource->query('//svg');
-        $svg = $roots === false ? null : $roots->item(0);
+        $svg = $this->sourceSvg();
         $attributes = [];
 
         foreach ($svg instanceof DOMElement ? $svg->attributes : [] as $attribute) {
@@ -361,10 +360,9 @@ class Icon
         $svg = $this->dom->getElementsByTagName('svg')->item(0);
         $svg->setAttribute('viewBox', "{$this->origin[0]} {$this->origin[1]} {$this->size[0]} {$this->size[1]}");
 
-        // if the raw flag is set, use the raw content of the icon to append to the svg tag
+        // a raw icon keeps the source's own <svg> intact, nested inside the component's
         if ($this->raw) {
-            $content = $this->xpathSource->query('//svg')->item(0)->C14N();
-            $svg->appendChild($this->dom->createCDATASection($content));
+            $svg->appendChild($this->dom->importNode($this->sourceSvg(), true));
         } else {
             $svgPathNodes = $this->paths->map(function (SvgPath $path) {
                 return $path->getNode();
@@ -445,18 +443,42 @@ class Icon
      */
 
     /**
-     * Summary of parseDom
+     * Parse the source as XML, which keeps the case of names such as viewBox and clipPath.
+     *
+     * @throws InvalidSvg When the source is not an XML document with an <svg> root.
      */
     protected function parseDom(): DOMDocument
     {
         $dom = new DOMDocument;
-
-        libxml_use_internal_errors(true);
-        $dom->loadHTML($this->rawContent, LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD);
+        $previous = libxml_use_internal_errors(true);
+        $loaded = trim($this->rawContent) !== '' && $dom->loadXML($this->rawContent);
+        $error = libxml_get_last_error();
         libxml_clear_errors();
+        libxml_use_internal_errors($previous);
+
+        if (! $loaded) {
+            $reason = $error ? trim($error->message) : 'the file is empty';
+
+            throw new InvalidSvg("{$this->filename} is not a valid SVG: {$reason}");
+        }
+
+        if ($dom->documentElement?->localName !== 'svg') {
+            throw new InvalidSvg("{$this->filename} is not a valid SVG: it has no <svg> root");
+        }
+
         $this->xpathSource = new DOMXPath($dom);
 
         return $dom;
+    }
+
+    /**
+     * The root <svg> element of the source, with or without the SVG namespace declared.
+     */
+    protected function sourceSvg(): ?DOMElement
+    {
+        $svg = $this->xpathSource->query("//*[local-name()='svg']")->item(0);
+
+        return $svg instanceof DOMElement ? $svg : null;
     }
 
     /**
@@ -530,10 +552,10 @@ class Icon
      */
     private function determineIconSize()
     {
-        $svg = $this->xpathSource->query('//svg')->item(0);
+        $svg = $this->sourceSvg();
         // first try using viewBox attribute, otherwise use height
-        if ($svg->hasAttribute('viewbox')) {
-            $viewBox = $svg->getAttribute('viewbox');
+        if ($svg->hasAttribute('viewBox')) {
+            $viewBox = $svg->getAttribute('viewBox');
             $viewBox = explode(' ', $viewBox);
             if (count($viewBox) == 4) {
 
@@ -574,6 +596,8 @@ class Icon
      */
     private function getPathDefinitions()
     {
-        return '//path | //g | //circle | //rect | //line | //polyline | //polygon | //use';
+        $names = ['path', 'g', 'circle', 'rect', 'line', 'polyline', 'polygon', 'use'];
+
+        return '//*['.implode(' or ', array_map(fn (string $name) => "local-name()='{$name}'", $names)).']';
     }
 }

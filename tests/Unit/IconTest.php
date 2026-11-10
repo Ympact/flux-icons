@@ -1,6 +1,7 @@
 <?php
 
 use Ympact\FluxIcons\Types\Icon;
+use Ympact\FluxIcons\Types\InvalidSvg;
 use Ympact\FluxIcons\Types\SvgPath;
 
 /**
@@ -192,6 +193,40 @@ it('renders raw svg content when raw mode is enabled', function () {
     $html = $icon->process()->setRaw(true)->toHtml();
 
     expect($html)->toBeSvgMarkup();
+});
+
+it('keeps the case of SVG names in a raw icon', function () {
+    $icon = new Icon(alphaIconConfig(), 'outline', alphaOutlineFile());
+    $icon->setContent(
+        '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 480"><clipPath id="a"><path d="M0 0h640v480H0z"/></clipPath><g clip-path="url(#a)"><path d="M0 0h640v480H0z"/></g></svg>',
+        'flag'
+    );
+
+    expect($icon->process()->setRaw(true)->toHtml())
+        ->toContain('<clipPath id="a">')
+        ->toContain('<svg viewBox="0 0 640 480">')
+        ->not->toContain('CDATA');
+});
+
+it('refuses a source that is not valid SVG, naming the file', function () {
+    $icon = new Icon(alphaIconConfig(), 'outline', alphaOutlineFile());
+    $icon->setContent('<svg xmlns="http://www.w3.org/2000/svg"><path d="M0 0"></svg>', 'broken');
+
+    expect(fn () => $icon->process())->toThrow(InvalidSvg::class, 'broken is not a valid SVG');
+});
+
+it('refuses an empty source', function () {
+    $icon = new Icon(alphaIconConfig(), 'outline', alphaOutlineFile());
+    $icon->setContent(" \n", 'empty');
+
+    expect(fn () => $icon->process())->toThrow(InvalidSvg::class, 'empty is not a valid SVG: the file is empty');
+});
+
+it('refuses a source whose root is not an svg element', function () {
+    $icon = new Icon(alphaIconConfig(), 'outline', alphaOutlineFile());
+    $icon->setContent('<html><body>Not found</body></html>', 'error-page');
+
+    expect(fn () => $icon->process())->toThrow(InvalidSvg::class, 'error-page is not a valid SVG: it has no <svg> root');
 });
 
 it('merges default and configured svg attributes', function () {
