@@ -48,9 +48,10 @@ Please do not report these as problems.
   the two as inconsistent with each other. Tests comparing them are intentional
   and go with the v1 pipeline.
 - `Build\IconRenderer` draws an icon the way its vendor does: it keeps the caps,
-  joins, fill rule and clip rule of the vendor's own `<svg>` root. Its output
-  therefore departs from v1 on purpose for Lucide, flags and MDI; the departures
-  are listed in `docs/v2-architecture.md`.
+  joins, fill rule and clip rule of the vendor's own `<svg>` root, which is why
+  Lucide, flags and Tabler's fallback slots depart from v1 on purpose. MDI departs
+  for another reason: a fallback to the default variant reuses the file the icon
+  was listed from. Every departure is listed in `docs/v2-architecture.md`.
 - The icon Blade stub still has fixed `{OUTLINE}`/`{SOLID}`/`{MINI}`/`{MICRO}`
   placeholders. Generating it from the variant set is tracked separately.
 
