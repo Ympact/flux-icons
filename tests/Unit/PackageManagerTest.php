@@ -1,7 +1,7 @@
 <?php
 
-use Illuminate\Support\Facades\Config;
 use Ympact\FluxIcons\Services\PackageManager;
+use Ympact\FluxIcons\Vendors\Tabler;
 
 beforeEach(function () {
     $this->tempDir = sys_get_temp_dir().'/flux-icons-test-'.uniqid();
@@ -104,8 +104,9 @@ it('reports flux as outdated when it is not installed', function () {
     expect(PackageManager::fluxVersionAtLeast('2.2.6'))->toBeFalse();
 });
 
-it('throws when updating an unknown vendor package', function () {
-    Config::set('flux-icons', fixtureConfig());
+it('leaves a package alone that node_modules already holds', function () {
+    mkdir($this->tempDir.'/node_modules/@tabler/icons', 0755, true);
+    file_put_contents($this->tempDir.'/node_modules/@tabler/icons/package.json', '{}');
 
-    PackageManager::updateVendorPackage('nonexistent-vendor');
-})->throws(RuntimeException::class, 'Vendor nonexistent-vendor not found in config.');
+    expect(PackageManager::requirePackage(new Tabler))->toBeFalse();
+});

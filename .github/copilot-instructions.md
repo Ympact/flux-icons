@@ -41,12 +41,11 @@ Please do not report these as problems.
   support window, so every 11.x release carries unpatched advisories that
   Composer refuses to install. The composer constraint still allows `^11` so the
   package stays in step with Flux.
-- On the v2 line two build pipelines exist side by side for now. `Build\Builder`
-  renders from the vendor classes; the artisan commands still run the v1
-  `Services\IconBuilder` from the array config in `config/flux-icons.php`. Moving
-  the commands over and deleting the v1 pipeline is tracked in #17. Do not report
-  the two as inconsistent with each other. Tests comparing them are intentional
-  and go with the v1 pipeline.
+- `Types\Icon` still accepts a v1 config array that the build no longer passes it.
+  Removing that code touches most of `Icon` and its tests, so it is left for a
+  change of its own; do not report it as dead code to remove piecemeal.
+- npm is still driven with `exec()` in `Services\PackageManager` until #23 brings
+  an NpmManager. The package names it runs come from vendor classes, not input.
 - `Build\IconRenderer` draws an icon the way its vendor does: it keeps the caps,
   joins, fill rule and clip rule of the vendor's own `<svg>` root, which is why
   Lucide, flags and Tabler's fallback slots depart from v1 on purpose. MDI departs

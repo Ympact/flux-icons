@@ -38,11 +38,28 @@ abstract class Vendor
     */
 
     /**
-     * The key the vendor is addressed by on the command line.
+     * The key the vendor is registered under, set by VendorRegistry.
+     */
+    private ?string $registeredKey = null;
+
+    /**
+     * The key the vendor is addressed by on the command line: the one it is registered under
+     * in the config, or else its class name in kebab case.
      */
     public function key(): string
     {
-        return Str::kebab(class_basename(static::class));
+        return $this->registeredKey ?? Str::kebab(class_basename(static::class));
+    }
+
+    /**
+     * Address this vendor by the key it is registered under, so that a subclass registered
+     * as `tabler` still builds into the `tabler` namespace, as a v1 config key did.
+     */
+    public function registerAs(string $key): static
+    {
+        $this->registeredKey = $key;
+
+        return $this;
     }
 
     /**
@@ -55,11 +72,12 @@ abstract class Vendor
 
     /**
      * The Flux namespace the icons are published under, which is also the
-     * directory they are written to: <flux:icon.{namespace}.{icon} />
+     * directory they are written to: <flux:icon.{namespace}.{icon} />. It is the
+     * key as a slug, as in v1: `tabler_icons` publishes to `tabler-icons`.
      */
     public function namespace(): string
     {
-        return $this->key();
+        return Str::slug($this->key());
     }
 
     /**
@@ -85,16 +103,6 @@ abstract class Vendor
     | Build behaviour
     |--------------------------------------------------------------------------
     */
-
-    /**
-     * Icons built when no icons are passed to the build command.
-     *
-     * @return array<int, string>
-     */
-    public function defaultIcons(): array
-    {
-        return [];
-    }
 
     /**
      * Adjust the name a built icon is published under.

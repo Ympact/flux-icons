@@ -3,41 +3,20 @@
 namespace Ympact\FluxIcons\Services;
 
 use Illuminate\Support\Collection;
-use Illuminate\Support\Str;
+use Illuminate\Support\Facades\File;
+use SplFileInfo;
 
+/**
+ * Lists the icons built into the application, by the directory each vendor publishes to.
+ */
 class IconManager
 {
-    /**
-     * Resolve the name of a built icon directory back to its key in the vendors config.
-     *
-     * Icons are published to the vendor's namespace, which does not always equal the
-     * config key (the `material-icons` vendor for instance publishes to `material`).
-     * Returns null for directories that do not belong to a configured vendor, such as
-     * the `flux-icons` directory holding the published helper icons.
-     */
-    public static function resolveVendorKey(string $directory): ?string
-    {
-        $vendors = collect((array) config('flux-icons.vendors', []));
-
-        if ($vendors->has($directory)) {
-            return $directory;
-        }
-
-        foreach ($vendors as $key => $vendor) {
-            $namespace = is_array($vendor) ? ($vendor['namespace'] ?? $key) : $key;
-
-            if (Str::slug((string) $namespace) === $directory) {
-                return (string) $key;
-            }
-        }
-
-        return null;
-    }
-
     public static function currentVendors()
     {
-        // get the directory names from resources/flux/icons
-        return collect(glob(resource_path('views/flux/icon/*'), GLOB_ONLYDIR))
+        // listed without glob(), which reads brackets in the project path as a pattern
+        $directory = resource_path('views/flux/icon');
+
+        return collect(File::isDirectory($directory) ? File::directories($directory) : [])
             ->map(fn ($dir) => basename($dir));
     }
 
@@ -47,9 +26,14 @@ class IconManager
 
         // get the SVG file names from resources/flux/icons/{vendor}/{icon}.blade.php and group them by vendor
         return $vendors->mapWithKeys(function ($vendor) {
+            $directory = resource_path("views/flux/icon/$vendor");
+
             return [
-                $vendor => collect(glob(resource_path("views/flux/icon/$vendor/*.blade.php")))
-                    ->map(fn ($file) => basename($file, '.blade.php')),
+                $vendor => collect(File::isDirectory($directory) ? File::files($directory) : [])
+                    ->map(fn (SplFileInfo $file) => $file->getFilename())
+                    ->filter(fn (string $name) => str_ends_with($name, '.blade.php'))
+                    ->map(fn (string $name) => basename($name, '.blade.php'))
+                    ->values(),
             ];
         });
     }

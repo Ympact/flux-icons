@@ -1,7 +1,8 @@
 <?php
 
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Facades\File;
+use Illuminate\Support\Str;
 use Ympact\FluxIcons\Services\IconManager;
 
 beforeEach(function () {
@@ -64,42 +65,24 @@ it('groups installed icon names by vendor', function () {
         ->and($icons['tabler']->toArray())->toContain('star');
 });
 
-it('resolves a vendor directory that matches the config key', function () {
-    Config::set('flux-icons.vendors', [
-        'tabler' => ['namespace' => 'tabler'],
-    ]);
-
-    expect(IconManager::resolveVendorKey('tabler'))->toBe('tabler');
-});
-
-it('resolves a vendor directory that uses a different namespace than the config key', function () {
-    Config::set('flux-icons.vendors', [
-        'material-icons' => ['namespace' => 'material'],
-    ]);
-
-    expect(IconManager::resolveVendorKey('material'))->toBe('material-icons');
-});
-
-it('falls back to the config key when a vendor defines no namespace', function () {
-    Config::set('flux-icons.vendors', [
-        'tabler' => ['package' => '@tabler/icons'],
-    ]);
-
-    expect(IconManager::resolveVendorKey('tabler'))->toBe('tabler');
-});
-
-it('returns null for directories that do not belong to a configured vendor', function () {
-    Config::set('flux-icons.vendors', [
-        'tabler' => ['namespace' => 'tabler'],
-    ]);
-
-    expect(IconManager::resolveVendorKey('flux-icons'))->toBeNull();
-});
-
 it('discovers vendors automatically when none are provided', function () {
     $dir = $this->iconDir.'/alpha';
     mkdir($dir, 0755, true);
     file_put_contents($dir.'/icon1.blade.php', '');
 
     expect(IconManager::installedIcons()->toArray())->toHaveKey('alpha');
+});
+
+it('lists built icons in a project whose path holds glob characters', function () {
+    $root = sys_get_temp_dir().'/flux-icons [site] '.Str::random(8);
+    File::ensureDirectoryExists("{$root}/resources/views/flux/icon/tabler");
+    File::put("{$root}/resources/views/flux/icon/tabler/home.blade.php", '');
+    $this->app->setBasePath($root);
+
+    try {
+        expect(IconManager::currentVendors()->all())->toBe(['tabler'])
+            ->and(IconManager::installedIcons()->map->all()->all())->toBe(['tabler' => ['home']]);
+    } finally {
+        File::deleteDirectory($root);
+    }
 });

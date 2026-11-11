@@ -6,9 +6,10 @@ use Illuminate\Console\Command;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\View;
 use Illuminate\View\FileViewFinder;
-use Ympact\FluxIcons\Services\IconManager;
+use Ympact\FluxIcons\Contracts\Vendor;
 use Ympact\FluxIcons\Services\IconReference;
 use Ympact\FluxIcons\Services\IconReferenceScanner;
+use Ympact\FluxIcons\Support\VendorRegistry;
 
 /**
  * Reports icons that templates ask for but that were never built.
@@ -29,7 +30,8 @@ class CheckFluxIconsCommand extends Command
 
     public function handle(): int
     {
-        $vendors = $this->vendors();
+        $registry = VendorRegistry::fromConfig();
+        $vendors = $registry->all();
 
         if ($vendors->isEmpty()) {
             $this->components->error('No vendors are configured, so there is nothing to check.');
@@ -58,7 +60,8 @@ class CheckFluxIconsCommand extends Command
             return self::FAILURE;
         }
 
-        $references = (new IconReferenceScanner($this->namespaces($vendors)))->scan($paths);
+        $namespaces = $vendors->map(fn (Vendor $vendor) => $vendor->namespace())->values();
+        $references = (new IconReferenceScanner($namespaces))->scan($paths);
         $unresolved = $references->reject(fn (IconReference $reference) => $reference->exists());
 
         if ($unresolved->isEmpty()) {
@@ -72,7 +75,7 @@ class CheckFluxIconsCommand extends Command
         $this->report($unresolved);
 
         if ($this->option('build')) {
-            $this->suggestBuild($unresolved);
+            $this->suggestBuild($unresolved, $registry);
         }
 
         return self::FAILURE;
@@ -109,7 +112,7 @@ class CheckFluxIconsCommand extends Command
     /**
      * @param  Collection<int, IconReference>  $unresolved
      */
-    protected function suggestBuild(Collection $unresolved): void
+    protected function suggestBuild(Collection $unresolved, VendorRegistry $registry): void
     {
         $buildable = $unresolved->reject(fn (IconReference $reference) => $reference->isMalformed());
 
@@ -121,39 +124,12 @@ class CheckFluxIconsCommand extends Command
             $icons = $forVendor->map(fn (IconReference $reference) => $reference->icon)->unique()->sort()->implode(',');
 
             // flux-icons:build takes the config key, which is not always the namespace
-            $key = IconManager::resolveVendorKey($namespace) ?? $namespace;
+            $key = $registry->findByNamespace((string) $namespace)?->key() ?? $namespace;
 
             $this->line("  php artisan flux-icons:build {$key} --icons={$icons} --merge");
         }
 
         $this->newLine();
-    }
-
-    /**
-     * The configured vendors, keyed by config key.
-     *
-     * @return Collection<array-key, mixed>
-     */
-    protected function vendors(): Collection
-    {
-        $configured = config('flux-icons.vendors', []);
-
-        return collect(is_array($configured) ? $configured : []);
-    }
-
-    /**
-     * The namespace each vendor publishes its icons under: its config key unless overridden.
-     *
-     * @param  Collection<array-key, mixed>  $vendors
-     * @return Collection<int, string>
-     */
-    protected function namespaces(Collection $vendors): Collection
-    {
-        return $vendors
-            ->map(fn ($config, $key) => is_array($config) && isset($config['namespace'])
-                ? (string) $config['namespace']
-                : (string) $key)
-            ->values();
     }
 
     /**

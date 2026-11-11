@@ -1,15 +1,12 @@
 <?php
 
-use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
 use Ympact\FluxIcons\Build\Builder;
 use Ympact\FluxIcons\Events\IconsBuilt;
-use Ympact\FluxIcons\Services\IconBuilder;
 use Ympact\FluxIcons\Sources\Source;
 use Ympact\FluxIcons\Tests\Fixtures\Vendors\Alpha;
-use Ympact\FluxIcons\Tests\Fixtures\Vendors\Beta;
 use Ympact\FluxIcons\Tests\Fixtures\Vendors\Epsilon;
 use Ympact\FluxIcons\Variants\Fallback;
 use Ympact\FluxIcons\Variants\Stroke;
@@ -18,8 +15,6 @@ use Ympact\FluxIcons\Variants\VariantSet;
 use Ympact\FluxIcons\Vendors\Mdi;
 
 beforeEach(function () {
-    Config::set('flux-icons', fixtureConfig());
-    Config::set('flux-icons.request_npm_dev', false);
     Event::fake([IconsBuilt::class]);
 
     $this->output = sys_get_temp_dir().'/flux-icons-build-'.Str::random(8);
@@ -28,10 +23,6 @@ beforeEach(function () {
 
 afterEach(function () {
     File::deleteDirectory($this->output);
-
-    foreach (['alpha', 'beta', 'epsilon'] as $namespace) {
-        File::deleteDirectory(resource_path("views/flux/icon/{$namespace}"));
-    }
 });
 
 /**
@@ -48,18 +39,6 @@ function componentsIn(string $directory): array
         ->sortKeys()
         ->all();
 }
-
-it('writes the same components as the v1 builder', function (string $class) {
-    $vendor = new $class;
-
-    (new IconBuilder($vendor->key()))->buildIcons();
-    $this->builder->build($vendor);
-
-    $v1 = componentsIn(resource_path("views/flux/icon/{$vendor->namespace()}"));
-
-    expect($v1)->not->toBeEmpty()
-        ->and(componentsIn("{$this->output}/{$vendor->namespace()}"))->toBe($v1);
-})->with([Alpha::class, Beta::class, Epsilon::class]);
 
 it('announces the components it wrote', function () {
     $result = $this->builder->build(new Alpha, ['home', 'dots']);
@@ -84,11 +63,11 @@ it('announces nothing when it wrote nothing', function () {
 it('reports each icon to the progress callback once it is handled', function () {
     $handled = [];
 
-    $this->builder->build(new Alpha, null, function (string $name) use (&$handled) {
-        $handled[] = $name;
+    $this->builder->build(new Alpha, null, function (string $name, int $done, int $total) use (&$handled) {
+        $handled[] = "{$name} {$done}/{$total}";
     });
 
-    expect($handled)->toBe(['arrow-left', 'dots', 'home']);
+    expect($handled)->toBe(['arrow-left 1/3', 'dots 2/3', 'home 3/3']);
 });
 
 it('selects icons by the name they are published under', function () {
@@ -170,6 +149,10 @@ it('draws a variant that falls back exactly as the variant it falls back to', fu
     expect($slots['outline'])->toContain('stroke-linecap="round"')
         ->and($slots['solid'])->toBe($slots['outline'])
         ->and($slots['micro'])->toBe($slots['outline']);
+});
+
+it('lists the icons a vendor ships by name', function () {
+    expect(array_keys($this->builder->available(new Epsilon)))->toBe(['arrow-left', 'home']);
 });
 
 it('follows a fallback that itself falls back', function () {
@@ -263,7 +246,7 @@ it('finds the icons of a package whose path holds glob characters', function () 
         ->and(componentsIn("{$this->output}/glob/alpha"))->toBe(componentsIn("{$this->output}/alpha"));
 });
 
-it('refuses a vendor whose icons are not where it looks, rather than building nothing', function () {
+it('refuses a vendor whose icons are not where it looks, rather than building or listing nothing', function () {
     $vendor = new class extends Alpha
     {
         public function basePath(): string
@@ -271,9 +254,10 @@ it('refuses a vendor whose icons are not where it looks, rather than building no
             return 'svg';
         }
     };
+    $message = 'Found no outline icons of alpha in '.base_path('tests/vendor/alpha/svg/outline').'. Check the vendor';
 
-    expect(fn () => $this->builder->build($vendor))
-        ->toThrow(RuntimeException::class, 'Found no outline icons of alpha in '.base_path('tests/vendor/alpha/svg/outline').'. Check the vendor');
+    expect(fn () => $this->builder->build($vendor))->toThrow(RuntimeException::class, $message)
+        ->and(fn () => $this->builder->available($vendor))->toThrow(RuntimeException::class, $message);
 });
 
 it('refuses a vendor whose package is not installed, rather than building nothing', function () {

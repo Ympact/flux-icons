@@ -3,22 +3,25 @@
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\File;
+use Ympact\FluxIcons\Build\Builder;
 use Ympact\FluxIcons\Events\IconsBuilt;
-use Ympact\FluxIcons\Services\IconBuilder;
 use Ympact\FluxIcons\Services\PackageManager;
+use Ympact\FluxIcons\Support\VendorRegistry;
 
 /*
- * Pins the components the build writes for the fixture vendors, so moving the pipeline onto
- * vendor classes (#17) shows every change in output as a snapshot diff. After an intended
- * change, run `vendor/bin/pest --update-snapshots` and say in the commit why the output moved.
+ * Pins the components the build writes for the fixture vendors, so every change in output
+ * shows as a snapshot diff. After an intended change, run `vendor/bin/pest --update-snapshots`
+ * and say in the commit why the output moved.
  */
 
 const SNAPSHOT_VENDORS = ['alpha', 'beta', 'epsilon'];
 
 beforeEach(function () {
     Config::set('flux-icons', fixtureConfig());
-    Config::set('flux-icons.request_npm_dev', false);
     Event::fake([IconsBuilt::class]);
+
+    $this->builder = new Builder(base_path('tests/vendor'));
+    $this->vendors = VendorRegistry::fromConfig();
 });
 
 afterEach(function () {
@@ -45,13 +48,13 @@ function builtComponents(string $namespace): string
 }
 
 it('writes the components it has always written', function (string $vendor) {
-    (new IconBuilder($vendor))->buildIcons();
+    $this->builder->build($this->vendors->get($vendor));
 
     expect(builtComponents($vendor))->toMatchSnapshot();
 })->with(SNAPSHOT_VENDORS);
 
 it('marks components for Blaze only on a Flux version that has it', function () {
-    (new IconBuilder('alpha', ['home']))->buildIcons();
+    $this->builder->build($this->vendors->get('alpha'), ['home']);
 
     $component = (string) file_get_contents(resource_path('views/flux/icon/alpha/home.blade.php'));
 

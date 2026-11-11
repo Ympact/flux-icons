@@ -3,9 +3,6 @@
 use Illuminate\Support\Collection;
 use PHPUnit\Framework\Assert;
 use Tests\TestCase;
-use Ympact\FluxIcons\Services\IconBuilder;
-use Ympact\FluxIcons\Types\Icon;
-use Ympact\FluxIcons\Types\SvgPath;
 
 /*
 |--------------------------------------------------------------------------
@@ -106,31 +103,6 @@ function alphaIconConfig(array $overrides = []): array
     ];
 
     return array_replace_recursive($base, $overrides);
-}
-
-function makeBaseBuilderIcon(IconBuilder $builder, ?string $file = null): Icon
-{
-    return $builder->buildIcon('outline', $file ?? alphaOutlineFile());
-}
-
-function makeSvgPath(string $d): SvgPath
-{
-    $dom = new DOMDocument;
-    $dom->loadXML('<svg xmlns="http://www.w3.org/2000/svg"></svg>');
-
-    $node = $dom->createElement('path');
-    $node->setAttribute('d', $d);
-    $dom->documentElement->appendChild($node);
-
-    return new SvgPath($node);
-}
-
-function makeVendorTestIcon(string $variant = 'outline', string $basename = 'arrow-left'): Icon
-{
-    $icon = new Icon(alphaIconConfig(), $variant, alphaOutlineFile($basename));
-    $icon->process();
-
-    return $icon;
 }
 
 function removeDirectory(string $dir): void

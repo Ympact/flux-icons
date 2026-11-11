@@ -97,11 +97,49 @@ it('rejects a class that is not a vendor', function () {
     new VendorRegistry(['broken' => stdClass::class]);
 })->throws(InvalidArgumentException::class, 'must be registered as a subclass');
 
+it('explains that a v1 vendor array has to become a vendor class', function () {
+    new VendorRegistry(['tabler' => ['package' => '@tabler/icons']]);
+})->throws(InvalidArgumentException::class, 'Vendor [tabler] must map to a vendor class');
+
 it('accepts an already constructed vendor instance', function () {
     $vendor = new RegistryFixtureVendor;
     $registry = new VendorRegistry(['fixture' => $vendor]);
 
-    expect($registry->get('fixture'))->toBe($vendor);
+    expect($registry->get('fixture'))->toBeInstanceOf(RegistryFixtureVendor::class)
+        ->and($registry->get('fixture')->key())->toBe('fixture');
+});
+
+it('registers a copy of an instance, so one instance can sit under two keys', function () {
+    $vendor = new Tabler;
+    $registry = new VendorRegistry(['first' => $vendor, 'second' => $vendor]);
+
+    expect($registry->get('first')->namespace())->toBe('first')
+        ->and($registry->get('second')->namespace())->toBe('second')
+        ->and($vendor->key())->toBe('tabler');
+});
+
+it('addresses a vendor by the key it is registered under', function (string|Vendor $vendor) {
+    $registered = (new VendorRegistry(['icons' => $vendor]))->get('icons');
+
+    expect($registered->key())->toBe('icons')
+        ->and($registered->namespace())->toBe('icons');
+})->with([
+    'as a class' => [Tabler::class],
+    'as an instance' => [fn () => new Tabler],
+]);
+
+it('publishes under the key as a slug, as v1 did, and is found by that namespace', function () {
+    $registry = new VendorRegistry(['tabler_icons' => Tabler::class]);
+
+    expect($registry->get('tabler_icons')->namespace())->toBe('tabler-icons')
+        ->and($registry->findByNamespace('tabler-icons')?->key())->toBe('tabler_icons');
+});
+
+it('keeps the namespace a vendor publishes to when it is registered under another key', function () {
+    $registered = (new VendorRegistry(['fixture' => RegistryFixtureVendor::class]))->get('fixture');
+
+    expect($registered->key())->toBe('fixture')
+        ->and($registered->namespace())->toBe('fixture-ns');
 });
 
 it('hands out the replacement when a key is registered again', function () {
@@ -162,3 +200,7 @@ it('stops resolving vendors once the namespace matches', function () {
     expect(ProbeVendorA::$constructed)->toBe(1)
         ->and(ProbeVendorB::$constructed)->toBe(0);
 });
+
+it('tells a v1 user the publish command that actually replaces the config', function () {
+    new VendorRegistry(['tabler' => ['package' => '@tabler/icons']]);
+})->throws(InvalidArgumentException::class, 'php artisan vendor:publish --tag=flux-icons-config --force');

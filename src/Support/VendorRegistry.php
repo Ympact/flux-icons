@@ -26,11 +26,21 @@ class VendorRegistry
     protected array $resolved = [];
 
     /**
-     * @param  array<string, class-string<Vendor>|Vendor>  $vendors
+     * @param  array<string, class-string<Vendor>|Vendor|mixed>  $vendors
+     *
+     * @throws InvalidArgumentException When an entry is not a vendor class, such as a v1 array.
      */
     final public function __construct(array $vendors = [])
     {
         foreach ($vendors as $key => $vendor) {
+            if (! is_string($vendor) && ! $vendor instanceof Vendor) {
+                throw new InvalidArgumentException(
+                    "Vendor [{$key}] must map to a vendor class, such as Ympact\\FluxIcons\\Vendors\\Tabler::class. ".
+                    'A published v1 config describes vendors as arrays. Replace it with `php artisan vendor:publish --tag=flux-icons-config --force`, '.
+                    'which overwrites config/flux-icons.php, then copy your changes over.'
+                );
+            }
+
             $this->register((string) $key, $vendor);
         }
     }
@@ -44,12 +54,15 @@ class VendorRegistry
     }
 
     /**
-     * @param  class-string<Vendor>|Vendor  $vendor
+     * @param  string|Vendor  $vendor  A vendor class name or instance; any other class is rejected.
+     *
+     * @throws InvalidArgumentException When the class is not a vendor.
      */
     public function register(string $key, string|Vendor $vendor): static
     {
         if ($vendor instanceof Vendor) {
-            $this->resolved[$key] = $vendor;
+            // a copy, so one instance registered under two keys answers to each
+            $this->resolved[$key] = (clone $vendor)->registerAs($key);
             $this->vendors[$key] = $vendor::class;
 
             return $this;
@@ -83,7 +96,7 @@ class VendorRegistry
             );
         }
 
-        return $this->resolved[$key] ??= new $this->vendors[$key];
+        return $this->resolved[$key] ??= (new $this->vendors[$key])->registerAs($key);
     }
 
     /**
