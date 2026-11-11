@@ -202,7 +202,8 @@ it('builds a vendor variant and paints each of its fill layers', function () {
 
     expect(array_keys($slots))->toBe(['outline', 'solid', 'mini', 'micro', 'duotone'])
         ->and($slots['duotone'])->toContain('<path d="M4 4h16v16H4z" opacity="0.4" fill="currentColor"></path>')
-        ->and($slots['duotone'])->toContain('<path d="M2 2h20v20H2z" fill="currentColor"></path>');
+        ->and($slots['duotone'])->toContain('<path d="M2 2h20v20H2z" fill="currentColor"></path>')
+        ->and($slots['duotone'])->toContain('<rect x="1" y="1" width="22" height="22" fill="none" stroke="currentColor"></rect>');
 });
 
 it('leaves a vendor variant out of an icon that has no file for it, and builds the icon', function () {

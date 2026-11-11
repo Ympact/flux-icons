@@ -205,7 +205,9 @@ Vendor variants are built after the four Flux variants, the same way. An icon
 with no file for a vendor variant, and no fallback that has one, is still built;
 only that variant is left out of its component. A variant with fills gives each
 shape the attributes of the layer it belongs to: a layer that matches on opacity
-or colour claims its shapes first, and a catch-all layer takes the rest.
+or colour claims its shapes first, and a catch-all layer takes the rest, except a
+shape the vendor drew with `fill="none"`. A layer's opacity is written to the
+attribute the source marked it with, `opacity` or `fill-opacity`.
 
 ### The built component
 

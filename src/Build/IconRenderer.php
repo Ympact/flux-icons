@@ -70,10 +70,11 @@ class IconRenderer
         }
 
         return $paths->each(function (SvgPath $path) use ($fills) {
-            $fill = $fills->first(fn (Fill $fill) => $fill->matches($path->getAttributes()));
+            $attributes = $path->getAttributes();
+            $fill = $fills->first(fn (Fill $fill) => $fill->matches($attributes));
 
             if ($fill !== null) {
-                $path->setAttributes($fill->attributes());
+                $path->setAttributes($fill->attributes($attributes));
             }
         });
     }

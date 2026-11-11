@@ -10,6 +10,14 @@ it('treats a fill without matchers as the catch-all layer', function () {
         ->and($fill->matches(['opacity' => '0.2']))->toBeTrue();
 });
 
+it('leaves a shape the vendor drew unfilled out of the catch-all layer', function () {
+    $fill = new Fill('foreground');
+
+    expect($fill->matches(['fill' => 'none']))->toBeFalse()
+        ->and($fill->matches(['fill' => ' NONE ']))->toBeFalse()
+        ->and($fill->matches(['fill' => '#000']))->toBeTrue();
+});
+
 it('selects paths carrying the opacity of the layer', function () {
     $fill = new Fill('background', matchOpacity: 0.2);
 
@@ -55,4 +63,12 @@ it('renders a layer in an explicit colour', function () {
     $fill = new Fill('accent', color: 'var(--color-accent)');
 
     expect($fill->attributes())->toBe(['fill' => 'var(--color-accent)']);
+});
+
+it('puts the opacity on the attribute the source marked the layer with', function () {
+    $fill = new Fill('background', matchOpacity: 0.2, opacity: 0.4);
+
+    expect($fill->attributes(['fill-opacity' => '0.2']))->toBe(['fill' => 'currentColor', 'fill-opacity' => '0.4'])
+        ->and($fill->attributes(['opacity' => '0.2']))->toBe(['fill' => 'currentColor', 'opacity' => '0.4'])
+        ->and($fill->attributes(['opacity' => '0.2', 'fill-opacity' => '0.2']))->toBe(['fill' => 'currentColor', 'opacity' => '0.4']);
 });
