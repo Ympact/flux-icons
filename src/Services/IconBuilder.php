@@ -323,6 +323,7 @@ class IconBuilder
                 $icon = $baseIcon;
             } else {
                 // get the icon file for the variant
+                $fallback = null;
                 $file = $this->getVariantIconFile($variant, $basename, $baseIcon);
                 if (! $file) {
                     $fallback = $this->determineFallback($variant, $baseIcon);
@@ -348,6 +349,10 @@ class IconBuilder
                     $template = $this->variantProp($fallback, 'template');
                 }
                 $icon = $this->buildIcon($variant, $file);
+
+                if (is_string($fallback)) {
+                    $icon->setFallbackVariant($fallback);
+                }
 
                 $icon->setTemplate($template);
                 $icon->process();
