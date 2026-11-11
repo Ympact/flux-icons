@@ -1,5 +1,6 @@
 <?php
 
+use Illuminate\Support\Str;
 use Ympact\FluxIcons\Types\Icon;
 use Ympact\FluxIcons\Types\InvalidSvg;
 use Ympact\FluxIcons\Types\SvgPath;
@@ -228,6 +229,62 @@ it('refuses a source that is not valid SVG, naming the file', function () {
     $icon->setContent('<svg xmlns="http://www.w3.org/2000/svg"><path d="M0 0"></svg>', 'broken');
 
     expect(fn () => $icon->process())->toThrow(InvalidSvg::class, 'broken is not a valid SVG');
+});
+
+it('reads an Illustrator export, which declares the SVG namespace as an entity', function () {
+    $icon = new Icon(alphaIconConfig(), 'outline', alphaOutlineFile());
+    $icon->setContent(
+        '<?xml version="1.0"?>'."\n".'<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd" ['
+        .'<!ENTITY ns_svg "http://www.w3.org/2000/svg"><!ENTITY ns_xlink "http://www.w3.org/1999/xlink">]>'
+        .'<svg version="1.1" xmlns="&ns_svg;" xmlns:xlink="&ns_xlink;" viewBox="0 0 24 24"><path d="M1 1h2"/></svg>',
+        'illustrated'
+    );
+
+    expect($icon->process()->toHtml())->toContain('<path d="M1 1h2"></path>')->not->toContain('ns_svg');
+});
+
+it('refuses a source that declares an external entity, without reading it', function (string $declaration) {
+    $secret = sys_get_temp_dir().'/flux-icons-secret-'.Str::random(8);
+    file_put_contents($secret, 'not for an icon');
+
+    $icon = new Icon(alphaIconConfig(), 'outline', alphaOutlineFile());
+    $icon->setContent(
+        '<?xml version="1.0"?><!DOCTYPE svg ['.str_replace('{file}', "file://{$secret}", $declaration).']>'
+        .'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><text>&x;</text></svg>',
+        'external'
+    );
+
+    try {
+        expect(fn () => $icon->process())->toThrow(InvalidSvg::class, 'external is not a valid SVG: it declares an external entity');
+    } finally {
+        unlink($secret);
+    }
+})->with([
+    'general' => '<!ENTITY x SYSTEM "{file}">',
+    'public' => '<!ENTITY x PUBLIC "-//x//EN" "{file}">',
+    'parameter' => '<!ENTITY % p SYSTEM "{file}"><!ENTITY x "y">',
+]);
+
+it('reads a source with whitespace before its XML declaration', function () {
+    $icon = new Icon(alphaIconConfig(), 'outline', alphaOutlineFile());
+    $icon->setContent("\n  <?xml version=\"1.0\"?>\n<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\"><path d=\"M1 1h2\"/></svg>", 'spaced');
+
+    expect($icon->process()->toHtml())->toContain('<path d="M1 1h2"></path>');
+});
+
+it('gives the first error of its own parse, not one left by an earlier parse', function () {
+    $previous = libxml_use_internal_errors(true);
+    (new DOMDocument)->loadXML('<left-over');
+    libxml_use_internal_errors($previous);
+
+    $icon = new Icon(alphaIconConfig(), 'outline', alphaOutlineFile());
+    $icon->setContent('<svg xmlns="http://www.w3.org/2000/svg"><path d="M0 0"></svg>', 'broken');
+
+    try {
+        expect(fn () => $icon->process())->toThrow(InvalidSvg::class, 'broken is not a valid SVG: Opening and ending tag mismatch: path');
+    } finally {
+        libxml_clear_errors();
+    }
 });
 
 it('refuses an empty source', function () {

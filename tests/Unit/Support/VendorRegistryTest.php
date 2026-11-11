@@ -200,3 +200,7 @@ it('stops resolving vendors once the namespace matches', function () {
     expect(ProbeVendorA::$constructed)->toBe(1)
         ->and(ProbeVendorB::$constructed)->toBe(0);
 });
+
+it('tells a v1 user the publish command that actually replaces the config', function () {
+    new VendorRegistry(['tabler' => ['package' => '@tabler/icons']]);
+})->throws(InvalidArgumentException::class, 'php artisan vendor:publish --tag=flux-icons-config --force');

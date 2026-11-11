@@ -21,7 +21,7 @@ composer require --dev ympact/flux-icons
 | Flowbite     | `flowbite`  | [Preview](https://flowbite.com/icons/) |  |
 | Flags        | `flags`     |  [Repo](https://github.com/lipis/flag-icons/) | There is only one variant (solid and outline show the same flag). The 4x3 version is built; the square 1x1 version is an option of the vendor class that the build command cannot select yet. |
 | Fluent UI    | `fluent`    | [Preview (unofficial)](https://fluenticons.co/) - [Repo](https://github.com/microsoft/fluentui-system-icons) | Stroke width of outline icons cannot be adjusted |
-| Google Material Design Icons | `material-icons` | [Preview](https://fonts.google.com/icons) | Stroke width of outline icons cannot be adjusted |
+| Google Material Design Icons | `material` | [Preview](https://fonts.google.com/icons) | Stroke width of outline icons cannot be adjusted |
 | Google Material Symbols (300) | `material-symbols` | [Preview](https://fonts.google.com/icons?icon.set=Material+Symbols) | Stroke width of outline icons cannot be adjusted |
 | Healthicons  | `healthicons` | [Preview](https://healthicons.org) | Stroke width cannot be adjusted. |
 | Lucide       | `lucide`    | [Preview](https://lucide.dev/icons/) | Only outline icons available |
@@ -45,9 +45,9 @@ In case you did not provide any arguments, the script will walk you through all 
 
 | Option          | Description                                                                                        |
 |-----------------|----------------------------------------------------------------------------------------------------|
-| `--icons=`      | The icons to build (single or comma separated list). Cannot be used in combination with `--all`. |
-| `-m\|--merge`   | Merge the icons listed in the `--icons` option with the icons defined in the config. Cannot be used in combination with `--all`. |
-| `-a\|--all`     | Build all icons from the vendor. **Note:** this might generate over thousands of files and cause `npm run dev` to crash due to memory issues. |
+| `-I\|--icons=`  | The icons to build (single or comma separated list). Cannot be used in combination with `--all`. |
+| `-M\|--merge`   | Merge the icons listed in the `--icons` option with the icons defined in the config. Cannot be used in combination with `--all`. |
+| `-A\|--all`     | Build all icons from the vendor. **Note:** this might generate over thousands of files and cause `npm run dev` to crash due to memory issues. |
 | `-v\|--verbose` | Show additional messages during build. |
 
 ### Usage
@@ -117,7 +117,7 @@ php artisan vendor:publish --tag=flux-icons-config
 | `request_npm_dev` | `bool` | For a build of more than 100 icons, ask whether `npm run dev` is running, and if so pause a third of a second between icons and offer to restart it afterwards. |
 | `vendors`         | `['vendor-key' => VendorClass::class]` | The vendors icons can be built from. The key is what you pass to the commands. The icons are published under the key as a slug (`tabler_icons` to `tabler-icons`), unless the class names another namespace (Material Icons publishes to `material`). |
 
-A published config from version 1 describes vendors as arrays. Version 2 stops with a message naming the vendor: publish the config again and copy over your changes.
+A published config from version 1 describes vendors as arrays. Version 2 stops with a message naming the vendor. Replace the config with `php artisan vendor:publish --tag=flux-icons-config --force`, which overwrites `config/flux-icons.php`, then copy your changes over.
 
 ### Adjusting a vendor
 
@@ -136,6 +136,7 @@ This writes `app/FluxIcons/Vendors/Tabler.php`, a subclass of the registered ven
 | `attributes()` | The attributes on an icon's `<svg>` element. |
 | `strokeWidth()` | The stroke width of a single icon. |
 | `iconName()` | The name an icon is published under. |
+| `namespace()` | The directory and Flux namespace the icons are published under, `<flux:icon.{namespace}.home />`. Defaults to the registered key as a slug; Material Icons returns `material`. A v1 `namespace` setting moves here. |
 
 For example, a heavier stroke for Tabler's outline icons:
 
