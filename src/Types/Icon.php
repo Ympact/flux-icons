@@ -445,21 +445,25 @@ class Icon
     /**
      * Parse the source as XML, which keeps the case of names such as viewBox and clipPath.
      *
-     * @throws InvalidSvg When the source is not an XML document with an <svg> root.
+     * @throws InvalidSvg When the source is not an XML document with an <svg> root, or declares an
+     *                    external entity.
      */
     protected function parseDom(): DOMDocument
     {
-        $dom = new DOMDocument;
-        $previous = libxml_use_internal_errors(true);
-        $loaded = trim($this->rawContent) !== '' && $dom->loadXML($this->rawContent);
-        $error = libxml_get_last_error();
-        libxml_clear_errors();
-        libxml_use_internal_errors($previous);
+        // anything before an XML declaration makes the file invalid, and a stray newline is common
+        $content = ltrim($this->rawContent);
+        $dom = $this->loadXml($content);
+        $entities = (string) $dom->doctype?->internalSubset;
 
-        if (! $loaded) {
-            $reason = $error ? trim($error->message) : 'the file is empty';
+        // expanding one would read a file or URL named by the source, so it is never read
+        if (preg_match('/<!ENTITY\s+(?:%\s+)?\S+\s+(?:SYSTEM|PUBLIC)\b/i', $entities)) {
+            throw new InvalidSvg("{$this->filename} is not a valid SVG: it declares an external entity, which is not read");
+        }
 
-            throw new InvalidSvg("{$this->filename} is not a valid SVG: {$reason}");
+        // an Illustrator export declares the SVG namespace as an entity; expanding the entities a
+        // file defines itself reads nothing from outside it
+        if (str_contains($entities, '<!ENTITY')) {
+            $dom = $this->loadXml($content, LIBXML_NOENT | LIBXML_NONET);
         }
 
         if ($dom->documentElement?->localName !== 'svg') {
@@ -467,6 +471,28 @@ class Icon
         }
 
         $this->xpathSource = new DOMXPath($dom);
+
+        return $dom;
+    }
+
+    /**
+     * @throws InvalidSvg With the first error the parser met, which is usually the cause.
+     */
+    private function loadXml(string $content, int $options = 0): DOMDocument
+    {
+        $dom = new DOMDocument;
+        $previous = libxml_use_internal_errors(true);
+        libxml_clear_errors();
+        $loaded = $content !== '' && $dom->loadXML($content, $options);
+        $error = libxml_get_errors()[0] ?? null;
+        libxml_clear_errors();
+        libxml_use_internal_errors($previous);
+
+        if (! $loaded) {
+            $reason = $error !== null ? trim($error->message) : 'the file is empty';
+
+            throw new InvalidSvg("{$this->filename} is not a valid SVG: {$reason}");
+        }
 
         return $dom;
     }

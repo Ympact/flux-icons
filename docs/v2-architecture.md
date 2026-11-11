@@ -192,7 +192,9 @@ with a Flux variant that has neither a file nor a fallback is skipped, and the
 result says which variant was missing. When `iconName()` publishes two icons under
 one name, the first keeps it and the second is skipped. A source file that does not
 parse as XML with an `<svg>` root skips its icon, and the reason names the file and
-the parser's error. A vendor whose package is not installed, or whose default
+the parser's first error; HTML entities such as `&nbsp;` are not XML. Entities the
+file declares itself are expanded, which is how an Illustrator export names the SVG
+namespace. A file declaring an external entity is skipped without reading it. A vendor whose package is not installed, or whose default
 variant lists no icons (a wrong `basePath()` or source directory), throws a
 `RuntimeException` instead of building nothing.
 `IconsBuilt` is dispatched once per build, with the published names, when
