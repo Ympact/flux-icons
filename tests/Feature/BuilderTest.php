@@ -246,7 +246,7 @@ it('finds the icons of a package whose path holds glob characters', function () 
         ->and(componentsIn("{$this->output}/glob/alpha"))->toBe(componentsIn("{$this->output}/alpha"));
 });
 
-it('refuses a vendor whose icons are not where it looks, rather than building nothing', function () {
+it('refuses a vendor whose icons are not where it looks, rather than building or listing nothing', function () {
     $vendor = new class extends Alpha
     {
         public function basePath(): string
@@ -254,9 +254,10 @@ it('refuses a vendor whose icons are not where it looks, rather than building no
             return 'svg';
         }
     };
+    $message = 'Found no outline icons of alpha in '.base_path('tests/vendor/alpha/svg/outline').'. Check the vendor';
 
-    expect(fn () => $this->builder->build($vendor))
-        ->toThrow(RuntimeException::class, 'Found no outline icons of alpha in '.base_path('tests/vendor/alpha/svg/outline').'. Check the vendor');
+    expect(fn () => $this->builder->build($vendor))->toThrow(RuntimeException::class, $message)
+        ->and(fn () => $this->builder->available($vendor))->toThrow(RuntimeException::class, $message);
 });
 
 it('refuses a vendor whose package is not installed, rather than building nothing', function () {

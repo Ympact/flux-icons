@@ -43,11 +43,11 @@ class Builder
      *
      * @return array<string, string>
      *
-     * @throws RuntimeException When the vendor's npm package is not installed.
+     * @throws RuntimeException When the vendor's npm package is not installed, or its default variant lists no icons.
      */
     public function available(Vendor $vendor): array
     {
-        return $this->resolver($vendor)->icons($vendor->resolvedVariants()->default());
+        return $this->listed($vendor, $this->resolver($vendor), $vendor->resolvedVariants());
     }
 
     /**
@@ -64,18 +64,7 @@ class Builder
         $resolver = $this->resolver($vendor);
         $variants = $vendor->resolvedVariants();
 
-        $default = $variants->default();
-        $available = $resolver->icons($default);
-
-        // a wrong basePath() or source directory would otherwise build nothing without a word
-        if ($available === []) {
-            throw new RuntimeException(
-                "Found no {$default->getName()} icons of {$vendor->package()} in {$resolver->directory($default)}. ".
-                "Check the vendor's basePath() and the source of its {$default->getName()} variant."
-            );
-        }
-
-        [$selected, $missing] = $this->select($vendor, $available, $icons);
+        [$selected, $missing] = $this->select($vendor, $this->listed($vendor, $resolver, $variants), $icons);
 
         $directory = $this->outputPath.'/'.$vendor->namespace();
         $header = [$this->credits->package($packageRoot), $this->credits->flux(), PackageManager::fluxVersionAtLeast(self::BLAZE_SINCE)];
@@ -124,6 +113,29 @@ class Builder
         }
 
         return new SourceResolver(rtrim($packageRoot.'/'.$vendor->basePath(), '/'));
+    }
+
+    /**
+     * The icons the default variant lists, as icon name to file.
+     *
+     * @return array<string, string>
+     *
+     * @throws RuntimeException When it lists none: a wrong basePath() or source directory would
+     *                          otherwise build nothing without a word.
+     */
+    protected function listed(Vendor $vendor, SourceResolver $resolver, VariantSet $variants): array
+    {
+        $default = $variants->default();
+        $icons = $resolver->icons($default);
+
+        if ($icons === []) {
+            throw new RuntimeException(
+                "Found no {$default->getName()} icons of {$vendor->package()} in {$resolver->directory($default)}. ".
+                "Check the vendor's basePath() and the source of its {$default->getName()} variant."
+            );
+        }
+
+        return $icons;
     }
 
     /**
