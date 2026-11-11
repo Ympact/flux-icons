@@ -208,6 +208,21 @@ it('keeps the case of SVG names in a raw icon', function () {
         ->not->toContain('CDATA');
 });
 
+it('draws each shape once, ellipses and clip paths included', function () {
+    $icon = new Icon(alphaIconConfig(), 'outline', alphaOutlineFile());
+    $icon->setContent(
+        '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g fill-rule="evenodd" clip-path="url(#c)"><path d="M1 1h2"/></g><ellipse cx="12" cy="5" rx="9" ry="3"/><defs><clipPath id="c"><path d="M0 0h24v24H0z"/></clipPath></defs></svg>',
+        'shapes'
+    );
+
+    $html = $icon->process()->toHtml();
+
+    expect(substr_count($html, 'd="M1 1h2"'))->toBe(1)
+        ->and($html)->toContain('<ellipse cx="12" cy="5" rx="9" ry="3"></ellipse>')
+        ->and($html)->toContain('<defs><clipPath id="c"><path d="M0 0h24v24H0z"></path></clipPath></defs>')
+        ->and(substr_count($html, 'd="M0 0h24v24H0z"'))->toBe(1);
+});
+
 it('refuses a source that is not valid SVG, naming the file', function () {
     $icon = new Icon(alphaIconConfig(), 'outline', alphaOutlineFile());
     $icon->setContent('<svg xmlns="http://www.w3.org/2000/svg"><path d="M0 0"></svg>', 'broken');

@@ -590,14 +590,15 @@ class Icon
     }
 
     /**
-     * get all path definitions from the svg
+     * The elements the icon is drawn from: the root's own children, so a group carries
+     * its shapes along rather than having them copied out of it a second time.
      *
      * @return string
      */
     private function getPathDefinitions()
     {
-        $names = ['path', 'g', 'circle', 'rect', 'line', 'polyline', 'polygon', 'use'];
+        $names = ['path', 'g', 'circle', 'ellipse', 'rect', 'line', 'polyline', 'polygon', 'use', 'defs'];
 
-        return '//*['.implode(' or ', array_map(fn (string $name) => "local-name()='{$name}'", $names)).']';
+        return '/*/*['.implode(' or ', array_map(fn (string $name) => "local-name()='{$name}'", $names)).']';
     }
 }

@@ -232,6 +232,10 @@ Where this departs from v1 output:
   as `viewBox`, `clipPath` and `linearGradient`; v1 wrote them in lower case. The
   vendor's `<svg>` is nested as markup rather than as a CDATA section, with its
   attributes in the order the vendor wrote them.
+- Every shape is drawn once, from the children of the source's root. v1 also copied
+  the shapes inside a `<g>` out of it a second time, without the group's attributes;
+  dropped top-level `<ellipse>` elements (Lucide's `database`); and drew the shape
+  inside a `<clipPath>` as part of the icon while leaving out the `<defs>` it lives in.
 
 ## Status
 
