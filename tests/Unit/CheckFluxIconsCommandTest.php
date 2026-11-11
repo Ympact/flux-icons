@@ -180,9 +180,9 @@ it('reports as json for ci and agents', function () {
         ->and(json_decode(Artisan::output(), true))->toBe([
             'references' => 4,
             'unresolved' => [
-                ['file' => 'resources/views/page.blade.php', 'line' => 2, 'name' => 'tabler.missing', 'vendor' => 'tabler', 'variant' => null, 'reason' => 'not-built'],
-                ['file' => 'resources/views/page.blade.php', 'line' => 3, 'name' => 'tabler.tabler.x', 'vendor' => 'tabler', 'variant' => null, 'reason' => 'malformed'],
-                ['file' => 'resources/views/page.blade.php', 'line' => 4, 'name' => 'tabler.home', 'vendor' => 'tabler', 'variant' => 'duotone', 'reason' => 'unknown-variant'],
+                ['file' => 'resources/views/page.blade.php', 'line' => 2, 'package' => null, 'name' => 'tabler.missing', 'vendor' => 'tabler', 'variant' => null, 'reason' => 'not-built'],
+                ['file' => 'resources/views/page.blade.php', 'line' => 3, 'package' => null, 'name' => 'tabler.tabler.x', 'vendor' => 'tabler', 'variant' => null, 'reason' => 'malformed'],
+                ['file' => 'resources/views/page.blade.php', 'line' => 4, 'package' => null, 'name' => 'tabler.home', 'vendor' => 'tabler', 'variant' => 'duotone', 'reason' => 'unknown-variant'],
             ],
             'build' => [
                 ['vendor' => 'tabler', 'icons' => ['missing'], 'command' => 'php artisan flux-icons:build tabler --icons=missing --merge'],
@@ -195,4 +195,54 @@ it('reports a problem that stops the check as json too', function () {
 
     expect($exitCode)->toBe(1)
         ->and(json_decode(Artisan::output(), true))->toBe(['error' => "Vendor configuration for 'nope' not found. Configured vendors: tabler"]);
+});
+
+describe('icons packages declare', function () {
+    it('reports a declared icon that has not been built, naming the package', function () {
+        $root = fakeApp('<flux:icon.tabler.home />', ['tabler/home', 'tabler/key']);
+        writeInstalledPackages($root, ['acme/shop' => ['tabler' => ['key', 'map-pin']]]);
+        app()->setBasePath($root);
+
+        $this->artisan('flux-icons:check', ['--path' => [$root.'/resources/views'], '--build' => true])
+            ->expectsOutputToContain('acme/shop')
+            ->expectsOutputToContain('tabler.map-pin has not been built')
+            ->expectsOutputToContain('flux-icons:build tabler --icons=map-pin --merge')
+            ->assertExitCode(1);
+    });
+
+    it('counts the declared icons that were built', function () {
+        $root = fakeApp('<flux:icon.tabler.home />', ['tabler/home', 'tabler/key']);
+        writeInstalledPackages($root, ['acme/shop' => ['tabler' => ['key']]]);
+        app()->setBasePath($root);
+
+        $this->artisan('flux-icons:check', ['--path' => [$root.'/resources/views']])
+            ->expectsOutputToContain('All 2 icon references resolve')
+            ->assertExitCode(0);
+    });
+
+    it('reports an icon declared for a namespace no configured vendor publishes to', function () {
+        $root = fakeApp('<flux:icon.tabler.home />', ['tabler/home']);
+        writeInstalledPackages($root, ['acme/shop' => ['heroicons' => ['bolt']]]);
+        app()->setBasePath($root);
+
+        $this->artisan('flux-icons:check', ['--path' => [$root.'/resources/views']])
+            ->expectsOutputToContain('heroicons.bolt has no configured vendor publishing to heroicons')
+            ->assertExitCode(1);
+
+        // checking one vendor leaves every other namespace alone
+        $this->artisan('flux-icons:check', ['vendor' => 'tabler', '--path' => [$root.'/resources/views']])
+            ->assertExitCode(0);
+    });
+
+    it('names the package in json, where a scanned reference has a file and line', function () {
+        $root = fakeApp('<flux:icon.tabler.home />', ['tabler/home']);
+        writeInstalledPackages($root, ['acme/shop' => ['tabler' => ['map-pin']]]);
+        app()->setBasePath($root);
+
+        Artisan::call('flux-icons:check', ['--path' => [$root.'/resources/views'], '--json' => true]);
+
+        expect(json_decode(Artisan::output(), true)['unresolved'])->toBe([
+            ['file' => null, 'line' => null, 'package' => 'acme/shop', 'name' => 'tabler.map-pin', 'vendor' => 'tabler', 'variant' => null, 'reason' => 'not-built'],
+        ]);
+    });
 });

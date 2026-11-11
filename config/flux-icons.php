@@ -37,7 +37,8 @@ return [
 
     /**
      * Default icons to be used in the project
-     * Listing icons here will make them auto buildable and updatable through flux-icons:build and flux-icons:update commands
+     * Listing icons here will make them auto buildable and updatable through flux-icons:build and flux-icons:update commands.
+     * flux-icons:build adds the icons installed packages declare in the extra.flux-icons block of their composer.json
      * null or array ['vendor' => ['icon-name', ...] ]
      */
     'icons' => null,

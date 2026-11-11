@@ -128,6 +128,25 @@ describe('building', function () {
         expect(builtIcons($this->root, 'alpha'))->toBe(['arrow-left', 'home']);
     });
 
+    it('builds the icons packages declare along with the configured ones', function () {
+        writeInstalledPackages($this->root, ['acme/shop' => ['alpha' => ['dots', 'home'], 'tabler' => ['key']]]);
+
+        $this->artisan('flux-icons:build', ['vendor' => 'alpha', '--no-interaction' => true])
+            ->assertExitCode(0);
+
+        expect(builtIcons($this->root, 'alpha'))->toBe(['arrow-left', 'dots', 'home']);
+    });
+
+    it('adds the declared icons to the ones asked for when merging', function () {
+        writeInstalledPackages($this->root, ['acme/shop' => ['alpha' => ['dots']]]);
+        Config::set('flux-icons.icons', null);
+
+        $this->artisan('flux-icons:build', ['vendor' => 'alpha', '--icons' => 'home', '--merge' => true, '--no-interaction' => true])
+            ->assertExitCode(0);
+
+        expect(builtIcons($this->root, 'alpha'))->toBe(['dots', 'home']);
+    });
+
     it('adds the configured icons to the ones asked for when merging', function () {
         $this->artisan('flux-icons:build', ['vendor' => 'alpha', '--icons' => 'dots', '--merge' => true, '--no-interaction' => true])
             ->assertExitCode(0);

@@ -9,12 +9,14 @@ use Illuminate\View\FileViewFinder;
 use InvalidArgumentException;
 use Ympact\FluxIcons\Build\Builder;
 use Ympact\FluxIcons\Contracts\Vendor;
+use Ympact\FluxIcons\Services\DeclaredIcons;
 use Ympact\FluxIcons\Services\IconReference;
 use Ympact\FluxIcons\Services\IconReferenceScanner;
 use Ympact\FluxIcons\Support\VendorRegistry;
 
 /**
- * Reports icons that templates and PHP sources ask for but that were never built.
+ * Reports icons that templates and PHP sources ask for, or installed packages declare they
+ * need, but that were never built.
  *
  * Flux throws when an icon component does not exist, so such a reference is a 500 on
  * whichever page renders it, and nothing surfaces it until that page is rendered. Built
@@ -67,7 +69,9 @@ class CheckFluxIconsCommand extends Command
         $namespaces = $vendors->map(fn (Vendor $vendor) => $vendor->namespace())->values();
         // resolved like the build command's, so the check looks where the icons are built
         $iconsPath = $this->laravel->make(Builder::class)->outputPath();
-        $references = (new IconReferenceScanner($namespaces, $iconsPath))->scan($paths);
+        $references = (new IconReferenceScanner($namespaces, $iconsPath))->scan($paths)
+            ->merge($this->declared($registry, array_values($namespaces->all()), filled($this->argument('vendor')), $iconsPath))
+            ->values();
         $unresolved = $references->filter(fn (IconReference $reference) => $reference->reason() !== null)->values();
 
         if ($this->option('json')) {
@@ -106,11 +110,14 @@ class CheckFluxIconsCommand extends Command
             foreach ($inFile as $reference) {
                 $reason = match ($reference->reason()) {
                     IconReference::MALFORMED => 'is not a valid icon name',
+                    IconReference::UNKNOWN_VENDOR => "has no configured vendor publishing to {$reference->namespace}",
                     IconReference::UNKNOWN_VARIANT => "is not built with the {$reference->variant} variant, so it draws its default one",
                     default => 'has not been built',
                 };
 
-                $this->line("    <fg=gray>{$reference->line}</>  <fg=red>{$reference->name()}</> {$reason}");
+                $where = $reference->package !== null ? 'needs' : $reference->line;
+
+                $this->line("    <fg=gray>{$where}</>  <fg=red>{$reference->name()}</> {$reason}");
             }
 
             $this->newLine();
@@ -184,8 +191,9 @@ class CheckFluxIconsCommand extends Command
         return [
             'references' => $references->count(),
             'unresolved' => array_values($unresolved->map(fn (IconReference $reference) => [
-                'file' => $reference->relativeFile(),
-                'line' => $reference->line,
+                'file' => $reference->package === null ? $reference->relativeFile() : null,
+                'line' => $reference->package === null ? $reference->line : null,
+                'package' => $reference->package,
                 'name' => $reference->name(),
                 'vendor' => $this->vendorKey($registry, $reference->namespace),
                 'variant' => $reference->variant,
@@ -193,6 +201,44 @@ class CheckFluxIconsCommand extends Command
             ])->all()),
             'build' => $this->buildCommands($unresolved, $registry),
         ];
+    }
+
+    /**
+     * The icons installed packages declare they need, as references. With every vendor checked,
+     * a namespace no configured vendor publishes to is reported, since the icon would otherwise
+     * only fail when it renders; checking one vendor leaves the other namespaces alone.
+     *
+     * @param  list<string>  $namespaces  The namespaces of the vendors being checked.
+     * @return Collection<int, IconReference>
+     */
+    protected function declared(VendorRegistry $registry, array $namespaces, bool $oneVendor, string $iconsPath): Collection
+    {
+        $installed = $this->laravel->make(DeclaredIcons::class);
+        $references = collect();
+
+        foreach ($installed->all() as $package => $declared) {
+            foreach ($declared as $namespace => $icons) {
+                $configured = $registry->findByNamespace($namespace) !== null;
+
+                if ($configured ? ! in_array($namespace, $namespaces, true) : $oneVendor) {
+                    continue;
+                }
+
+                foreach ($icons as $icon) {
+                    $references->push(new IconReference(
+                        file: $package,
+                        line: 0,
+                        namespace: $namespace,
+                        icon: $icon,
+                        iconsPath: $iconsPath,
+                        package: $package,
+                        vendorConfigured: $configured,
+                    ));
+                }
+            }
+        }
+
+        return $references;
     }
 
     /**

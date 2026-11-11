@@ -169,6 +169,34 @@ A problem that stops the check, such as an unknown vendor, prints `{"error": "..
 }
 ```
 
+### Icons a package needs
+
+A package that uses icons keeps their names in its own PHP, under `vendor/`, where
+`flux-icons:check` does not look. It can declare them in its `composer.json` instead, by the
+namespace its references use:
+
+```json
+{
+    "extra": {
+        "flux-icons": {
+            "icons": {
+                "tabler": ["calendar-month", "chart-bar", "map-pin"]
+            }
+        }
+    }
+}
+```
+
+The application does not repeat them in its own config. Both commands read the declarations
+of every installed package from `vendor/composer/installed.json`, as Laravel's package
+discovery does:
+
+- `flux-icons:build tabler`, without `--icons`, builds the declared icons along with the ones
+  in the `icons` config, and `--merge` adds them to the icons asked for.
+- `flux-icons:check` reports a declared icon that has not been built under the package that
+  declared it. It also reports an icon declared for a namespace that no configured vendor
+  publishes to, unless you check a single vendor.
+
 ## Configuration
 
 Publish the config file to choose the icons that are built by default or to register vendors:
@@ -180,7 +208,7 @@ php artisan vendor:publish --tag=flux-icons-config
 | Option            | Value | Description |
 |-------------------|-------|-------------|
 | `defaults.vendor` | `null` or a vendor key | The vendor `flux-icons:build` builds from when none is passed to it. |
-| `icons`           | `null` or `['vendor-key' => ['icon-name', ...]]` | The icons `flux-icons:build` builds when no icons are passed to it. |
+| `icons`           | `null` or `['vendor-key' => ['icon-name', ...]]` | The icons `flux-icons:build` builds when no icons are passed to it, together with the ones [installed packages declare](#icons-a-package-needs). |
 | `request_npm_dev` | `bool` | For a build of more than 100 icons, ask whether `npm run dev` is running, and if so pause a third of a second between icons and remind you to start it again afterwards. Without a terminal the answer is no. |
 | `vendors`         | `['vendor-key' => VendorClass::class]` | The vendors icons can be built from. The key is what you pass to the commands. The icons are published under the key as a slug (`tabler_icons` to `tabler-icons`), unless the class names another namespace (Material Icons publishes to `material`). |
 
