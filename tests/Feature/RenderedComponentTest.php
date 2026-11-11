@@ -85,3 +85,14 @@ it('escapes the variant it marks', function (bool $blaze) {
         ->toContain('data-flux-icon-fallback="&quot;&gt;&lt;script&gt;"')
         ->not->toContain('<script>');
 })->with(['plain' => false, 'blaze' => true]);
+
+// Font Awesome's licence asks that the attribution comment in its icons is kept
+it('keeps a vendor\'s attribution comment in the page', function (bool $blaze) {
+    $variants = VariantSet::make()->variant('solid', fn (Variant $variant) => $variant->default());
+    $markup = ['solid' => '<svg viewBox="0 0 640 640"><!--! Font Awesome Free 7.3.1 by @fontawesome --><path d="M1 0h1"></path></svg>'];
+
+    (new ComponentWriter)->write($this->directory, 'probe', 'icon', $variants->resolve(), $markup, '', '', $blaze);
+    Blade::anonymousComponentPath($this->directory, $this->prefix);
+
+    expect(renderIcon($this))->toContain('<!--! Font Awesome Free 7.3.1 by @fontawesome -->');
+})->with(['plain' => false, 'blaze' => true]);

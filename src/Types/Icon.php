@@ -4,6 +4,7 @@
 
 namespace Ympact\FluxIcons\Types;
 
+use DOMComment;
 use DOMDocument;
 use DOMElement;
 use DOMXPath;
@@ -364,6 +365,13 @@ class Icon
         if ($this->raw) {
             $svg->appendChild($this->dom->importNode($this->sourceSvg(), true));
         } else {
+            // a <!--! --> comment is one a vendor asks to keep, such as Font Awesome's attribution
+            foreach ($this->xpathSource->query("/*/comment()[starts-with(., '!')]") ?: [] as $notice) {
+                if ($notice instanceof DOMComment) {
+                    $svg->appendChild($this->dom->importNode($notice, true));
+                }
+            }
+
             $svgPathNodes = $this->paths->map(function (SvgPath $path) {
                 return $path->getNode();
             });
