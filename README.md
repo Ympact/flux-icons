@@ -12,6 +12,8 @@ Generally you want to install this package only in your local development enviro
 composer require --dev ympact/flux-icons
 ```
 
+Upgrading from 1.x? See [UPGRADE.md](UPGRADE.md).
+
 ## Icon Vendor Support
 
 | Vendor       | Namespace   | Preview / Repo | Notes |
