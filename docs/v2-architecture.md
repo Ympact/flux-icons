@@ -99,7 +99,8 @@ variant names are free-form.
 `FluxVariant` names the four the Flux component itself requests (`outline`,
 `solid`, `mini`, `micro`) and carries the size and classes Flux renders them at.
 Those four should always resolve, otherwise Flux components that ask for, say,
-`mini` get nothing. `VariantSet::missingFluxVariants()` reports the gap.
+`mini` get the default variant instead. `VariantSet::missingFluxVariants()`
+reports the gap.
 
 Anything beyond them is a **vendor variant**: it is emitted into the built
 component alongside the Flux four and becomes usable directly.
@@ -194,8 +195,22 @@ not installed throws a `RuntimeException` instead of building nothing.
 `IconsBuilt` is dispatched once per build, with the published names, when
 anything was written.
 
-Fills and vendor variants are not rendered yet; that is
-[#18](https://github.com/Ympact/flux-icons/issues/18).
+Vendor variants are built after the four Flux variants, the same way. An icon
+with no file for a vendor variant, and no fallback that has one, is still built;
+only that variant is left out of its component. A variant with fills gives each
+shape the attributes of the layer it belongs to: a layer that matches on opacity
+or colour claims its shapes first, and a catch-all layer takes the rest.
+
+### The built component
+
+Each component has one case per variant it was built with, and the vendor's
+default variant as the default of its `variant` prop. A variant's size classes are
+its own `classes()`, else Flux's for the four Flux variants and the default
+variant's for the rest. The header lists the variants the icon has.
+
+Asked for a variant it was not built with, a component draws its default variant
+and marks the `<svg>` with `data-flux-icon-fallback="duotone"`, so the fallback is
+visible in the browser's devtools.
 
 ### How an icon is rendered
 
@@ -226,6 +241,8 @@ Where this departs from v1 output:
   without a filled version gets the round caps and joins of its outline in the
   solid, mini and micro slots too; v1 drew butt caps there.
 - MDI icons without an `-outline` file are built; v1 skipped them.
+- A component asked for a variant it was not built with draws its default variant;
+  v1's threw an `UnhandledMatchError` from its size class lookup.
 - Only the outermost `<svg>` receives the component's `$attributes`; v1 also gave
   them to the vendor's own `<svg>` nested inside a `Raw` icon.
 - Sources are parsed as XML, not HTML, so a `Raw` icon keeps the case of names such
@@ -253,12 +270,10 @@ Present and tested:
 
 Not yet done, tracked on the v2 milestone:
 
-- the blade stub, which still has fixed `{OUTLINE}`/`{SOLID}`/`{MINI}`/`{MICRO}`
-  placeholders and has to be generated from the variant set before vendor
-  variants can actually be emitted ([#18](https://github.com/Ympact/flux-icons/issues/18))
 - vendor options and a default vendor on the command line
   ([#21](https://github.com/Ympact/flux-icons/issues/21))
-- `Types\Icon` still reads a v1 config array, which the build no longer passes it;
-  parsing is reworked in [#22](https://github.com/Ympact/flux-icons/issues/22)
+- `Types\Icon` still reads a v1 config array, which the build no longer passes it
+- `flux-icons:check` reporting a literal `variant="..."` an icon was not built with
+  ([#47](https://github.com/Ympact/flux-icons/issues/47))
 - npm is still driven with `exec()` ([#23](https://github.com/Ympact/flux-icons/issues/23))
 - the upgrade guide ([#20](https://github.com/Ympact/flux-icons/issues/20))

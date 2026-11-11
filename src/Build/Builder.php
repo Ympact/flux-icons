@@ -84,7 +84,7 @@ class Builder
             if (is_string($markup)) {
                 $skipped[$name] = $markup;
             } else {
-                $this->writer->write($directory, $vendor->namespace(), $published, $markup, ...$header);
+                $this->writer->write($directory, $vendor->namespace(), $published, $variants, $markup, ...$header);
                 $publishedFrom[$published] = $name;
             }
 
@@ -145,7 +145,11 @@ class Builder
     }
 
     /**
-     * The markup of every Flux variant, or why the icon cannot be built.
+     * The markup of every variant, Flux's four first, or why the icon cannot be built.
+     *
+     * Flux's components ask for its four variants, so an icon missing one is skipped. A
+     * vendor variant such as duotone is only left out of that icon: the component draws
+     * its default variant when asked for it.
      *
      * @return array<string, string>|string
      */
@@ -153,8 +157,12 @@ class Builder
     {
         $markup = [];
 
-        foreach ($variants->fluxVariants() as $building => $variant) {
+        foreach ($variants->fluxVariants()->merge($variants->vendorVariants()) as $building => $variant) {
             $source = $this->source($variants, $resolver, $variant, $name, $file);
+
+            if ($source === null && $variant->getFluxVariant() === null) {
+                continue;
+            }
 
             if ($source === null) {
                 return "no source for its {$building} variant";

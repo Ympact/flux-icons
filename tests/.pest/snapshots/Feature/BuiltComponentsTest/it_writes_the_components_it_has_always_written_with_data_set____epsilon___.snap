@@ -2,6 +2,7 @@
 {{-- 
   Icon:     arrow-left 
   Usage:    <flux:icon.epsilon.arrow-left /> or <flux:icon name="epsilon.arrow-left" /> 
+  Variants: outline, solid, mini, micro 
   Credits:  -- Package details not found -- 
   Flux: <flux version>
   Built: <build date>
@@ -14,6 +15,12 @@
 ])
 
 @php
+// a variant this icon was not built with draws the default one, marked for devtools
+if (! in_array($variant, ['outline', 'solid', 'mini', 'micro'], true)) {
+    $attributes = $attributes->merge(['data-flux-icon-fallback' => (string) $variant]);
+    $variant = 'outline';
+}
+
 $classes = Flux::classes('shrink-0')
     ->add(match($variant) {
         'outline' => '[:where(&)]:size-6',
@@ -48,6 +55,7 @@ $classes = Flux::classes('shrink-0')
 {{-- 
   Icon:     home 
   Usage:    <flux:icon.epsilon.home /> or <flux:icon name="epsilon.home" /> 
+  Variants: outline, solid, mini, micro 
   Credits:  -- Package details not found -- 
   Flux: <flux version>
   Built: <build date>
@@ -60,6 +68,12 @@ $classes = Flux::classes('shrink-0')
 ])
 
 @php
+// a variant this icon was not built with draws the default one, marked for devtools
+if (! in_array($variant, ['outline', 'solid', 'mini', 'micro'], true)) {
+    $attributes = $attributes->merge(['data-flux-icon-fallback' => (string) $variant]);
+    $variant = 'outline';
+}
+
 $classes = Flux::classes('shrink-0')
     ->add(match($variant) {
         'outline' => '[:where(&)]:size-6',

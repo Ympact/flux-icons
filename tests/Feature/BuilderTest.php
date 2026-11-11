@@ -9,7 +9,9 @@ use Ympact\FluxIcons\Sources\Source;
 use Ympact\FluxIcons\Tests\Fixtures\Vendors\Alpha;
 use Ympact\FluxIcons\Tests\Fixtures\Vendors\Epsilon;
 use Ympact\FluxIcons\Variants\Fallback;
+use Ympact\FluxIcons\Variants\Fill;
 use Ympact\FluxIcons\Variants\Stroke;
+use Ympact\FluxIcons\Variants\Template;
 use Ympact\FluxIcons\Variants\Variant;
 use Ympact\FluxIcons\Variants\VariantSet;
 use Ympact\FluxIcons\Vendors\Mdi;
@@ -38,6 +40,18 @@ function componentsIn(string $directory): array
         ])
         ->sortKeys()
         ->all();
+}
+
+/**
+ * The <svg> markup of each variant case in a built component, by variant.
+ *
+ * @return array<string, string>
+ */
+function slotsIn(string $component): array
+{
+    preg_match_all("/case \\('(\\w+)'\\): \\?>\\s*(.*?)\\s*<\\?php break; \\?>/s", (string) file_get_contents($component), $slots);
+
+    return array_combine($slots[1], $slots[2]);
 }
 
 it('announces the components it wrote', function () {
@@ -143,12 +157,68 @@ it('draws a variant that falls back exactly as the variant it falls back to', fu
 
     $this->builder->build($vendor, ['dots']);
 
-    preg_match_all("/case \\('(\\w+)'\\): \\?>\\s*(.*?)\\s*<\\?php break; \\?>/s", (string) file_get_contents("{$this->output}/alpha/dots.blade.php"), $slots);
-    $slots = array_combine($slots[1], $slots[2]);
+    $slots = slotsIn("{$this->output}/alpha/dots.blade.php");
 
     expect($slots['outline'])->toContain('stroke-linecap="round"')
         ->and($slots['solid'])->toBe($slots['outline'])
         ->and($slots['micro'])->toBe($slots['outline']);
+});
+
+/**
+ * Alpha with a duotone variant, its foreground layer listed before the background it must not take,
+ * and the background drawn at another opacity than the one it is matched on.
+ */
+function alphaWithDuotone(?Fallback $fallback = null): Alpha
+{
+    return new class($fallback) extends Alpha
+    {
+        public function __construct(protected ?Fallback $duotoneFallback) {}
+
+        public function key(): string
+        {
+            return 'alpha';
+        }
+
+        public function variants(): VariantSet
+        {
+            return parent::variants()->variant('duotone', function (Variant $variant) {
+                $variant->template(Template::Solid)
+                    ->source(Source::dir('duotone'))
+                    ->fill(new Fill('foreground'))
+                    ->fill(new Fill('background', matchOpacity: 0.2, opacity: 0.4));
+
+                if ($this->duotoneFallback !== null) {
+                    $variant->fallback($this->duotoneFallback);
+                }
+            });
+        }
+    };
+}
+
+it('builds a vendor variant and paints each of its fill layers', function () {
+    $this->builder->build(alphaWithDuotone(), ['home']);
+
+    $slots = slotsIn("{$this->output}/alpha/home.blade.php");
+
+    expect(array_keys($slots))->toBe(['outline', 'solid', 'mini', 'micro', 'duotone'])
+        ->and($slots['duotone'])->toContain('<path d="M4 4h16v16H4z" opacity="0.4" fill="currentColor"></path>')
+        ->and($slots['duotone'])->toContain('<path d="M2 2h20v20H2z" fill="currentColor"></path>');
+});
+
+it('leaves a vendor variant out of an icon that has no file for it, and builds the icon', function () {
+    $result = $this->builder->build(alphaWithDuotone(), ['arrow-left']);
+
+    expect($result->built)->toBe(['arrow-left'])
+        ->and(array_keys(slotsIn("{$this->output}/alpha/arrow-left.blade.php")))->toBe(['outline', 'solid', 'mini', 'micro'])
+        ->and((string) file_get_contents("{$this->output}/alpha/arrow-left.blade.php"))->toContain('Variants: outline, solid, mini, micro ');
+});
+
+it('draws a vendor variant without a file as the variant it falls back to', function () {
+    $this->builder->build(alphaWithDuotone(Fallback::defaultVariant()), ['arrow-left']);
+
+    $slots = slotsIn("{$this->output}/alpha/arrow-left.blade.php");
+
+    expect($slots['duotone'])->toBe($slots['outline']);
 });
 
 it('lists the icons a vendor ships by name', function () {
@@ -176,8 +246,7 @@ it('follows a fallback that itself falls back', function () {
 
     expect($result->built)->toBe(['dots']);
 
-    preg_match_all("/case \\('(\\w+)'\\): \\?>\\s*(.*?)\\s*<\\?php break; \\?>/s", (string) file_get_contents("{$this->output}/alpha/dots.blade.php"), $slots);
-    $slots = array_combine($slots[1], $slots[2]);
+    $slots = slotsIn("{$this->output}/alpha/dots.blade.php");
 
     expect($slots['mini'])->toBe($slots['outline']);
 });

@@ -208,4 +208,3 @@ A build that writes nothing, for example because no requested icon exists, dispa
 - Helper script to create configurations for new vendors
 - Improving testing
 - Documentation
-- Support other variants (duotone, etc.)
