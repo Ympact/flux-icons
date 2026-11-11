@@ -36,7 +36,8 @@ class VendorRegistry
             if (! is_string($vendor) && ! $vendor instanceof Vendor) {
                 throw new InvalidArgumentException(
                     "Vendor [{$key}] must map to a vendor class, such as Ympact\\FluxIcons\\Vendors\\Tabler::class. ".
-                    'A published v1 config describes vendors as arrays: publish the config again and copy over your changes.'
+                    'A published v1 config describes vendors as arrays. Replace it with `php artisan vendor:publish --tag=flux-icons-config --force`, '.
+                    'which overwrites config/flux-icons.php, then copy your changes over.'
                 );
             }
 

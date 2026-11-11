@@ -42,8 +42,8 @@ Please do not report these as problems.
   Composer refuses to install. The composer constraint still allows `^11` so the
   package stays in step with Flux.
 - `Types\Icon` still accepts a v1 config array that the build no longer passes it.
-  That code is unreachable on purpose until parsing is reworked in #22; do not
-  report it as dead code to remove piecemeal.
+  Removing that code touches most of `Icon` and its tests, so it is left for a
+  change of its own; do not report it as dead code to remove piecemeal.
 - npm is still driven with `exec()` in `Services\PackageManager` until #23 brings
   an NpmManager. The package names it runs come from vendor classes, not input.
 - `Build\IconRenderer` draws an icon the way its vendor does: it keeps the caps,
