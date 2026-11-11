@@ -5,6 +5,7 @@ namespace Ympact\FluxIcons\Console;
 use Illuminate\Console\Command;
 use Ympact\FluxIcons\Build\Builder;
 use Ympact\FluxIcons\Console\Concerns\ReportsBuildResult;
+use Ympact\FluxIcons\Contracts\Vendor;
 use Ympact\FluxIcons\Services\IconManager;
 use Ympact\FluxIcons\Services\PackageManager;
 use Ympact\FluxIcons\Support\VendorRegistry;
@@ -43,7 +44,10 @@ class UpdateFluxIconsCommand extends Command
             }
         }
 
-        $builder = new Builder;
+        // resolved like the build command's, so an application that binds the builder to another
+        // node_modules updates from there too
+        $builder = $this->laravel->make(Builder::class);
+        $failed = [];
 
         info('Updating the packages');
 
@@ -58,18 +62,17 @@ class UpdateFluxIconsCommand extends Command
                 continue;
             }
 
+            $updated = false;
             $this->components->task(
                 "Updating package {$vendor->key()}",
-                function () use ($vendor, $verbose) {
-                    try {
-                        return PackageManager::updateVendorPackage($vendor, $verbose);
-                    } catch (\RuntimeException $exception) {
-                        error("Failed to update the package for: {$vendor->key()}. ".$exception->getMessage());
-
-                        return false;
-                    }
+                function () use ($vendor, $verbose, &$updated) {
+                    return $updated = $this->updatePackage($vendor, $verbose);
                 }
             );
+
+            if (! $updated) {
+                $failed[] = $vendor->key();
+            }
 
             info('Updating '.count($icons)." icons for {$vendor->key()}");
 
@@ -77,12 +80,33 @@ class UpdateFluxIconsCommand extends Command
                 PackageManager::requirePackage($vendor, $verbose);
                 // a component whose icon left the package is reported as not found, and kept
                 $this->report($builder->build($vendor, $icons->all()), $verbose);
-            } catch (\Throwable $exception) {
+            } catch (\RuntimeException $exception) {
                 error("Failed to update the icons for: {$vendor->key()}. ".$exception->getMessage());
+                $failed[] = $vendor->key();
             }
         }
 
+        if ($failed !== []) {
+            error('The update failed for: '.implode(', ', array_unique($failed)).'.');
+
+            return self::FAILURE;
+        }
+
         return self::SUCCESS;
+    }
+
+    /**
+     * Update the vendor's npm package, saying why when that fails.
+     */
+    protected function updatePackage(Vendor $vendor, bool $verbose): bool
+    {
+        try {
+            return PackageManager::updateVendorPackage($vendor, $verbose);
+        } catch (\RuntimeException $exception) {
+            error("Failed to update the package for: {$vendor->key()}. ".$exception->getMessage());
+
+            return false;
+        }
     }
 
     /**
