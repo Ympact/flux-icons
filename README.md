@@ -99,7 +99,8 @@ php artisan flux-icons:check
 ```
 
 It walks every registered view path (packages and modules included, not only
-`resources/views`) and reports the references that have nothing behind them:
+`resources/views`), plus your application's `app` and `config` directories, and reports the
+references that have nothing behind them:
 
 ```
   Modules/Tools/resources/views/components/ambitie/transformaties.blade.php
@@ -115,19 +116,57 @@ of this package's business; `icon="tabler.check"` is. References are found where
 written: the tag form, the `name` attribute, any `icon`-like attribute, and inside a bound
 expression. They all fail the same way.
 
+In PHP files only string literals are read, so an icon name kept in an enum, a menu builder
+or a config array counts, and one in a comment does not. In Blade templates, `{{-- --}}`
+comments and the PHP comments in `@php` and `<?php` blocks are skipped. An HTML comment
+still counts: Blade renders the components inside one. The icons the builder wrote are not
+scanned, so they do not count as references to themselves.
+
 A doubled namespace such as `tabler.tabler.check` is reported as malformed rather than as a
 missing icon, since no build will ever produce it.
+
+A `<flux:icon>` that asks for a variant its icon was not built with, written as a literal
+such as `variant="duotone"`, is reported too. It draws the icon's default variant rather
+than failing, which is easy to miss. A bound `:variant` is only known when the page renders.
 
 ### Options
 
 | Option | Description |
 | --- | --- |
 | `vendor` | Only check icons of this vendor, given by its config key |
-| `--path=` | Directories to scan, repeatable. Defaults to the registered view paths |
+| `--path=` | Directories to scan, repeatable. Defaults to the registered view paths and the application's `app` and `config` directories |
 | `--build` | Also print the `flux-icons:build` command that would add the missing icons |
+| `--json` | Print the result as JSON instead, for CI and agents. It exits non-zero in the same cases. |
 
 ```bash
 php artisan flux-icons:check tabler --build
+```
+
+With `--json`, each unresolved reference carries its `reason`: `not-built`, `malformed` or
+`unknown-variant`. `build` holds the command per vendor for the icons that are not built.
+A problem that stops the check, such as an unknown vendor, prints `{"error": "..."}`.
+
+```json
+{
+    "references": 12,
+    "unresolved": [
+        {
+            "file": "resources/views/dashboard.blade.php",
+            "line": 14,
+            "name": "tabler.chart-histogram",
+            "vendor": "tabler",
+            "variant": null,
+            "reason": "not-built"
+        }
+    ],
+    "build": [
+        {
+            "vendor": "tabler",
+            "icons": ["chart-histogram"],
+            "command": "php artisan flux-icons:build tabler --icons=chart-histogram --merge"
+        }
+    ]
+}
 ```
 
 ## Configuration

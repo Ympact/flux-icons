@@ -1,6 +1,8 @@
 <?php
 
 use Illuminate\Contracts\Console\Kernel;
+use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\View;
 use Illuminate\Support\Str;
 use Ympact\FluxIcons\Console\CheckFluxIconsCommand;
 use Ympact\FluxIcons\Vendors\MaterialIcons;
@@ -111,4 +113,86 @@ it('fails when no vendors are configured at all', function () {
     $this->artisan('flux-icons:check')
         ->expectsOutputToContain('No vendors are configured')
         ->assertExitCode(1);
+});
+
+/**
+ * A built icon whose header lists the variants it was built with, as the builder writes it.
+ */
+function builtWithVariants(string $root, string $icon, string $variants): void
+{
+    [$namespace, $name] = explode('/', $icon);
+    @mkdir($root."/resources/views/flux/icon/{$namespace}", 0777, true);
+    file_put_contents($root."/resources/views/flux/icon/{$namespace}/{$name}.blade.php", "{{--\n  Icon:     {$name}\n  Variants: {$variants}\n--}}\n<svg/>");
+}
+
+it('reports a literal variant the icon was not built with', function () {
+    $root = fakeApp('<flux:icon.tabler.home variant="mini" />'."\n".'<flux:icon.tabler.home variant="duotone" />');
+    builtWithVariants($root, 'tabler/home', 'outline, solid, mini, micro');
+    app()->setBasePath($root);
+
+    $this->artisan('flux-icons:check', ['--path' => [$root.'/resources/views']])
+        ->expectsOutputToContain('tabler.home is not built with the duotone variant')
+        ->doesntExpectOutputToContain('mini variant')
+        ->assertExitCode(1);
+});
+
+it('trusts a variant on an icon built before its header listed them', function () {
+    $root = fakeApp('<flux:icon.tabler.home variant="duotone" />', ['tabler/home']);
+    app()->setBasePath($root);
+
+    $this->artisan('flux-icons:check', ['--path' => [$root.'/resources/views']])
+        ->assertExitCode(0);
+});
+
+it('does not count the icons it built as references to themselves', function () {
+    $root = fakeApp('<flux:icon.tabler.home />');
+    builtWithVariants($root, 'tabler/home', 'outline, solid, mini, micro');
+    file_put_contents($root.'/resources/views/flux/icon/tabler/home.blade.php', '<flux:icon.tabler.home />', FILE_APPEND);
+    app()->setBasePath($root);
+
+    $this->artisan('flux-icons:check', ['--path' => [$root.'/resources/views']])
+        ->expectsOutputToContain('All 1 icon references resolve')
+        ->assertExitCode(0);
+});
+
+it('looks in the application\'s php as well as its views by default', function () {
+    $root = fakeApp('<flux:icon.tabler.home />', ['tabler/home']);
+    @mkdir($root.'/app/Enums', 0777, true);
+    file_put_contents($root.'/app/Enums/Status.php', "<?php\n\nreturn 'tabler.lock';\n");
+    app()->setBasePath($root);
+    config()->set('view.paths', [$root.'/resources/views']);
+    View::getFinder()->setPaths([$root.'/resources/views']);
+
+    $this->artisan('flux-icons:check')
+        ->expectsOutputToContain('app/Enums/Status.php')
+        ->expectsOutputToContain('tabler.lock has not been built')
+        ->assertExitCode(1);
+});
+
+it('reports as json for ci and agents', function () {
+    $root = fakeApp("<flux:icon.tabler.home />\n<flux:icon.tabler.missing />\n<flux:icon.tabler.tabler.x />\n<flux:icon.tabler.home variant=\"duotone\" />");
+    builtWithVariants($root, 'tabler/home', 'outline, solid, mini, micro');
+    app()->setBasePath($root);
+
+    $exitCode = Artisan::call('flux-icons:check', ['--path' => [$root.'/resources/views'], '--json' => true]);
+
+    expect($exitCode)->toBe(1)
+        ->and(json_decode(Artisan::output(), true))->toBe([
+            'references' => 4,
+            'unresolved' => [
+                ['file' => 'resources/views/page.blade.php', 'line' => 2, 'name' => 'tabler.missing', 'vendor' => 'tabler', 'variant' => null, 'reason' => 'not-built'],
+                ['file' => 'resources/views/page.blade.php', 'line' => 3, 'name' => 'tabler.tabler.x', 'vendor' => 'tabler', 'variant' => null, 'reason' => 'malformed'],
+                ['file' => 'resources/views/page.blade.php', 'line' => 4, 'name' => 'tabler.home', 'vendor' => 'tabler', 'variant' => 'duotone', 'reason' => 'unknown-variant'],
+            ],
+            'build' => [
+                ['vendor' => 'tabler', 'icons' => ['missing'], 'command' => 'php artisan flux-icons:build tabler --icons=missing --merge'],
+            ],
+        ]);
+});
+
+it('reports a problem that stops the check as json too', function () {
+    $exitCode = Artisan::call('flux-icons:check', ['vendor' => 'nope', '--json' => true]);
+
+    expect($exitCode)->toBe(1)
+        ->and(json_decode(Artisan::output(), true))->toBe(['error' => "Vendor configuration for 'nope' not found. Configured vendors: tabler"]);
 });

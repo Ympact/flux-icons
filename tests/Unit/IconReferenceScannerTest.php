@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
 use Ympact\FluxIcons\Services\IconReference;
 use Ympact\FluxIcons\Services\IconReferenceScanner;
@@ -90,3 +91,121 @@ it('scans nothing when no namespaces are given', function () {
 it('skips directories that do not exist', function () {
     expect((new IconReferenceScanner(['tabler']))->scan(['/no/such/place']))->toHaveCount(0);
 });
+
+/**
+ * Write files into a throwaway directory, scan it, and return the names found per file.
+ *
+ * @param  array<string, string>  $files  Contents by path inside the directory.
+ * @return array<string, list<string>>
+ */
+function scanFiles(array $files, ?string $iconsPath = null, ?string $directory = null): array
+{
+    $directory ??= sys_get_temp_dir().'/flux-icons-scan-'.Str::random(8);
+
+    foreach ($files as $path => $contents) {
+        File::ensureDirectoryExists(dirname("{$directory}/{$path}"));
+        File::put("{$directory}/{$path}", $contents);
+    }
+
+    $found = [];
+
+    foreach ((new IconReferenceScanner(['tabler'], $iconsPath ? "{$directory}/{$iconsPath}" : null))->scan([$directory]) as $reference) {
+        $found[Str::after($reference->file, $directory.'/')][] = $reference->name();
+    }
+
+    File::deleteDirectory($directory);
+    ksort($found);
+
+    return $found;
+}
+
+it('finds an icon named in a php string, such as an enum keeps', function () {
+    $enum = <<<'PHP'
+        <?php
+
+        enum Status: string
+        {
+            case Open = 'open';
+
+            public function icon(): string
+            {
+                return match ($this) {
+                    self::Open => 'tabler.lock-open',
+                };
+            }
+        }
+        PHP;
+
+    expect(scanFiles(['app/Enums/Status.php' => $enum]))->toBe(['app/Enums/Status.php' => ['tabler.lock-open']]);
+});
+
+it('ignores a name in a php comment, such as a disabled enum case', function () {
+    $enum = <<<'PHP'
+        <?php
+
+        // 'tabler.line-comment'
+        # 'tabler.hash-comment'
+        /**
+         * Draws tabler.doc-comment
+         */
+        $icons = [
+            'tabler.kept',
+            /* 'tabler.disabled-case',
+               'tabler.disabled-too', */
+        ];
+        PHP;
+
+    expect(scanFiles(['menu.php' => $enum]))->toBe(['menu.php' => ['tabler.kept']]);
+});
+
+it('ignores a name in a blade comment, a php block comment and an @php comment', function () {
+    $template = <<<'BLADE'
+        {{-- <flux:icon.tabler.commented-out />
+             icons, e.g. 'tabler.documented' --}}
+        <?php /* 'tabler.in-php-block' */ $icon = 'tabler.from-php-tag'; ?>
+        @php
+            // 'tabler.in-at-php'
+            $other = 'tabler.from-at-php';
+        @endphp
+        <flux:icon.tabler.kept />
+        BLADE;
+
+    expect(scanFiles(['page.blade.php' => $template]))
+        ->toBe(['page.blade.php' => ['tabler.from-php-tag', 'tabler.from-at-php', 'tabler.kept']]);
+});
+
+it('finds a name in an html comment, which blade still renders', function () {
+    expect(scannedNames('<!-- <flux:icon.tabler.rendered /> -->'))->toBe(['tabler.rendered']);
+});
+
+it('counts lines through a blanked comment', function () {
+    $references = scanTemplate("{{-- one\n two\n three --}}\n<flux:icon.tabler.star />");
+
+    expect($references->first()->line)->toBe(4);
+});
+
+it('skips the icons it was told are built there, and only those', function () {
+    // the same tail elsewhere, as a module's own views could have it
+    $module = 'modules/shop/resources/views/flux/icon/tabler/home.blade.php';
+
+    expect(scanFiles([
+        'resources/views/flux/icon/tabler/home.blade.php' => '<flux:icon.tabler.home />',
+        $module => '<flux:icon.tabler.module-home />',
+        'resources/views/page.blade.php' => '<flux:icon.tabler.home />',
+    ], iconsPath: 'resources/views/flux/icon'))->toBe([
+        $module => ['tabler.module-home'],
+        'resources/views/page.blade.php' => ['tabler.home'],
+    ]);
+});
+
+it('reads the literal variant a flux icon tag asks for, and only that', function (string $template, ?string $variant) {
+    expect(scanTemplate($template)->first()->variant)->toBe($variant);
+})->with([
+    'tag' => ['<flux:icon.tabler.home variant="mini" />', 'mini'],
+    'name attribute' => ['<flux:icon name="tabler.home" class="size-4" variant=\'duotone\' />', 'duotone'],
+    'none' => ['<flux:icon.tabler.home />', null],
+    'bound' => ['<flux:icon.tabler.home :variant="$variant" />', null],
+    'echoed' => ['<flux:icon.tabler.home variant="{{ $variant }}" />', null],
+    'another component' => ['<flux:button icon="tabler.home" variant="primary" />', null],
+    'data attribute' => ['<flux:icon.tabler.home data-variant="mini" />', null],
+]);

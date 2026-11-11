@@ -307,5 +307,3 @@ Present and tested:
 Not yet done, tracked on the v2 milestone:
 
 - `Types\Icon` still reads a v1 config array, which the build no longer passes it
-- `flux-icons:check` reporting a literal `variant="..."` an icon was not built with
-  ([#47](https://github.com/Ympact/flux-icons/issues/47))

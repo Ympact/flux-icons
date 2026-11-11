@@ -28,7 +28,7 @@ In version 1, each vendor was an array in `config/flux-icons.php` plus callbacks
 
    This updates the npm package of every vendor that has built icons, then rebuilds those icons.
 
-5. Optionally, list the icon references in your views that have not been built:
+5. Optionally, list the icon references in your views and PHP that have not been built:
 
    ```cmd
    php artisan flux-icons:check
@@ -196,7 +196,7 @@ Built components also behave differently in a few ways:
 
 ## New in version 2
 
-- `flux-icons:check` lists icon references that have not been built.
+- `flux-icons:check` lists the icon references in your views and PHP that have not been built, or that ask for a variant an icon lacks.
 - `flux-icons:build --options=` picks a vendor's build options, such as `ratio=1x1` for square flags.
 - The `IconsBuilt` event fires after each build, for packages that keep a registry of icons.
 - Font Awesome Free and Phosphor are available as vendors. Phosphor is not registered in the default config.
