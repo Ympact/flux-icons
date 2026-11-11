@@ -68,7 +68,7 @@ class Builder
         [$selected, $missing] = $this->select($vendor, $this->listed($vendor, $resolver, $variants), $icons);
 
         $directory = $this->outputPath.'/'.$vendor->namespace();
-        $header = [$this->credits->package($packageRoot), $this->credits->flux(), PackageManager::fluxVersionAtLeast(self::BLAZE_SINCE)];
+        $header = [$this->credits->package($packageRoot, $vendor->license()), $this->credits->flux(), PackageManager::fluxVersionAtLeast(self::BLAZE_SINCE)];
         $publishedFrom = [];
         $skipped = [];
         $handled = 0;

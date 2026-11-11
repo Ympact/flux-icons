@@ -11,14 +11,16 @@ use Ympact\FluxIcons\Services\PackageManager;
 class Credits
 {
     /**
-     * Name, version and author of the npm package the icons come from.
+     * Name, version and author of the npm package the icons come from, and the licence of its
+     * icons: a licence such as CC-BY-4.0 asks for this attribution wherever the icons are used.
      */
-    public function package(string $packageRoot): string
+    public function package(string $packageRoot, ?string $license = null): string
     {
         $file = $packageRoot.'/package.json';
+        $licensed = $license !== null ? ", licensed under {$license}" : '';
 
         if (! is_file($file)) {
-            return '-- Package details not found --';
+            return '-- Package details not found --'.$licensed;
         }
 
         $details = (array) json_decode((string) file_get_contents($file), true);
@@ -27,7 +29,7 @@ class Credits
         $name = is_array($name) ? ($name['name'] ?? '') : $name;
         $author = is_array($author) ? ($author['name'] ?? null) : $author;
 
-        return $name.' ('.Arr::get($details, 'version').') '.($author ? 'by '.$author : '');
+        return $name.' ('.Arr::get($details, 'version').')'.($author ? ' by '.$author : '').$licensed;
     }
 
     /**
