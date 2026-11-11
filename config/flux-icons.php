@@ -26,6 +26,14 @@ return [
     'request_npm_dev' => true,
 
     /**
+     * What flux-icons:build uses when the command line does not say.
+     * 'vendor': the vendor key to build from when none is given, or null to be asked
+     */
+    'defaults' => [
+        'vendor' => null,
+    ],
+
+    /**
      * Default icons to be used in the project
      * Listing icons here will make them auto buildable and updatable through flux-icons:build and flux-icons:update commands
      * null or array ['vendor' => ['icon-name', ...] ]
@@ -65,4 +73,12 @@ return [
         // https://tabler.io/icons
         'tabler' => Tabler::class,
     ],
+
+    /**
+     * Build options per vendor key, used by flux-icons:build and flux-icons:update. A vendor's
+     * options() method lists the options it takes and their values; `--options=` on the
+     * build command overrides them for that build. For example:
+     * 'flags' => ['ratio' => '1x1'],
+     */
+    'options' => [],
 ];

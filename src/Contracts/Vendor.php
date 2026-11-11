@@ -213,6 +213,16 @@ abstract class Vendor
     }
 
     /**
+     * The options set for this build, by name; an option left at the vendor's own default is absent.
+     *
+     * @return array<string, string|int>
+     */
+    public function selectedOptions(): array
+    {
+        return $this->selectedOptions;
+    }
+
+    /**
      * The variants of this vendor with basedOn() inheritance applied.
      */
     public function resolvedVariants(): VariantSet

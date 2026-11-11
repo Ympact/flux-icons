@@ -4,6 +4,7 @@ namespace Ympact\FluxIcons\Console;
 
 use Illuminate\Console\Command;
 use Illuminate\Support\Str;
+use InvalidArgumentException;
 use Symfony\Component\Console\Helper\ProgressBar;
 use Ympact\FluxIcons\Build\Builder;
 use Ympact\FluxIcons\Build\BuildResult;
@@ -34,24 +35,32 @@ class BuildFluxIconsCommand extends Command
                             {vendor? : The vendor icon package to use}
                             {--I|icons= : The icons to build (single or comma separated list)}
                             {--A|all : All icons from the vendor}
-                            {--M|merge : Merge the icons from the --icons option with the default icons}';
+                            {--M|merge : Merge the icons from the --icons option with the default icons}
+                            {--O|options=* : Options of the vendor for this build, as name=value (single or comma separated list)}';
 
     protected $description = 'Build icons for Flux using a specific icon package';
 
     public function handle(): int
     {
-        $registry = VendorRegistry::fromConfig();
         $noInteraction = (bool) $this->option('no-interaction');
         $verbose = (bool) $this->option('verbose');
 
-        $key = $this->argument('vendor') ?? ($noInteraction ? null :
-            select(
-                label: 'From which vendor do you want to build icons?',
-                options: collect($registry->keys())->sort()->values()->all(),
-                scroll: 5
-            ));
+        try {
+            $registry = VendorRegistry::fromConfig();
+            $options = $this->requestedOptions();
+        } catch (InvalidArgumentException $exception) {
+            $this->error($exception->getMessage());
 
-        $key = is_string($key) ? $key : '';
+            return self::FAILURE;
+        }
+
+        $key = $this->vendorKey($registry, $noInteraction);
+
+        if ($key === null) {
+            $this->error('Name the vendor to build from, or set defaults.vendor in config/flux-icons.php.');
+
+            return self::FAILURE;
+        }
 
         if (! $registry->has($key)) {
             $this->error("Vendor configuration for '{$key}' not found.");
@@ -74,7 +83,13 @@ class BuildFluxIconsCommand extends Command
             return self::FAILURE;
         }
 
-        $vendor = $registry->get($key);
+        try {
+            $vendor = $registry->get($key)->withOptions($options);
+        } catch (InvalidArgumentException $exception) {
+            $this->error($exception->getMessage());
+
+            return self::FAILURE;
+        }
 
         $this->info("Checking if vendor: {$key} is installed");
 
@@ -103,7 +118,7 @@ class BuildFluxIconsCommand extends Command
                 $icons = $this->mergeWithConfiguredIcons($icons, config("flux-icons.icons.{$key}"));
             }
 
-            $this->info("Building icons for vendor: {$key}");
+            $this->info("Building icons for vendor: {$key}".$this->describeOptions($vendor));
             $result = $this->build($builder, $vendor, $icons);
         } catch (\RuntimeException $exception) {
             $this->error($exception->getMessage());
@@ -122,6 +137,63 @@ class BuildFluxIconsCommand extends Command
         $this->newLine()->info("Icons built successfully for vendor: {$key}");
 
         return self::SUCCESS;
+    }
+
+    /**
+     * The vendor asked for, else the configured default, else the one the user picks; null when
+     * there is none and no one to ask.
+     */
+    protected function vendorKey(VendorRegistry $registry, bool $noInteraction): ?string
+    {
+        $key = $this->argument('vendor') ?? config('flux-icons.defaults.vendor');
+
+        if ($key === null && ! $noInteraction) {
+            $key = select(
+                label: 'From which vendor do you want to build icons?',
+                options: collect($registry->keys())->sort()->values()->all(),
+                scroll: 5
+            );
+        }
+
+        return is_string($key) && $key !== '' ? $key : null;
+    }
+
+    /**
+     * The options given with --options, by name.
+     *
+     * @return array<string, string>
+     *
+     * @throws InvalidArgumentException When one is not written as name=value.
+     */
+    protected function requestedOptions(): array
+    {
+        $options = [];
+
+        foreach ((array) $this->option('options') as $given) {
+            foreach (explode(',', (string) $given) as $pair) {
+                if (trim($pair) === '') {
+                    continue;
+                }
+
+                if (! str_contains($pair, '=')) {
+                    throw new InvalidArgumentException("Give each option as name=value: [{$pair}] has no value.");
+                }
+
+                [$name, $value] = array_map('trim', explode('=', $pair, 2));
+                $options[$name] = $value;
+            }
+        }
+
+        return $options;
+    }
+
+    protected function describeOptions(Vendor $vendor): string
+    {
+        $options = $vendor->selectedOptions();
+
+        return $options === []
+            ? ''
+            : ' ('.implode(', ', array_map(fn ($name, $value) => "{$name}={$value}", array_keys($options), $options)).')';
     }
 
     /**

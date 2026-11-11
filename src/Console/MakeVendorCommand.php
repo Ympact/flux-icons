@@ -4,6 +4,7 @@ namespace Ympact\FluxIcons\Console;
 
 use Illuminate\Console\GeneratorCommand;
 use Illuminate\Support\Str;
+use InvalidArgumentException;
 use Ympact\FluxIcons\Support\VendorRegistry;
 
 /**
@@ -51,7 +52,13 @@ class MakeVendorCommand extends GeneratorCommand
         }
 
         if ($extends !== null) {
-            $registry = VendorRegistry::fromConfig();
+            try {
+                $registry = VendorRegistry::fromConfig();
+            } catch (InvalidArgumentException $exception) {
+                $this->components->error($exception->getMessage());
+
+                return false;
+            }
 
             if (! $registry->has($extends)) {
                 $this->components->error("Vendor configuration for '{$extends}' not found.");

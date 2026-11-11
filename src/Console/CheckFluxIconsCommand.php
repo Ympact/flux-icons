@@ -6,6 +6,7 @@ use Illuminate\Console\Command;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\View;
 use Illuminate\View\FileViewFinder;
+use InvalidArgumentException;
 use Ympact\FluxIcons\Contracts\Vendor;
 use Ympact\FluxIcons\Services\IconReference;
 use Ympact\FluxIcons\Services\IconReferenceScanner;
@@ -30,7 +31,14 @@ class CheckFluxIconsCommand extends Command
 
     public function handle(): int
     {
-        $registry = VendorRegistry::fromConfig();
+        try {
+            $registry = VendorRegistry::fromConfig();
+        } catch (InvalidArgumentException $exception) {
+            $this->components->error($exception->getMessage());
+
+            return self::FAILURE;
+        }
+
         $vendors = $registry->all();
 
         if ($vendors->isEmpty()) {

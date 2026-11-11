@@ -164,8 +164,13 @@ public function options(): array
 ```
 
 Unknown option names and values are rejected with a message listing what is
-allowed. Wiring these into the build command and the config defaults is still to
-be done.
+allowed. `VendorRegistry` applies the options configured per vendor key in
+`config('flux-icons.options')` to every vendor it hands out, and checks them as
+the config is read. `flux-icons:build --options=weight=bold` overrides them for
+one build.
+
+An update rebuilds with the configured options, not with whatever `--options` an
+icon was last built with, so an option meant to stick belongs in the config.
 
 ## Building
 
@@ -282,8 +287,6 @@ Present and tested:
 
 Not yet done, tracked on the v2 milestone:
 
-- vendor options and a default vendor on the command line
-  ([#21](https://github.com/Ympact/flux-icons/issues/21))
 - `Types\Icon` still reads a v1 config array, which the build no longer passes it
 - `flux-icons:check` reporting a literal `variant="..."` an icon was not built with
   ([#47](https://github.com/Ympact/flux-icons/issues/47))
