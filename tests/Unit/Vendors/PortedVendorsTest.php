@@ -91,6 +91,11 @@ it('defines the same variants as the v1 config entry it replaces', function (str
         ksort($v1Root);
         ksort($root);
 
+        // v2 draws a flag as flag-icons does; v1 filled its shapes without a fill in the text colour
+        if ($key === 'flags') {
+            $v1Root = Arr::except($v1Root, 'fill');
+        }
+
         expect($root)->toBe($v1Root, "{$key} {$name}: root attributes");
     }
 })->with('v1 vendors');

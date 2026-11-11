@@ -3,9 +3,10 @@
 v2 replaces the v1 combination of a config array plus loose `[Class::class, 'method']`
 callbacks with a **vendor class** as the single source of truth for an icon package.
 
-This document describes the definition layer that is in place today. The build
-pipeline still runs on the v1 `IconBuilder`; migrating it onto these classes is the
-next step and is tracked on the v2 milestone.
+This document describes the definition layer and the build pipeline that renders
+from it. The artisan commands still run the v1 `IconBuilder` from the array config;
+moving them onto the new pipeline is tracked in
+[#17](https://github.com/Ympact/flux-icons/issues/17).
 
 ## Baseline
 
@@ -159,6 +160,75 @@ Unknown option names and values are rejected with a message listing what is
 allowed. Wiring these into the build command and the config defaults is still to
 be done.
 
+## Building
+
+`Build\Builder` builds the components of one vendor from its installed npm package:
+
+```php
+$result = (new Builder)->build(new Tabler, ['home', 'confetti']);
+
+$result->built;   // the names the components were published under
+$result->skipped; // icon => why it was not built
+$result->missing; // requested icons the vendor does not ship
+```
+
+Every icon of the default variant becomes one component. For each Flux variant
+the builder looks for the icon's own file, then follows the variant's fallbacks
+until one has it; a fallback that leads back to a variant already tried ends the
+search. Reaching the default variant reuses the file the icon was listed from:
+an MDI icon without an `-outline` sibling is its own outline, so there is no
+outline file to look up by name. A variant that falls back is drawn with the
+template, stroke and attributes of the variant it falls back to. The vendor's hooks
+(`transform()`, `strokeWidth()`, `attributes()`) are still told the slot being
+built, as in v1: Tabler's `refresh` and `arrow-*` icons get stroke width 2 in the
+solid, mini and micro slots that fall back to their outline. An icon
+with a Flux variant that has neither a file nor a fallback is skipped, and the
+result says which variant was missing. When `iconName()` publishes two icons under
+one name, the first keeps it and the second is skipped. A vendor whose package is
+not installed, or whose default variant lists no icons (a wrong `basePath()` or
+source directory), throws a `RuntimeException` instead of building nothing.
+`IconsBuilt` is dispatched once per build, with the published names, when
+anything was written.
+
+Fills and vendor variants are not rendered yet; that is
+[#18](https://github.com/Ympact/flux-icons/issues/18).
+
+### How an icon is rendered
+
+v2 draws an icon the way its vendor does. The attributes of a built icon's root
+are taken, each overriding the one before, from:
+
+1. Flux's own: `data-flux-icon`, `xmlns`, `aria-hidden` and `data-slot`
+2. the template: `fill="none" stroke="currentColor"` for `Outline`,
+   `fill="currentColor"` for `Solid`, nothing for `Raw`
+3. the variant's stroke: width, linecap and linejoin
+4. the vendor's own root, for `stroke-linecap`, `stroke-linejoin`, `fill-rule` and
+   `clip-rule`, where nothing above set them
+5. the variant's `attributes()`, then the vendor class's `attributes()` hook
+
+A `null` value in step 5 removes an attribute. A stroke without a linecap or
+linejoin sets none, which leaves the vendor's own from step 4 in place: that is how
+Lucide keeps its round caps. Beyond those four, only the `viewBox` is
+taken from the vendor's root. Its width, height, fill, stroke and stroke width give
+way to Flux's size classes, the template and the stroke, so the icon follows
+`currentColor` and the variant's stroke width.
+
+Where this departs from v1 output:
+
+- Lucide keeps the round caps and joins it declares on its root; v1 drew butt caps.
+- Flags are drawn as flag-icons draws them; v1 also set `fill="currentColor"` on
+  the root, which filled any shape that sets no fill of its own in the text colour.
+- A variant that falls back is drawn as the variant it falls back to. A Tabler icon
+  without a filled version gets the round caps and joins of its outline in the
+  solid, mini and micro slots too; v1 drew butt caps there.
+- MDI icons without an `-outline` file are built; v1 skipped them.
+- Fallbacks are followed to the end of the chain: mini falls back to solid, and on
+  to outline when solid has no file either. v1 followed one fallback and skipped
+  the icon when that variant had no file, such as a Healthicons icon with only an
+  outline file.
+- Only the outermost `<svg>` receives the component's `$attributes`; v1 also gave
+  them to the vendor's own `<svg>` nested inside a `Raw` icon.
+
 ## Status
 
 Present and tested:
@@ -169,13 +239,14 @@ Present and tested:
 - every v1 vendor as a class: `Vendors\{Bootstrap, Codicons, Flags, Flowbite,
   Fluent, Healthicons, Lucide, MaterialIcons, MaterialSymbols, Mdi, Tabler}`, each
   reading the same files as its v1 config entry, plus `Vendors\Phosphor` (duotone +
-  weights). Nothing builds from them until the pipeline is migrated.
+  weights)
+- `Build\{Builder, SourceResolver, IconRenderer, ComponentWriter, Credits,
+  BuildResult}`, which build from those classes
 
 Not yet migrated, tracked on the v2 milestone:
 
-- the build pipeline (`IconBuilder` is still the v1 one and still reads the v1
-  config array, so `config/flux-icons.php` is unchanged for now)
+- the artisan commands and `config/flux-icons.php`, which still run the v1
+  `IconBuilder` from the array config
 - the blade stub, which still has fixed `{OUTLINE}`/`{SOLID}`/`{MINI}`/`{MICRO}`
   placeholders and has to be generated from the variant set before vendor
   variants can actually be emitted
-- the artisan commands

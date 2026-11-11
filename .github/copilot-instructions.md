@@ -41,11 +41,17 @@ Please do not report these as problems.
   support window, so every 11.x release carries unpatched advisories that
   Composer refuses to install. The composer constraint still allows `^11` so the
   package stays in step with Flux.
-- On the v2 line the build pipeline (`Services\IconBuilder`) and
-  `config/flux-icons.php` are still the v1 array-based versions. The vendor
-  definition layer is deliberately not wired into them yet; that migration is
-  tracked on the v2.0.0 milestone. Do not report the two as inconsistent with
-  each other.
+- On the v2 line two build pipelines exist side by side for now. `Build\Builder`
+  renders from the vendor classes; the artisan commands still run the v1
+  `Services\IconBuilder` from the array config in `config/flux-icons.php`. Moving
+  the commands over and deleting the v1 pipeline is tracked in #17. Do not report
+  the two as inconsistent with each other. Tests comparing them are intentional
+  and go with the v1 pipeline.
+- `Build\IconRenderer` draws an icon the way its vendor does: it keeps the caps,
+  joins, fill rule and clip rule of the vendor's own `<svg>` root, which is why
+  Lucide, flags and Tabler's fallback slots depart from v1 on purpose. MDI departs
+  for another reason: a fallback to the default variant reuses the file the icon
+  was listed from. Every departure is listed in `docs/v2-architecture.md`.
 - The icon Blade stub still has fixed `{OUTLINE}`/`{SOLID}`/`{MINI}`/`{MICRO}`
   placeholders. Generating it from the variant set is tracked separately.
 
