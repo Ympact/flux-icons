@@ -183,14 +183,18 @@ the builder looks for the icon's own file, then follows the variant's fallbacks
 until one has it; a fallback that leads back to a variant already tried ends the
 search. Reaching the default variant reuses the file the icon was listed from:
 an MDI icon without an `-outline` sibling is its own outline, so there is no
-outline file to look up by name. A variant that falls back is drawn exactly as
-the variant it falls back to: with its template, stroke and attributes. An icon
+outline file to look up by name. A variant that falls back is drawn with the
+template, stroke and attributes of the variant it falls back to. The vendor's hooks
+(`transform()`, `strokeWidth()`, `attributes()`) are still told the slot being
+built, as in v1: Tabler's `refresh` and `arrow-*` icons get stroke width 2 in the
+solid, mini and micro slots that fall back to their outline. An icon
 with a Flux variant that has neither a file nor a fallback is skipped, and the
 result says which variant was missing. When `iconName()` publishes two icons under
 one name, the first keeps it and the second is skipped. A source file that does not
 parse as XML with an `<svg>` root skips its icon, and the reason names the file and
-the parser's error. A vendor whose package is
-not installed throws a `RuntimeException` instead of building nothing.
+the parser's error. A vendor whose package is not installed, or whose default
+variant lists no icons (a wrong `basePath()` or source directory), throws a
+`RuntimeException` instead of building nothing.
 `IconsBuilt` is dispatched once per build, with the published names, when
 anything was written.
 
@@ -226,6 +230,10 @@ Where this departs from v1 output:
   without a filled version gets the round caps and joins of its outline in the
   solid, mini and micro slots too; v1 drew butt caps there.
 - MDI icons without an `-outline` file are built; v1 skipped them.
+- Fallbacks are followed to the end of the chain: mini falls back to solid, and on
+  to outline when solid has no file either. v1 followed one fallback and skipped
+  the icon when that variant had no file, such as a Healthicons icon with only an
+  outline file.
 - Only the outermost `<svg>` receives the component's `$attributes`; v1 also gave
   them to the vendor's own `<svg>` nested inside a `Raw` icon.
 - Sources are parsed as XML, not HTML, so a `Raw` icon keeps the case of names such

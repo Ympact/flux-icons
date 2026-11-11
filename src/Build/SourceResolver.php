@@ -37,6 +37,14 @@ class SourceResolver
     }
 
     /**
+     * The directory the variant's icons are listed from.
+     */
+    public function directory(Variant $variant): string
+    {
+        return $variant->getSource()?->path($this->packagePath) ?? $this->packagePath;
+    }
+
+    /**
      * The file holding the icon in this variant, or null when the variant does not ship it.
      */
     public function file(Variant $variant, string $name): ?string
