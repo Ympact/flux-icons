@@ -56,7 +56,7 @@ class Builder
      * @param  (Closure(string, int, int): void)|null  $progress  Called once each icon is handled, with
      *                                                            its name, the number handled and the total.
      *
-     * @throws RuntimeException When the vendor's npm package is not installed.
+     * @throws RuntimeException When the vendor's npm package is not installed, or its default variant lists no icons.
      */
     public function build(Vendor $vendor, ?array $icons = null, ?Closure $progress = null): BuildResult
     {
@@ -64,7 +64,18 @@ class Builder
         $resolver = $this->resolver($vendor);
         $variants = $vendor->resolvedVariants();
 
-        [$selected, $missing] = $this->select($vendor, $resolver->icons($variants->default()), $icons);
+        $default = $variants->default();
+        $available = $resolver->icons($default);
+
+        // a wrong basePath() or source directory would otherwise build nothing without a word
+        if ($available === []) {
+            throw new RuntimeException(
+                "Found no {$default->getName()} icons of {$vendor->package()} in {$resolver->directory($default)}. ".
+                "Check the vendor's basePath() and the source of its {$default->getName()} variant."
+            );
+        }
+
+        [$selected, $missing] = $this->select($vendor, $available, $icons);
 
         $directory = $this->outputPath.'/'.$vendor->namespace();
         $header = [$this->credits->package($packageRoot), $this->credits->flux(), PackageManager::fluxVersionAtLeast(self::BLAZE_SINCE)];
