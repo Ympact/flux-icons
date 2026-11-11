@@ -36,7 +36,7 @@ You will need to build the icons yourself once the package is installed. This ca
 php artisan flux-icons:build tabler --icons=confetti,confetti-off
 ```
 
-The artisan script will try to install the vendor's icon package for you using `npm install`.
+The artisan script installs the vendor's icon package for you with `npm install` when `node_modules` does not hold it yet. npm runs in your application's directory, so your `package.json` and `.npmrc` apply, which is where a private registry is configured. When npm fails, the command stops and shows what npm said.
 In case you did not provide any arguments, the script will walk you through all options
 
 ![php artisan flux-icons:build](screenshot-cli.png)

@@ -122,3 +122,35 @@ function writeComposerLock(string $dir, array $data): void
 {
     file_put_contents($dir.'/composer.lock', json_encode($data, JSON_PRETTY_PRINT));
 }
+
+/**
+ * Writes a stand-in npm executable into the directory: it appends its working directory and
+ * arguments to npm.log there, prints the given output to stderr and exits with the given code.
+ *
+ * @return string The executable's path, to hand to NpmManager as its binary.
+ */
+function fakeNpm(string $dir, int $exitCode = 0, string $stderr = ''): string
+{
+    $binary = $dir.'/npm';
+
+    file_put_contents($binary, implode("\n", [
+        '#!/bin/sh',
+        'echo "$PWD $*" >> '.escapeshellarg($dir.'/npm.log'),
+        'printf %s '.escapeshellarg($stderr).' >&2',
+        "exit {$exitCode}",
+        '',
+    ]));
+    chmod($binary, 0755);
+
+    return $binary;
+}
+
+/**
+ * The calls the stand-in npm of fakeNpm() received, one "working-directory arguments" line each.
+ *
+ * @return list<string>
+ */
+function fakeNpmCalls(string $dir): array
+{
+    return is_file($dir.'/npm.log') ? file($dir.'/npm.log', FILE_IGNORE_NEW_LINES) ?: [] : [];
+}

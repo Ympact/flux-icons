@@ -8,6 +8,7 @@ use Illuminate\Support\Str;
 use Ympact\FluxIcons\Build\Builder;
 use Ympact\FluxIcons\Console\BuildFluxIconsCommand;
 use Ympact\FluxIcons\Events\IconsBuilt;
+use Ympact\FluxIcons\Services\NpmManager;
 use Ympact\FluxIcons\Tests\Fixtures\Vendors\Alpha;
 use Ympact\FluxIcons\Tests\Fixtures\Vendors\AlphaStyled;
 
@@ -170,6 +171,27 @@ describe('building', function () {
         $this->artisan('flux-icons:build', ['vendor' => 'alpha', '--icons' => 'home', '--no-interaction' => true])
             ->expectsOutputToContain('The npm package alpha is not installed')
             ->assertExitCode(1);
+    });
+
+    it('installs the vendor\'s package first when node_modules lacks it', function () {
+        File::delete("{$this->root}/node_modules/alpha/package.json");
+        $this->app->bind(NpmManager::class, fn () => new NpmManager(binary: fakeNpm($this->root)));
+
+        $this->artisan('flux-icons:build', ['vendor' => 'alpha', '--icons' => 'home', '--no-interaction' => true])
+            ->assertExitCode(0);
+
+        expect(fakeNpmCalls($this->root))->toBe(["{$this->root} install alpha --save --silent"]);
+    });
+
+    it('fails with what npm said when it cannot install the package', function () {
+        File::delete("{$this->root}/node_modules/alpha/package.json");
+        $this->app->bind(NpmManager::class, fn () => new NpmManager(binary: fakeNpm($this->root, exitCode: 1, stderr: 'E404 Not Found')));
+
+        $this->artisan('flux-icons:build', ['vendor' => 'alpha', '--icons' => 'home', '--no-interaction' => true])
+            ->expectsOutputToContain('npm could not install alpha: E404 Not Found')
+            ->assertExitCode(1);
+
+        expect(builtIcons($this->root, 'alpha'))->toBe([]);
     });
 
     it('fails for a vendor that is not registered', function () {

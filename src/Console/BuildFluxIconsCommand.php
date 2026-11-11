@@ -10,7 +10,7 @@ use Ympact\FluxIcons\Build\Builder;
 use Ympact\FluxIcons\Build\BuildResult;
 use Ympact\FluxIcons\Console\Concerns\ReportsBuildResult;
 use Ympact\FluxIcons\Contracts\Vendor;
-use Ympact\FluxIcons\Services\PackageManager;
+use Ympact\FluxIcons\Services\NpmManager;
 use Ympact\FluxIcons\Support\VendorRegistry;
 
 use function Laravel\Prompts\confirm;
@@ -98,7 +98,7 @@ class BuildFluxIconsCommand extends Command
         $this->info("Checking if vendor: {$key} is installed");
 
         try {
-            PackageManager::requirePackage($vendor, $verbose);
+            $this->laravel->make(NpmManager::class)->require($vendor, $verbose);
         } catch (\RuntimeException $exception) {
             $this->error($exception->getMessage());
 
