@@ -16,8 +16,6 @@ use Ympact\FluxIcons\Contracts\Vendor;
  *         'tabler' => Tabler::class,
  *         'house-style' => App\FluxIcons\HouseStyle::class,
  *     ]
- *
- * Options configured for a vendor are applied to every instance it hands out.
  */
 class VendorRegistry
 {
@@ -27,22 +25,13 @@ class VendorRegistry
     /** @var array<string, Vendor> */
     protected array $resolved = [];
 
-    /** @var array<string, array<string, string|int>> */
-    protected array $options = [];
-
     /**
      * @param  array<string, class-string<Vendor>|Vendor|mixed>  $vendors
-     * @param  array<string, mixed>  $options  Option values by vendor key, such as ['flags' => ['ratio' => '1x1']].
      *
-     * @throws InvalidArgumentException When an entry is not a vendor class, such as a v1 array, or
-     *                                  options name a vendor that is not registered or a value it
-     *                                  does not take.
+     * @throws InvalidArgumentException When an entry is not a vendor class, such as a v1 array.
      */
-    final public function __construct(array $vendors = [], array $options = [])
+    final public function __construct(array $vendors = [])
     {
-        // stored before registering, since an instance is configured as it is registered
-        $this->options = array_filter($options, 'is_array');
-
         foreach ($vendors as $key => $vendor) {
             if (! is_string($vendor) && ! $vendor instanceof Vendor) {
                 throw new InvalidArgumentException(
@@ -54,21 +43,6 @@ class VendorRegistry
 
             $this->register((string) $key, $vendor);
         }
-
-        foreach ($options as $key => $values) {
-            if (! $this->has((string) $key)) {
-                throw new InvalidArgumentException(
-                    "Options are configured for vendor [{$key}], which is not registered. Registered vendors: ".implode(', ', $this->keys()).'.'
-                );
-            }
-
-            if (! is_array($values)) {
-                throw new InvalidArgumentException("The options of vendor [{$key}] must map option names to values, such as ['ratio' => '1x1'].");
-            }
-
-            // resolved now, so a value the vendor does not take fails here rather than mid-command
-            $this->get((string) $key);
-        }
     }
 
     public static function fromConfig(): static
@@ -76,7 +50,7 @@ class VendorRegistry
         /** @var array<string, class-string<Vendor>> $vendors */
         $vendors = (array) config('flux-icons.vendors', []);
 
-        return new static($vendors, (array) config('flux-icons.options', []));
+        return new static($vendors);
     }
 
     /**
@@ -126,11 +100,16 @@ class VendorRegistry
     }
 
     /**
-     * @throws InvalidArgumentException When a configured option is not one the vendor takes.
+     * Applying the vendor's own option defaults checks them, so a subclass that names a value
+     * the vendor does not take fails as it is resolved, with the values it does take.
+     *
+     * @throws InvalidArgumentException When a default is not one of the option's values.
      */
     protected function configure(string $key, Vendor $vendor): Vendor
     {
-        return $vendor->registerAs($key)->withOptions($this->options[$key] ?? []);
+        $vendor = $vendor->registerAs($key);
+
+        return $vendor->withOptions($vendor->optionDefaults());
     }
 
     /**

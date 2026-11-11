@@ -45,9 +45,10 @@ return [
      * A vendor's icons are published under that key unless its class names another namespace
      * (Material Icons publishes to `material`).
      *
-     * To adjust a vendor, extend its class and register the subclass here. A vendor of your
-     * own extends Ympact\FluxIcons\Contracts\Vendor. `php artisan flux-icons:make-vendor`
-     * generates either.
+     * To adjust a vendor, extend its class and register the subclass here. That includes the
+     * options it builds with: the square flags are a subclass whose optionDefaults() returns
+     * ['ratio' => '1x1']. A vendor of your own extends Ympact\FluxIcons\Contracts\Vendor.
+     * `php artisan flux-icons:make-vendor` generates either.
      */
     'vendors' => [
         // https://icons.getbootstrap.com/
@@ -73,12 +74,4 @@ return [
         // https://tabler.io/icons
         'tabler' => Tabler::class,
     ],
-
-    /**
-     * Build options per vendor key, used by flux-icons:build and flux-icons:update. A vendor's
-     * options() method lists the options it takes and their values; `--options=` on the
-     * build command overrides them for that build. For example:
-     * 'flags' => ['ratio' => '1x1'],
-     */
-    'options' => [],
 ];

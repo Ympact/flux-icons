@@ -156,21 +156,29 @@ public function options(): array
 {
     return ['weight' => ['thin', 'light', 'regular', 'bold']];
 }
+
+public function optionDefaults(): array
+{
+    return ['weight' => 'regular'];
+}
 ```
+
+`optionDefaults()` gives each option the value the vendor builds with. Like
+everything else about a vendor it lives in the class, not in the config: to build
+the square flags everywhere, updates included, register a subclass whose
+`optionDefaults()` returns `['ratio' => '1x1']`. `VendorRegistry` applies those
+defaults as it hands a vendor out, which also checks them.
+
+For one build, `flux-icons:build --options=ratio=1x1` overrides them, and an
+interactive build asks for each option, offering the vendor's value. In code:
 
 ```php
 (new Phosphor)->withOptions(['weight' => 'bold']);
-(new Flags)->withOptions(['ratio' => '1x1']);
 ```
 
 Unknown option names and values are rejected with a message listing what is
-allowed. `VendorRegistry` applies the options configured per vendor key in
-`config('flux-icons.options')` to every vendor it hands out, and checks them as
-the config is read. `flux-icons:build --options=weight=bold` overrides them for
-one build.
-
-An update rebuilds with the configured options, not with whatever `--options` an
-icon was last built with, so an option meant to stick belongs in the config.
+allowed. An update rebuilds with the class's values, not with the `--options` an
+icon was last built with.
 
 ## Building
 

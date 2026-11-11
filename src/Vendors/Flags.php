@@ -48,12 +48,20 @@ class Flags extends Vendor
         ];
     }
 
+    /**
+     * @return array<string, string|int>
+     */
+    public function optionDefaults(): array
+    {
+        return ['ratio' => '4x3'];
+    }
+
     public function variants(): VariantSet
     {
         return VariantSet::make()
             ->variant('outline', fn ($variant) => $variant
                 ->template(Template::Raw)
-                ->source(Source::dir((string) $this->option('ratio', '4x3')))
+                ->source(Source::dir((string) $this->option('ratio')))
                 ->stroke(false)
                 ->default()
             )

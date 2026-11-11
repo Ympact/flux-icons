@@ -55,9 +55,17 @@ class Phosphor extends Vendor
         ];
     }
 
+    /**
+     * @return array<string, string|int>
+     */
+    public function optionDefaults(): array
+    {
+        return ['weight' => 'regular'];
+    }
+
     public function variants(): VariantSet
     {
-        $weight = (string) $this->option('weight', 'regular');
+        $weight = (string) $this->option('weight');
 
         return VariantSet::make()
             ->variant('outline', fn ($variant) => $variant

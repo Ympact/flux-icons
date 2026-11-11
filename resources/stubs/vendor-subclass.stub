@@ -5,8 +5,8 @@ namespace {{ namespace }};
 use {{ parentImport }};
 
 /**
- * Override variants(), transform(), attributes(), strokeWidth() or iconName() to change
- * how the icons are built. A variant can be redefined by name, so a subclass only
+ * Override variants(), transform(), attributes(), strokeWidth(), iconName() or
+ * optionDefaults() to change how the icons are built. A variant can be redefined by name, so a subclass only
  * restates what it changes: parent::variants()->variant('outline', fn ($variant) => ...)
  */
 class {{ class }} extends {{ parentClass }}

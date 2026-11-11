@@ -178,9 +178,14 @@ describe('building', function () {
             ->assertExitCode(1);
     });
 
-    it('builds with the options configured for the vendor', function () {
-        Config::set('flux-icons.vendors.alpha', AlphaStyled::class);
-        Config::set('flux-icons.options', ['alpha' => ['style' => 'filled']]);
+    it('builds with the option values a subclass of the vendor declares', function () {
+        Config::set('flux-icons.vendors.alpha', new class extends AlphaStyled
+        {
+            public function optionDefaults(): array
+            {
+                return ['style' => 'filled'];
+            }
+        });
 
         $this->artisan('flux-icons:build', ['vendor' => 'alpha', '--icons' => 'home', '--no-interaction' => true])
             ->expectsOutputToContain('Building icons for vendor: alpha (style=filled)')
@@ -189,11 +194,20 @@ describe('building', function () {
         expect(outlineOf($this->root, 'alpha', 'home'))->toContain('M11.47 3.84');
     });
 
-    it('lets --options override the configured options for one build', function () {
+    it('lets --options override the vendor\'s own values for one build', function () {
         Config::set('flux-icons.vendors.alpha', AlphaStyled::class);
-        Config::set('flux-icons.options', ['alpha' => ['style' => 'outline']]);
 
         $this->artisan('flux-icons:build', ['vendor' => 'alpha', '--icons' => 'home', '--options' => ['style=filled'], '--no-interaction' => true])
+            ->assertExitCode(0);
+
+        expect(outlineOf($this->root, 'alpha', 'home'))->toContain('M11.47 3.84');
+    });
+
+    it('asks for each option it was not given, offering the value the vendor builds with', function () {
+        Config::set('flux-icons.vendors.alpha', AlphaStyled::class);
+
+        $this->artisan('flux-icons:build', ['vendor' => 'alpha', '--icons' => 'home'])
+            ->expectsChoice('Which style do you want to build alpha with?', 'filled', ['outline', 'filled'])
             ->assertExitCode(0);
 
         expect(outlineOf($this->root, 'alpha', 'home'))->toContain('M11.47 3.84');
@@ -215,11 +229,17 @@ describe('building', function () {
             ->assertExitCode(1);
     });
 
-    it('fails with the reason when the configured options are wrong', function () {
-        Config::set('flux-icons.options', ['nope' => ['style' => 'filled']]);
+    it('fails with the reason when the vendor class defaults to a value it does not take', function () {
+        Config::set('flux-icons.vendors.alpha', new class extends AlphaStyled
+        {
+            public function optionDefaults(): array
+            {
+                return ['style' => 'bold'];
+            }
+        });
 
         $this->artisan('flux-icons:build', ['vendor' => 'alpha', '--no-interaction' => true])
-            ->expectsOutputToContain('Options are configured for vendor [nope], which is not registered.')
+            ->expectsOutputToContain('[bold] is not a valid value for option [style] of vendor [alpha]')
             ->assertExitCode(1);
     });
 

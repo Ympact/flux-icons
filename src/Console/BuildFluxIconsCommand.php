@@ -85,6 +85,10 @@ class BuildFluxIconsCommand extends Command
 
         try {
             $vendor = $registry->get($key)->withOptions($options);
+
+            if (! $noInteraction) {
+                $vendor = $vendor->withOptions($this->promptedOptions($vendor, $options));
+            }
         } catch (InvalidArgumentException $exception) {
             $this->error($exception->getMessage());
 
@@ -187,9 +191,30 @@ class BuildFluxIconsCommand extends Command
         return $options;
     }
 
+    /**
+     * Ask for each option of the vendor not given with --options, offering the value it builds with.
+     *
+     * @param  array<string, string>  $given
+     * @return array<string, string>
+     */
+    protected function promptedOptions(Vendor $vendor, array $given): array
+    {
+        $chosen = [];
+
+        foreach (array_diff_key($vendor->options(), $given) as $name => $values) {
+            $chosen[$name] = (string) select(
+                label: "Which {$name} do you want to build {$vendor->key()} with?",
+                options: array_map('strval', $values),
+                default: (string) $vendor->option($name),
+            );
+        }
+
+        return $chosen;
+    }
+
     protected function describeOptions(Vendor $vendor): string
     {
-        $options = $vendor->selectedOptions();
+        $options = $vendor->optionValues();
 
         return $options === []
             ? ''

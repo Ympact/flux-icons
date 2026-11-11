@@ -19,7 +19,7 @@ composer require --dev ympact/flux-icons
 | Bootstrap    | `bootstrap` | [Preview](https://icons.getbootstrap.com/#icons) | Stroke width of outline icons cannot be adjusted |
 | VSC Codicons | `codicons`  | [Repo](https://github.com/microsoft/vscode-codicons/) | Only outline icons available, but stroke width cannot be adjusted |
 | Flowbite     | `flowbite`  | [Preview](https://flowbite.com/icons/) |  |
-| Flags        | `flags`     |  [Repo](https://github.com/lipis/flag-icons/) | There is only one variant (solid and outline show the same flag). The 4x3 version is built; for the square version set the `ratio` option to `1x1`. |
+| Flags        | `flags`     |  [Repo](https://github.com/lipis/flag-icons/) | There is only one variant (solid and outline show the same flag). The 4x3 version is built; for the square version build with `--options=ratio=1x1`, or register a subclass whose `optionDefaults()` returns `['ratio' => '1x1']`. |
 | Fluent UI    | `fluent`    | [Preview (unofficial)](https://fluenticons.co/) - [Repo](https://github.com/microsoft/fluentui-system-icons) | Stroke width of outline icons cannot be adjusted |
 | Google Material Design Icons | `material` | [Preview](https://fonts.google.com/icons) | Stroke width of outline icons cannot be adjusted |
 | Google Material Symbols (300) | `material-symbols` | [Preview](https://fonts.google.com/icons?icon.set=Material+Symbols) | Stroke width of outline icons cannot be adjusted |
@@ -47,7 +47,7 @@ In case you did not provide any arguments, the script will walk you through all 
 |-----------------|----------------------------------------------------------------------------------------------------|
 | `-I\|--icons=`  | The icons to build (single or comma separated list). Cannot be used in combination with `--all`. |
 | `-M\|--merge`   | Merge the icons listed in the `--icons` option with the icons defined in the config. Cannot be used in combination with `--all`. |
-| `-O\|--options=` | Options of the vendor for this build, as `name=value`, repeatable or comma separated: `--options=ratio=1x1`. They override the `options` config. |
+| `-O\|--options=` | Options of the vendor for this build, as `name=value`, repeatable or comma separated: `--options=ratio=1x1`. They override the values the vendor class builds with. Without it, an interactive build asks for each option. |
 | `-A\|--all`     | Build all icons from the vendor. **Note:** this might generate over thousands of files and cause `npm run dev` to crash due to memory issues. |
 | `-v\|--verbose` | Show additional messages during build. |
 
@@ -125,7 +125,6 @@ php artisan vendor:publish --tag=flux-icons-config
 |-------------------|-------|-------------|
 | `defaults.vendor` | `null` or a vendor key | The vendor `flux-icons:build` builds from when none is passed to it. |
 | `icons`           | `null` or `['vendor-key' => ['icon-name', ...]]` | The icons `flux-icons:build` builds when no icons are passed to it. |
-| `options`         | `['vendor-key' => ['option' => 'value']]` | Build options per vendor, used by `flux-icons:build` and `flux-icons:update`, such as `'flags' => ['ratio' => '1x1']`. A vendor's `options()` method lists the options it takes; a value it does not take stops the commands that read the vendors, with a message saying what is allowed. |
 | `request_npm_dev` | `bool` | For a build of more than 100 icons, ask whether `npm run dev` is running, and if so pause a third of a second between icons and offer to restart it afterwards. |
 | `vendors`         | `['vendor-key' => VendorClass::class]` | The vendors icons can be built from. The key is what you pass to the commands. The icons are published under the key as a slug (`tabler_icons` to `tabler-icons`), unless the class names another namespace (Material Icons publishes to `material`). |
 
@@ -148,6 +147,7 @@ This writes `app/FluxIcons/Vendors/Tabler.php`, a subclass of the registered ven
 | `attributes()` | The attributes on an icon's `<svg>` element. |
 | `strokeWidth()` | The stroke width of a single icon. |
 | `iconName()` | The name an icon is published under. |
+| `optionDefaults()` | The option values the vendor builds with, such as `['ratio' => '1x1']` for the square flags. `options()` lists the values each option takes. |
 | `namespace()` | The directory and Flux namespace the icons are published under, `<flux:icon.{namespace}.home />`. Defaults to the registered key as a slug; Material Icons returns `material`. A v1 `namespace` setting moves here. |
 
 For example, a heavier stroke for Tabler's outline icons:

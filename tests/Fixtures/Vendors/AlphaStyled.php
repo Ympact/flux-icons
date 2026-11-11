@@ -19,9 +19,17 @@ class AlphaStyled extends Alpha
         return ['style' => ['outline', 'filled']];
     }
 
+    /**
+     * @return array<string, string|int>
+     */
+    public function optionDefaults(): array
+    {
+        return ['style' => 'outline'];
+    }
+
     public function variants(): VariantSet
     {
-        $directory = $this->option('style', 'outline') === 'filled' ? 'filled' : 'outline';
+        $directory = $this->option('style') === 'filled' ? 'filled' : 'outline';
 
         return parent::variants()->variant('outline', fn (Variant $variant) => $variant->source(Source::dir($directory)));
     }

@@ -206,27 +206,21 @@ it('tells a v1 user the publish command that actually replaces the config', func
     new VendorRegistry(['tabler' => ['package' => '@tabler/icons']]);
 })->throws(InvalidArgumentException::class, 'php artisan vendor:publish --tag=flux-icons-config --force');
 
-it('applies the options configured for a vendor to the vendor it hands out', function () {
-    $registry = new VendorRegistry(['alpha' => AlphaStyled::class], ['alpha' => ['style' => 'filled']]);
+it('hands out a vendor building with the option values its class declares', function () {
+    $registry = new VendorRegistry(['alpha' => AlphaStyled::class]);
 
-    expect($registry->get('alpha')->option('style'))->toBe('filled')
-        ->and($registry->get('alpha')->selectedOptions())->toBe(['style' => 'filled']);
+    expect($registry->get('alpha')->option('style'))->toBe('outline')
+        ->and($registry->get('alpha')->optionValues())->toBe(['style' => 'outline']);
 });
 
-it('applies the configured options to a vendor registered as an instance', function () {
-    $registry = new VendorRegistry(['alpha' => new AlphaStyled], ['alpha' => ['style' => 'filled']]);
+it('refuses a vendor class whose option default is not one of the option values', function () {
+    $registry = new VendorRegistry(['alpha' => new class extends AlphaStyled
+    {
+        public function optionDefaults(): array
+        {
+            return ['style' => 'bold'];
+        }
+    }]);
 
-    expect($registry->get('alpha')->option('style'))->toBe('filled');
-});
-
-it('refuses options for a vendor that is not registered', function () {
-    new VendorRegistry(['alpha' => AlphaStyled::class], ['alhpa' => ['style' => 'filled']]);
-})->throws(InvalidArgumentException::class, 'Options are configured for vendor [alhpa], which is not registered. Registered vendors: alpha.');
-
-it('refuses a configured option value the vendor does not take, as it is read', function () {
-    new VendorRegistry(['alpha' => AlphaStyled::class], ['alpha' => ['style' => 'bold']]);
-})->throws(InvalidArgumentException::class, '[bold] is not a valid value for option [style] of vendor [alpha]');
-
-it('refuses options that are not a map of names to values', function () {
-    new VendorRegistry(['alpha' => AlphaStyled::class], ['alpha' => 'filled']);
-})->throws(InvalidArgumentException::class, 'The options of vendor [alpha] must map option names to values');
+    $registry->get('alpha');
+})->throws(InvalidArgumentException::class, '[bold] is not a valid value for option [style] of vendor [alpha]. Allowed: outline, filled.');
