@@ -1,6 +1,7 @@
 {{-- 
   Icon:     {INFO_ICON_NAME} 
   Usage:    {INFO_ICON_USAGE} 
+  Variants: {INFO_ICON_VARIANTS} 
   Credits:  {INFO_CREDITS} 
   Flux:     {INFO_FLUX_VERSION} 
   Built:    {INFO_BUILD_DATE}
@@ -9,33 +10,20 @@
 {BLAZE}
 
 @props([
-    'variant' => 'outline',
+    'variant' => {DEFAULT_VARIANT},
 ])
 
 @php
+// a variant this icon was not built with draws the default one, marked for devtools
+if (! in_array($variant, [{VARIANT_NAMES}], true)) {
+    $attributes = $attributes->merge(['data-flux-icon-fallback' => (string) $variant]);
+    $variant = {DEFAULT_VARIANT};
+}
+
 $classes = Flux::classes('shrink-0')
     ->add(match($variant) {
-        'outline' => '[:where(&)]:size-6',
-        'solid' => '[:where(&)]:size-6',
-        'mini' => '[:where(&)]:size-5',
-        'micro' => '[:where(&)]:size-4',
+{VARIANT_CLASSES}
     });
 @endphp
 
-<?php switch ($variant): case ('outline'): ?>
-{OUTLINE}
-        <?php break; ?>
-
-    <?php case ('solid'): ?>
-{SOLID}
-        <?php break; ?>
-
-    <?php case ('mini'): ?>
-{MINI}
-        <?php break; ?>
-
-    <?php case ('micro'): ?>
-{MICRO}
-        <?php break; ?>
-
-<?php endswitch; ?>
+{VARIANT_CASES}

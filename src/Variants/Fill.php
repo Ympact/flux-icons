@@ -38,7 +38,7 @@ class Fill
      * Whether this fill selects a specific subset of the source paths.
      *
      * A fill without any matcher is the catch-all layer: it takes every path
-     * that no other fill claimed.
+     * that no other fill claimed, except one the vendor drew with fill="none".
      */
     public function isCatchAll(): bool
     {
@@ -52,8 +52,9 @@ class Fill
      */
     public function matches(array $attributes): bool
     {
+        // a shape left unfilled, such as a stroke or a bounding box, is not a layer to paint
         if ($this->isCatchAll()) {
-            return true;
+            return strcasecmp(trim($attributes['fill'] ?? ''), 'none') !== 0;
         }
 
         if ($this->matchOpacity !== null) {
@@ -76,15 +77,19 @@ class Fill
     }
 
     /**
-     * Attributes applied to the paths of this layer.
+     * Attributes applied to the paths of this layer. The opacity goes on the attribute the
+     * source marked the layer with, so an `opacity` and a `fill-opacity` never multiply.
      *
+     * @param  array<string, string>  $source  The path's own attributes.
      * @return array<string, string>
      */
-    public function attributes(): array
+    public function attributes(array $source = []): array
     {
+        $opacity = isset($source['fill-opacity']) && ! isset($source['opacity']) ? 'fill-opacity' : 'opacity';
+
         return array_filter([
             'fill' => $this->color,
-            'opacity' => $this->opacity !== null ? (string) $this->opacity : null,
+            $opacity => $this->opacity !== null ? (string) $this->opacity : null,
         ], fn ($value) => $value !== null);
     }
 }

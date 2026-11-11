@@ -3,8 +3,11 @@
 namespace Ympact\FluxIcons\Build;
 
 use Illuminate\Support\Arr;
+use Illuminate\Support\Collection;
 use Ympact\FluxIcons\Contracts\Vendor;
 use Ympact\FluxIcons\Types\Icon;
+use Ympact\FluxIcons\Types\SvgPath;
+use Ympact\FluxIcons\Variants\Fill;
 use Ympact\FluxIcons\Variants\Stroke;
 use Ympact\FluxIcons\Variants\Template;
 use Ympact\FluxIcons\Variants\Variant;
@@ -35,7 +38,7 @@ class IconRenderer
         $template = $variant->getTemplate();
 
         $icon = Icon::fromFile($file, $building, $template->value, $name)->process();
-        $icon->setPaths($vendor->transform($icon->getPaths(), $icon));
+        $icon->setPaths($this->paint($variant, $vendor->transform($icon->getPaths(), $icon)));
 
         $stroke = $variant->getStroke();
 
@@ -48,6 +51,32 @@ class IconRenderer
             ->setAttributes($this->attributes($vendor, $variant, $icon, $stroke))
             ->setRaw($template === Template::Raw)
             ->toHtml();
+    }
+
+    /**
+     * Give each shape the attributes of the fill layer it belongs to, for a variant that
+     * defines layers. A layer that matches on opacity or colour claims its shapes first;
+     * a catch-all layer takes the rest.
+     *
+     * @param  Collection<int, SvgPath>  $paths
+     * @return Collection<int, SvgPath>
+     */
+    protected function paint(Variant $variant, Collection $paths): Collection
+    {
+        $fills = $variant->getFills()->sortBy(fn (Fill $fill) => $fill->isCatchAll())->values();
+
+        if ($fills->isEmpty() || $variant->getTemplate() === Template::Raw) {
+            return $paths;
+        }
+
+        return $paths->each(function (SvgPath $path) use ($fills) {
+            $attributes = $path->getAttributes();
+            $fill = $fills->first(fn (Fill $fill) => $fill->matches($attributes));
+
+            if ($fill !== null) {
+                $path->setAttributes($fill->attributes($attributes));
+            }
+        });
     }
 
     /**

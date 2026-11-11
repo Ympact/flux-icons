@@ -60,6 +60,15 @@ or
 <flux:icon name="tabler.confetti-off"/>
 ```
 
+An icon takes Flux's variants, `outline`, `solid`, `mini` and `micro`, and any variant its vendor adds, such as Phosphor's `duotone` (`Ympact\FluxIcons\Vendors\Phosphor`, which the default config does not register). The header of each built component lists the variants it has. Without a `variant`, an icon draws its vendor's default variant, which is `outline` for every bundled vendor.
+
+```html
+<flux:icon.tabler.confetti variant="mini" />
+<flux:icon.phosphor.heart variant="duotone" />
+```
+
+Asked for a variant it was not built with, an icon draws its default variant and marks the `<svg>` with `data-flux-icon-fallback="duotone"` (the variant asked for), so you can spot it in your browser's devtools instead of getting an error.
+
 ## Checking references
 
 Flux resolves an icon to a Blade component and throws when it does not exist, so a template
@@ -209,4 +218,3 @@ A build that writes nothing, for example because no requested icon exists, dispa
 - Helper script to create configurations for new vendors
 - Improving testing
 - Documentation
-- Support other variants (duotone, etc.)
