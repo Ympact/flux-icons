@@ -76,6 +76,12 @@ class Icon
 
     protected string $variant;
 
+    /**
+     * The variant whose source file this icon was drawn from, when that differs from
+     * the variant it is built as (a fallback). Its attributes belong with that drawing.
+     */
+    protected ?string $fallbackVariant = null;
+
     protected array $attributes = [];
 
     public function __construct($config, $variant, $filename)
@@ -89,6 +95,13 @@ class Icon
     public function getVariant()
     {
         return $this->variant;
+    }
+
+    public function setFallbackVariant(string $variant): static
+    {
+        $this->fallbackVariant = $variant;
+
+        return $this;
     }
 
     /**
@@ -466,7 +479,8 @@ class Icon
     public function determineSvgAttributes(): void
     {
         $attributes = [];
-        $attributes = Arr::get($this->config, "variants.{$this->variant}.attributes", []);
+        $attributesVariant = $this->fallbackVariant ?? $this->variant;
+        $attributes = Arr::get($this->config, "variants.{$attributesVariant}.attributes", []);
         if ($callback = Arr::get($this->config, 'attributes')) {
             $attributes = arrayMergeRecursive($attributes, call_user_func_array($callback, [$this]));
         }
