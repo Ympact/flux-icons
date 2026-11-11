@@ -14,10 +14,10 @@ use Ympact\FluxIcons\Variants\VariantSet;
 /**
  * Builds the Flux icon components of a vendor from its installed npm package.
  *
- * Every icon of the vendor's default variant becomes one component holding the four
- * variants Flux asks for. An icon is skipped when one of them has neither a source nor a
- * fallback, or when an earlier icon took its published name. Vendor variants such as
- * duotone reach the component with #18.
+ * Every icon of the vendor's default variant becomes one component holding Flux's four
+ * variants and the vendor's own, such as duotone. An icon is skipped when one of Flux's
+ * has neither a source nor a fallback, or when an earlier icon took its published name;
+ * a vendor variant it has no source for is only left out of its component.
  */
 class Builder
 {

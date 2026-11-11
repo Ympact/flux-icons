@@ -51,16 +51,18 @@ Please do not report these as problems.
   Lucide, flags and Tabler's fallback slots depart from v1 on purpose. MDI departs
   for another reason: a fallback to the default variant reuses the file the icon
   was listed from. Every departure is listed in `docs/v2-architecture.md`.
-- The icon Blade stub still has fixed `{OUTLINE}`/`{SOLID}`/`{MINI}`/`{MICRO}`
-  placeholders. Generating it from the variant set is tracked separately.
+- `Build\ComponentWriter` generates each component from the resolved variant set:
+  one case per variant built. A variant the component was not built with draws
+  the default variant, marked with `data-flux-icon-fallback`; that is deliberate,
+  not a missing error.
 
 ## Worth scrutinising
 
 - Shared mutable state: the copy semantics of `Variant` and `VariantSet`, and any
   method handing out an internal `Collection` that a caller could mutate.
-- Vendor definitions: a vendor has to be able to answer all four variants Flux
-  requests (`outline`, `solid`, `mini`, `micro`), otherwise Flux components that
-  ask for one render nothing.
+- Vendor definitions: a vendor should answer all four variants Flux requests
+  (`outline`, `solid`, `mini`, `micro`). A component missing one draws its default
+  variant instead, at the default size, so the gap shows only as a marked fallback.
 - The vendor's config key and its `namespace` are not always the same, and built
   icons live in a directory named after the namespace. Anything resolving one
   from the other is worth checking.

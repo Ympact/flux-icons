@@ -206,6 +206,28 @@ it('builds a vendor variant and paints each of its fill layers', function () {
         ->and($slots['duotone'])->toContain('<rect x="1" y="1" width="22" height="22" fill="none" stroke="currentColor"></rect>');
 });
 
+it('writes no case for a Flux variant the vendor removed, rather than its placeholder', function () {
+    $vendor = new class extends Alpha
+    {
+        public function key(): string
+        {
+            return 'alpha';
+        }
+
+        public function variants(): VariantSet
+        {
+            return parent::variants()->without('micro');
+        }
+    };
+
+    $this->builder->build($vendor, ['home']);
+    $component = (string) file_get_contents("{$this->output}/alpha/home.blade.php");
+
+    expect(array_keys(slotsIn("{$this->output}/alpha/home.blade.php")))->toBe(['outline', 'solid', 'mini'])
+        ->and($component)->not->toContain('{MICRO}')
+        ->and($component)->toContain("in_array(\$variant, ['outline', 'solid', 'mini'], true)");
+});
+
 it('leaves a vendor variant out of an icon that has no file for it, and builds the icon', function () {
     $result = $this->builder->build(alphaWithDuotone(), ['arrow-left']);
 
