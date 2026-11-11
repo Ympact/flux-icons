@@ -190,9 +190,13 @@ built, as in v1: Tabler's `refresh` and `arrow-*` icons get stroke width 2 in th
 solid, mini and micro slots that fall back to their outline. An icon
 with a Flux variant that has neither a file nor a fallback is skipped, and the
 result says which variant was missing. When `iconName()` publishes two icons under
-one name, the first keeps it and the second is skipped. A vendor whose package is
-not installed, or whose default variant lists no icons (a wrong `basePath()` or
-source directory), throws a `RuntimeException` instead of building nothing.
+one name, the first keeps it and the second is skipped. A source file that does not
+parse as XML with an `<svg>` root skips its icon, and the reason names the file and
+the parser's first error; HTML entities such as `&nbsp;` are not XML. Entities the
+file declares itself are expanded, which is how an Illustrator export names the SVG
+namespace. A file declaring an external entity is skipped without reading it. A vendor whose package is not installed, or whose default
+variant lists no icons (a wrong `basePath()` or source directory), throws a
+`RuntimeException` instead of building nothing.
 `IconsBuilt` is dispatched once per build, with the published names, when
 anything was written.
 
@@ -234,6 +238,14 @@ Where this departs from v1 output:
   outline file.
 - Only the outermost `<svg>` receives the component's `$attributes`; v1 also gave
   them to the vendor's own `<svg>` nested inside a `Raw` icon.
+- Sources are parsed as XML, not HTML, so a `Raw` icon keeps the case of names such
+  as `viewBox`, `clipPath` and `linearGradient`; v1 wrote them in lower case. The
+  vendor's `<svg>` is nested as markup rather than as a CDATA section, with its
+  attributes in the order the vendor wrote them.
+- Every shape is drawn once, from the children of the source's root. v1 also copied
+  the shapes inside a `<g>` out of it a second time, without the group's attributes;
+  dropped top-level `<ellipse>` elements (Lucide's `database`); and drew the shape
+  inside a `<clipPath>` as part of the icon while leaving out the `<defs>` it lives in.
 
 ## Status
 

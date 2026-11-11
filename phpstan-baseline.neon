@@ -31,27 +31,9 @@ parameters:
 			path: src/Types/Icon.php
 
 		-
-			message: '#^Call to an undefined method DOMNameSpaceNode\|DOMNode\:\:C14N\(\)\.$#'
-			identifier: method.notFound
-			count: 1
-			path: src/Types/Icon.php
-
-		-
-			message: '#^Call to an undefined method DOMNameSpaceNode\|DOMNode\:\:getAttribute\(\)\.$#'
-			identifier: method.notFound
-			count: 5
-			path: src/Types/Icon.php
-
-		-
-			message: '#^Call to an undefined method DOMNameSpaceNode\|DOMNode\:\:hasAttribute\(\)\.$#'
-			identifier: method.notFound
-			count: 1
-			path: src/Types/Icon.php
-
-		-
 			message: '#^Cannot call method item\(\) on DOMNodeList\<DOMNameSpaceNode\|DOMNode\>\|false\.$#'
 			identifier: method.nonObject
-			count: 2
+			count: 1
 			path: src/Types/Icon.php
 
 		-
@@ -235,12 +217,6 @@ parameters:
 			path: src/Types/SvgPath.php
 
 		-
-			message: '#^Method Ympact\\FluxIcons\\Types\\SvgPath\:\:getAttributes\(\) has no return type specified\.$#'
-			identifier: missingType.return
-			count: 1
-			path: src/Types/SvgPath.php
-
-		-
 			message: '#^Method Ympact\\FluxIcons\\Types\\SvgPath\:\:getD\(\) has no return type specified\.$#'
 			identifier: missingType.return
 			count: 1
@@ -261,18 +237,6 @@ parameters:
 		-
 			message: '#^Method Ympact\\FluxIcons\\Types\\SvgPath\:\:getType\(\) has no return type specified\.$#'
 			identifier: missingType.return
-			count: 1
-			path: src/Types/SvgPath.php
-
-		-
-			message: '#^Method Ympact\\FluxIcons\\Types\\SvgPath\:\:setAttributes\(\) has no return type specified\.$#'
-			identifier: missingType.return
-			count: 1
-			path: src/Types/SvgPath.php
-
-		-
-			message: '#^Method Ympact\\FluxIcons\\Types\\SvgPath\:\:setAttributes\(\) has parameter \$attributes with no type specified\.$#'
-			identifier: missingType.parameter
 			count: 1
 			path: src/Types/SvgPath.php
 

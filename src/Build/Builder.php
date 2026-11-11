@@ -7,6 +7,7 @@ use RuntimeException;
 use Ympact\FluxIcons\Contracts\Vendor;
 use Ympact\FluxIcons\Events\IconsBuilt;
 use Ympact\FluxIcons\Services\PackageManager;
+use Ympact\FluxIcons\Types\InvalidSvg;
 use Ympact\FluxIcons\Variants\Variant;
 use Ympact\FluxIcons\Variants\VariantSet;
 
@@ -182,7 +183,11 @@ class Builder
                 return "no source for its {$building} variant";
             }
 
-            $markup[$building] = $this->renderer->render($vendor, $source[0], $building, $source[1], $name);
+            try {
+                $markup[$building] = $this->renderer->render($vendor, $source[0], $building, $source[1], $name);
+            } catch (InvalidSvg $invalid) {
+                return $invalid->getMessage();
+            }
         }
 
         return $markup;

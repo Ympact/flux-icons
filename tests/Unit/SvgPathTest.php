@@ -44,6 +44,12 @@ it('returns all node attributes', function () use ($makeNode) {
         ->toHaveKey('stroke-linecap');
 });
 
+it('returns the attribute values as strings, by name', function () use ($makeNode) {
+    $path = new SvgPath($makeNode('path', ['d' => 'M0 0', 'stroke-linecap' => 'round']));
+
+    expect($path->getAttributes())->toBe(['d' => 'M0 0', 'stroke-linecap' => 'round']);
+});
+
 it('sets attributes on the node', function () use ($makeNode) {
     $path = new SvgPath($makeNode('path', ['d' => 'M0 0']));
     $path->setAttributes(['fill-rule' => 'evenodd', 'data-test' => 'yes']);

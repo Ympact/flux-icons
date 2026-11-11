@@ -246,6 +246,23 @@ it('finds the icons of a package whose path holds glob characters', function () 
         ->and(componentsIn("{$this->output}/glob/alpha"))->toBe(componentsIn("{$this->output}/alpha"));
 });
 
+it('skips an icon whose source is not valid SVG, and builds the rest', function () {
+    $packages = sys_get_temp_dir().'/flux-icons-invalid-'.Str::random(8);
+    File::copyDirectory(base_path('tests/vendor/alpha'), "{$packages}/alpha");
+    File::put("{$packages}/alpha/icons/outline/dots.svg", '<svg xmlns="http://www.w3.org/2000/svg"><path d="M0 0"></svg>');
+
+    try {
+        $result = (new Builder($packages, $this->output))->build(new Alpha);
+    } finally {
+        File::deleteDirectory($packages);
+    }
+
+    expect($result->built)->toBe(['arrow-left', 'home'])
+        ->and(array_keys($result->skipped))->toBe(['dots'])
+        ->and($result->skipped['dots'])->toStartWith('dots is not a valid SVG: ')
+        ->and(File::exists("{$this->output}/alpha/dots.blade.php"))->toBeFalse();
+});
+
 it('refuses a vendor whose icons are not where it looks, rather than building or listing nothing', function () {
     $vendor = new class extends Alpha
     {

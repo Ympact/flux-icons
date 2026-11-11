@@ -40,23 +40,32 @@ class SvgPath
         return $this->d;
     }
 
-    // get the attributes on the path
-    public function getAttributes()
+    /**
+     * The attributes on the element, by name.
+     *
+     * @return array<string, string>
+     */
+    public function getAttributes(): array
     {
         $attributes = [];
-        foreach ($this->tag->attributes as $key => $value) {
-            $attributes[$key] = $value;
+
+        foreach ($this->tag->attributes ?? [] as $attribute) {
+            $attributes[$attribute->nodeName] = (string) $attribute->nodeValue;
         }
 
         return $attributes;
     }
 
-    // set the attributes on the path
-    public function setAttributes($attributes)
+    /**
+     * @param  array<string, string|int|float>  $attributes
+     */
+    public function setAttributes(array $attributes): static
     {
-        foreach ($attributes as $key => $value) {
-            $this->tag->setAttribute($key, $value);
+        foreach ($attributes as $name => $value) {
+            $this->tag->setAttribute($name, (string) $value);
         }
+
+        return $this;
     }
 
     public function getNode()
