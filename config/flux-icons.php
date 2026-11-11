@@ -5,6 +5,8 @@ use Ympact\FluxIcons\Vendors\Codicons;
 use Ympact\FluxIcons\Vendors\Flags;
 use Ympact\FluxIcons\Vendors\Flowbite;
 use Ympact\FluxIcons\Vendors\Fluent;
+use Ympact\FluxIcons\Vendors\FontAwesome;
+use Ympact\FluxIcons\Vendors\FontAwesomeBrands;
 use Ympact\FluxIcons\Vendors\Healthicons;
 use Ympact\FluxIcons\Vendors\Lucide;
 use Ympact\FluxIcons\Vendors\MaterialIcons;
@@ -61,6 +63,9 @@ return [
         'flowbite' => Flowbite::class,
         // https://developer.microsoft.com/en-us/fluentui#/styles/web/icons
         'fluent' => Fluent::class,
+        // https://fontawesome.com/icons
+        'font-awesome' => FontAwesome::class,
+        'font-awesome-brands' => FontAwesomeBrands::class,
         // https://healthicons.org/
         'healthicons' => Healthicons::class,
         // https://lucide.dev/

@@ -21,12 +21,27 @@ composer require --dev ympact/flux-icons
 | Flowbite     | `flowbite`  | [Preview](https://flowbite.com/icons/) |  |
 | Flags        | `flags`     |  [Repo](https://github.com/lipis/flag-icons/) | There is only one variant (solid and outline show the same flag). The 4x3 version is built; for the square version build with `--options=ratio=1x1`, or register a subclass whose `optionDefaults()` returns `['ratio' => '1x1']`. |
 | Fluent UI    | `fluent`    | [Preview (unofficial)](https://fluenticons.co/) - [Repo](https://github.com/microsoft/fluentui-system-icons) | Stroke width of outline icons cannot be adjusted |
+| Font Awesome Free | `font-awesome` | [Preview](https://fontawesome.com/search?ic=free) | Solid by default, as in Font Awesome. Free draws only some icons in the regular style: `outline` shows it where it exists and solid elsewhere. See [Font Awesome](#font-awesome) for the licence and for Pro. |
+| Font Awesome Free brands | `font-awesome-brands` | [Preview](https://fontawesome.com/search?ic=brands) | One style, shown in every variant. Brand logos are their owners' trademarks: use one only to refer to that brand. |
 | Google Material Design Icons | `material` | [Preview](https://fonts.google.com/icons) | Stroke width of outline icons cannot be adjusted |
 | Google Material Symbols (300) | `material-symbols` | [Preview](https://fonts.google.com/icons?icon.set=Material+Symbols) | Stroke width of outline icons cannot be adjusted |
 | Healthicons  | `healthicons` | [Preview](https://healthicons.org) | Stroke width cannot be adjusted. |
 | Lucide       | `lucide`    | [Preview](https://lucide.dev/icons/) | Only outline icons available |
 | MDI          | `mdi`       | [Preview](https://pictogrammers.com/library/mdi/) | Stroke width of outline icons cannot be adjusted |
 | Tabler       | `tabler`    | [Preview](https://tabler.io/icons) | |
+
+### Font Awesome
+
+Font Awesome Free's icons are licensed [CC BY 4.0](https://fontawesome.com/license/free), which requires attribution. Each icon file carries a short attribution comment, and Font Awesome asks that it is not removed, so a built icon keeps it: it is in the HTML of every page that shows the icon. The header of each built component also names the package and the licence.
+
+Font Awesome Pro installs from Font Awesome's own registry. Configure it in your application's `.npmrc`, with the token from your environment rather than in the file ([Font Awesome's guide](https://docs.fontawesome.com/web/setup/packages)):
+
+```ini
+@fortawesome:registry=https://npm.fontawesome.com/
+//npm.fontawesome.com/:_authToken=${FONTAWESOME_PACKAGE_TOKEN}
+```
+
+Then extend the vendor with `php artisan flux-icons:make-vendor FontAwesomePro --extends=font-awesome`, return `'@fortawesome/fontawesome-pro'` from its `package()` and your plan's licence from `license()`, and register it. Pro's other styles, such as light, thin and duotone, need variants of their own (see [Adjusting a vendor](#adjusting-a-vendor)). This package is not tested against Pro.
 
 ## Building icons
 
@@ -61,7 +76,7 @@ or
 <flux:icon name="tabler.confetti-off"/>
 ```
 
-An icon takes Flux's variants, `outline`, `solid`, `mini` and `micro`, and any variant its vendor adds, such as Phosphor's `duotone` (`Ympact\FluxIcons\Vendors\Phosphor`, which the default config does not register). The header of each built component lists the variants it has. Without a `variant`, an icon draws its vendor's default variant, which is `outline` for every bundled vendor.
+An icon takes Flux's variants, `outline`, `solid`, `mini` and `micro`, and any variant its vendor adds, such as Phosphor's `duotone` (`Ympact\FluxIcons\Vendors\Phosphor`, which the default config does not register). The header of each built component lists the variants it has. Without a `variant`, an icon draws its vendor's default variant, which is `outline` for every bundled vendor except Font Awesome, whose default is `solid`.
 
 ```html
 <flux:icon.tabler.confetti variant="mini" />
