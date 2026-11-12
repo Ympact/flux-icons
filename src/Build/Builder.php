@@ -40,6 +40,14 @@ class Builder
     }
 
     /**
+     * The directory the components are written to, one subdirectory per vendor namespace.
+     */
+    public function outputPath(): string
+    {
+        return $this->outputPath;
+    }
+
+    /**
      * Every icon the vendor ships, as icon name to the file of its default variant.
      *
      * @return array<string, string>

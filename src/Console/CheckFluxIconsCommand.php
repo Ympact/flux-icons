@@ -7,13 +7,15 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\View;
 use Illuminate\View\FileViewFinder;
 use InvalidArgumentException;
+use Symfony\Component\Console\Output\OutputInterface;
+use Ympact\FluxIcons\Build\Builder;
 use Ympact\FluxIcons\Contracts\Vendor;
 use Ympact\FluxIcons\Services\IconReference;
 use Ympact\FluxIcons\Services\IconReferenceScanner;
 use Ympact\FluxIcons\Support\VendorRegistry;
 
 /**
- * Reports icons that templates ask for but that were never built.
+ * Reports icons that templates and PHP sources ask for but that were never built.
  *
  * Flux throws when an icon component does not exist, so such a reference is a 500 on
  * whichever page renders it, and nothing surfaces it until that page is rendered. Built
@@ -24,10 +26,11 @@ class CheckFluxIconsCommand extends Command
 {
     protected $signature = 'flux-icons:check
                             {vendor? : Only check icons of this vendor, given by its config key}
-                            {--P|path=* : Directories to scan (defaults to the registered view paths)}
-                            {--build : Print the build command for the missing icons}';
+                            {--P|path=* : Directories to scan (defaults to the registered view paths, app and config)}
+                            {--build : Print the build command for the missing icons}
+                            {--json : Print the result as JSON}';
 
-    protected $description = 'Check that every icon referenced in a template has been built';
+    protected $description = 'Check that every icon referenced in a template or PHP source has been built';
 
     public function handle(): int
     {
@@ -36,25 +39,21 @@ class CheckFluxIconsCommand extends Command
             $registry = VendorRegistry::fromConfig();
             $vendors = $registry->all();
         } catch (InvalidArgumentException $exception) {
-            $this->components->error($exception->getMessage());
-
-            return self::FAILURE;
+            return $this->failWith($exception->getMessage());
         }
 
         if ($vendors->isEmpty()) {
-            $this->components->error('No vendors are configured, so there is nothing to check.');
-
-            return self::FAILURE;
+            return $this->failWith('No vendors are configured, so there is nothing to check.');
         }
 
         $vendor = $this->argument('vendor');
 
         if (is_string($vendor) && $vendor !== '') {
             if (! $vendors->has($vendor)) {
-                $this->components->error("Vendor configuration for '{$vendor}' not found.");
-                $this->line('  Configured vendors: '.$vendors->keys()->sort()->implode(', '));
-
-                return self::FAILURE;
+                return $this->failWith(
+                    "Vendor configuration for '{$vendor}' not found.",
+                    'Configured vendors: '.$vendors->keys()->sort()->implode(', ')
+                );
             }
 
             $vendors = $vendors->only([$vendor]);
@@ -63,14 +62,27 @@ class CheckFluxIconsCommand extends Command
         $paths = $this->paths();
 
         if ($paths === []) {
-            $this->components->error('No directories to scan.');
+            return $this->failWith('No directories to scan.');
+        }
 
-            return self::FAILURE;
+        // a directory named on the command line that is not there would check nothing and pass
+        $missing = array_filter((array) $this->option('path'), fn ($path) => ! is_dir((string) $path));
+
+        if ($missing !== []) {
+            return $this->failWith('No such directory to scan: '.implode(', ', $missing).'.');
         }
 
         $namespaces = $vendors->map(fn (Vendor $vendor) => $vendor->namespace())->values();
-        $references = (new IconReferenceScanner($namespaces))->scan($paths);
-        $unresolved = $references->reject(fn (IconReference $reference) => $reference->exists());
+        // resolved like the build command's, so the check looks where the icons are built
+        $iconsPath = $this->laravel->make(Builder::class)->outputPath();
+        $references = (new IconReferenceScanner($namespaces, $iconsPath))->scan($paths);
+        $unresolved = $references->filter(fn (IconReference $reference) => $reference->reason() !== null)->values();
+
+        if ($this->option('json')) {
+            $this->writeJson($this->toJson($references, $unresolved, $registry));
+
+            return $unresolved->isEmpty() ? self::SUCCESS : self::FAILURE;
+        }
 
         if ($unresolved->isEmpty()) {
             $this->components->info(
@@ -100,9 +112,11 @@ class CheckFluxIconsCommand extends Command
             $this->line("  <fg=yellow>{$file}</>");
 
             foreach ($inFile as $reference) {
-                $reason = $reference->isMalformed()
-                    ? 'is not a valid icon name'
-                    : 'has not been built';
+                $reason = match ($reference->reason()) {
+                    IconReference::MALFORMED => 'is not a valid icon name',
+                    IconReference::UNKNOWN_VARIANT => "is not built with the {$reference->variant} variant, so it draws its default one",
+                    default => 'has not been built',
+                };
 
                 $this->line("    <fg=gray>{$reference->line}</>  <fg=red>{$reference->name()}</> {$reason}");
             }
@@ -122,29 +136,113 @@ class CheckFluxIconsCommand extends Command
      */
     protected function suggestBuild(Collection $unresolved, VendorRegistry $registry): void
     {
-        $buildable = $unresolved->reject(fn (IconReference $reference) => $reference->isMalformed());
+        $commands = $this->buildCommands($unresolved, $registry);
 
-        if ($buildable->isEmpty()) {
+        if ($commands === []) {
             return;
         }
 
-        foreach ($buildable->groupBy(fn (IconReference $reference) => $reference->namespace) as $namespace => $forVendor) {
-            $icons = $forVendor->map(fn (IconReference $reference) => $reference->icon)->unique()->sort()->implode(',');
-
-            // flux-icons:build takes the config key, which is not always the namespace
-            $key = $registry->findByNamespace((string) $namespace)?->key() ?? $namespace;
-
-            $this->line("  php artisan flux-icons:build {$key} --icons={$icons} --merge");
+        foreach ($commands as $command) {
+            $this->line("  {$command['command']}");
         }
 
         $this->newLine();
     }
 
     /**
+     * The build command for the icons that are merely missing, per vendor.
+     *
+     * @param  Collection<int, IconReference>  $unresolved
+     * @return list<array{vendor: string, icons: list<string>, command: string}>
+     */
+    protected function buildCommands(Collection $unresolved, VendorRegistry $registry): array
+    {
+        $commands = [];
+        $missing = $unresolved->filter(fn (IconReference $reference) => $reference->reason() === IconReference::NOT_BUILT);
+
+        foreach ($missing->groupBy(fn (IconReference $reference) => $reference->namespace) as $namespace => $forVendor) {
+            $icons = array_values($forVendor->map(fn (IconReference $reference) => $reference->icon)->unique()->sort()->all());
+            $key = $this->vendorKey($registry, (string) $namespace);
+
+            $commands[] = [
+                'vendor' => $key,
+                'icons' => $icons,
+                'command' => "php artisan flux-icons:build {$key} --icons=".implode(',', $icons).' --merge',
+            ];
+        }
+
+        return $commands;
+    }
+
+    /**
+     * flux-icons:build takes the config key, which is not always the namespace.
+     */
+    protected function vendorKey(VendorRegistry $registry, string $namespace): string
+    {
+        return $registry->findByNamespace($namespace)?->key() ?? $namespace;
+    }
+
+    /**
+     * @param  Collection<int, IconReference>  $references
+     * @param  Collection<int, IconReference>  $unresolved
+     * @return array{references: int, unresolved: list<array<string, mixed>>, build: list<array{vendor: string, icons: list<string>, command: string}>}
+     */
+    protected function toJson(Collection $references, Collection $unresolved, VendorRegistry $registry): array
+    {
+        return [
+            'references' => $references->count(),
+            'unresolved' => array_values($unresolved->map(fn (IconReference $reference) => [
+                'file' => $reference->relativeFile(),
+                'line' => $reference->line,
+                'name' => $reference->name(),
+                'vendor' => $this->vendorKey($registry, $reference->namespace),
+                'variant' => $reference->variant,
+                'reason' => $reference->reason(),
+            ])->all()),
+            'build' => $this->buildCommands($unresolved, $registry),
+        ];
+    }
+
+    /**
+     * JSON as it is, past the console's formatter, which would read `<info>` in a name as a
+     * style. A name that is not valid UTF-8, such as a file name, gets a replacement character.
+     *
+     * @param  array<string, mixed>  $data
+     */
+    protected function writeJson(array $data): void
+    {
+        $this->output->writeln(
+            json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_INVALID_UTF8_SUBSTITUTE | JSON_THROW_ON_ERROR),
+            OutputInterface::OUTPUT_RAW
+        );
+    }
+
+    /**
+     * Report a problem that stops the check, as JSON when that was asked for.
+     */
+    protected function failWith(string $message, ?string $detail = null): int
+    {
+        if ($this->option('json')) {
+            $this->writeJson(['error' => trim($message.' '.$detail)]);
+
+            return self::FAILURE;
+        }
+
+        $this->components->error($message);
+
+        if ($detail !== null) {
+            $this->line("  {$detail}");
+        }
+
+        return self::FAILURE;
+    }
+
+    /**
      * Where to look.
      *
      * Defaults to every registered view path rather than just resources/views, so templates
-     * that live in a package or a module are covered too.
+     * that live in a package or a module are covered too, and to the application's app and
+     * config directories, where enums, components and menus keep icon names in PHP.
      *
      * @return array<int, string>
      */
@@ -161,10 +259,10 @@ class CheckFluxIconsCommand extends Command
         // Only the file based finder knows about directories; anything else (a database
         // backed finder, say) has nothing to walk, so fall back to the conventional path.
         if (! $finder instanceof FileViewFinder) {
-            return [resource_path('views')];
+            return [resource_path('views'), app_path(), config_path()];
         }
 
-        $paths = $finder->getPaths();
+        $paths = [...$finder->getPaths(), app_path(), config_path()];
 
         foreach ($finder->getHints() as $namespacePaths) {
             $paths = array_merge($paths, $namespacePaths);
