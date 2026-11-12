@@ -3,6 +3,7 @@
 use Illuminate\Contracts\Console\Kernel;
 use Illuminate\Support\Str;
 use Ympact\FluxIcons\Console\CheckFluxIconsCommand;
+use Ympact\FluxIcons\Tests\Fixtures\Vendors\AlphaMisstyled;
 use Ympact\FluxIcons\Vendors\MaterialIcons;
 use Ympact\FluxIcons\Vendors\Mdi;
 use Ympact\FluxIcons\Vendors\Tabler;
@@ -110,5 +111,13 @@ it('fails when no vendors are configured at all', function () {
 
     $this->artisan('flux-icons:check')
         ->expectsOutputToContain('No vendors are configured')
+        ->assertExitCode(1);
+});
+
+it('reports a vendor class whose option default it does not take, rather than throwing', function () {
+    config()->set('flux-icons.vendors', ['tabler' => Tabler::class, 'alpha' => AlphaMisstyled::class]);
+
+    $this->artisan('flux-icons:check', ['tabler'])
+        ->expectsOutputToContain('[bold] is not a valid value for option [style] of vendor [alpha]')
         ->assertExitCode(1);
 });

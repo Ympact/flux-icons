@@ -47,7 +47,8 @@ return [
      *
      * To adjust a vendor, extend its class and register the subclass here. That includes the
      * options it builds with: the square flags are a subclass whose optionDefaults() returns
-     * ['ratio' => '1x1']. A vendor of your own extends Ympact\FluxIcons\Contracts\Vendor.
+     * ['ratio' => '1x1']. flux-icons:build --options changes them for one build only; flux-icons:update
+     * rebuilds with the class's values. A vendor of your own extends Ympact\FluxIcons\Contracts\Vendor.
      * `php artisan flux-icons:make-vendor` generates either.
      */
     'vendors' => [

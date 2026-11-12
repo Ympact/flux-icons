@@ -7,6 +7,7 @@ use Illuminate\Support\Str;
 use Ympact\FluxIcons\Console\MakeVendorCommand;
 use Ympact\FluxIcons\Contracts\Vendor;
 use Ympact\FluxIcons\Support\VendorRegistry;
+use Ympact\FluxIcons\Tests\Fixtures\Vendors\AlphaMisstyled;
 use Ympact\FluxIcons\Vendors\Tabler;
 
 // every test gets an application namespace of its own, so the classes it generates and
@@ -92,6 +93,15 @@ it('refuses to replace the registered vendor it would extend, even when forced',
 it('fails for a vendor to extend that is not registered', function () {
     $this->artisan('flux-icons:make-vendor', ['name' => 'HouseStyle', '--extends' => 'nope'])
         ->expectsOutputToContain("Vendor configuration for 'nope' not found.");
+
+    expect("{$this->vendors}/HouseStyle.php")->not->toBeFile();
+});
+
+it('reports a vendor to extend whose option default it does not take, rather than throwing', function () {
+    Config::set('flux-icons.vendors', ['alpha' => AlphaMisstyled::class]);
+
+    $this->artisan('flux-icons:make-vendor', ['name' => 'HouseStyle', '--extends' => 'alpha'])
+        ->expectsOutputToContain('[bold] is not a valid value for option [style] of vendor [alpha]');
 
     expect("{$this->vendors}/HouseStyle.php")->not->toBeFile();
 });

@@ -10,6 +10,7 @@ use Ympact\FluxIcons\Console\UpdateFluxIconsCommand;
 use Ympact\FluxIcons\Events\IconsBuilt;
 use Ympact\FluxIcons\Services\NpmManager;
 use Ympact\FluxIcons\Support\VendorRegistry;
+use Ympact\FluxIcons\Tests\Fixtures\Vendors\AlphaMisstyled;
 use Ympact\FluxIcons\Vendors\MaterialIcons;
 use Ympact\FluxIcons\Vendors\Tabler;
 
@@ -54,6 +55,15 @@ it('stops when none of the vendors named has built icons', function () {
     } finally {
         File::deleteDirectory($root);
     }
+});
+
+it('reports a vendor class whose option default it does not take, rather than throwing', function () {
+    $this->app[Kernel::class]->registerCommand(new UpdateFluxIconsCommand);
+    Config::set('flux-icons.vendors', ['tabler' => Tabler::class, 'alpha' => AlphaMisstyled::class]);
+
+    $this->artisan('flux-icons:update')
+        ->expectsOutputToContain('[bold] is not a valid value for option [style] of vendor [alpha]')
+        ->assertExitCode(1);
 });
 
 describe('updating built icons', function () {
