@@ -478,6 +478,8 @@ class Icon
             throw new InvalidSvg("{$this->filename} is not a valid SVG: it has no <svg> root");
         }
 
+        (new SvgSanitiser)->sanitise($dom);
+
         $this->xpathSource = new DOMXPath($dom);
 
         return $dom;
