@@ -255,3 +255,29 @@ it('reports a vendor class whose option default it does not take, rather than th
         ->expectsOutputToContain('[bold] is not a valid value for option [style] of vendor [alpha]')
         ->assertExitCode(1);
 });
+
+it('writes json as it is, past the console formatter', function () {
+    $exitCode = Artisan::call('flux-icons:check', ['vendor' => '<info>x</info>', '--json' => true]);
+
+    expect($exitCode)->toBe(1)
+        ->and(json_decode(Artisan::output(), true)['error'] ?? null)->toStartWith("Vendor configuration for '<info>x</info>' not found.");
+});
+
+it('writes valid json for a file name that is not utf-8', function () {
+    $root = fakeApp('');
+    file_put_contents($root."/resources/views/caf\xE9.blade.php", '<flux:icon.tabler.missing />');
+    app()->setBasePath($root);
+
+    $exitCode = Artisan::call('flux-icons:check', ['--path' => [$root.'/resources/views'], '--json' => true]);
+    $report = json_decode(Artisan::output(), true);
+
+    expect($exitCode)->toBe(1)
+        ->and($report['unresolved'][0]['name'] ?? null)->toBe('tabler.missing')
+        ->and($report['unresolved'][0]['file'] ?? null)->toBe("resources/views/caf\u{FFFD}.blade.php");
+});
+
+it('fails for a directory to scan that does not exist, rather than passing on nothing', function () {
+    $this->artisan('flux-icons:check', ['--path' => ['/no/such/directory']])
+        ->expectsOutputToContain('No such directory to scan: /no/such/directory.')
+        ->assertExitCode(1);
+});

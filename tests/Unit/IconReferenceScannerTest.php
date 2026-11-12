@@ -98,7 +98,7 @@ it('skips directories that do not exist', function () {
  * @param  array<string, string>  $files  Contents by path inside the directory.
  * @return array<string, list<string>>
  */
-function scanFiles(array $files, ?string $iconsPath = null, ?string $directory = null): array
+function scanFiles(array $files, ?string $iconsPath = null, ?string $directory = null, array $namespaces = ['tabler']): array
 {
     $directory ??= sys_get_temp_dir().'/flux-icons-scan-'.Str::random(8);
 
@@ -109,7 +109,7 @@ function scanFiles(array $files, ?string $iconsPath = null, ?string $directory =
 
     $found = [];
 
-    foreach ((new IconReferenceScanner(['tabler'], $iconsPath ? "{$directory}/{$iconsPath}" : null))->scan([$directory]) as $reference) {
+    foreach ((new IconReferenceScanner($namespaces, $iconsPath ? "{$directory}/{$iconsPath}" : null))->scan([$directory]) as $reference) {
         $found[Str::after($reference->file, $directory.'/')][] = $reference->name();
     }
 
@@ -209,3 +209,35 @@ it('reads the literal variant a flux icon tag asks for, and only that', function
     'another component' => ['<flux:button icon="tabler.home" variant="primary" />', null],
     'data attribute' => ['<flux:icon.tabler.home data-variant="mini" />', null],
 ]);
+
+it('reads only a php string that holds nothing but a name, and not a key that looks like one', function () {
+    $code = <<<'PHP'
+        <?php
+
+        $flag = config('flags.new_checkout');
+        $label = __('flags.disabled');
+        $colour = \Illuminate\Support\Facades\Config::get('material.primary');
+        $page = view('mdi.index');
+        $mail = 'support@lucide.dev';
+        $style = 'bootstrap.min.css';
+        $site = 'www.tabler.io';
+        $menu = ['icon' => 'tabler.home', 'label' => __('Home')];
+        $doubled = 'tabler.tabler.check';
+        ?>
+        <span>flags.nl</span>
+        PHP;
+
+    expect(scanFiles(['app/Menu.php' => $code], namespaces: ['flags', 'lucide', 'bootstrap', 'material', 'mdi', 'tabler']))
+        ->toBe(['app/Menu.php' => ['tabler.home', 'tabler.tabler.check', 'flags.nl']]);
+});
+
+it('does not give a reference the variant of a tag that closed before it', function () {
+    $references = scanTemplate("<flux:icon.tabler.star variant=\"solid\" />\n@foreach (['tabler.home'] as \$icon)\n    <flux:icon :name=\"\$icon\" />\n@endforeach");
+
+    expect($references->map(fn (IconReference $reference) => [$reference->name(), $reference->variant])->all())
+        ->toBe([['tabler.star', 'solid'], ['tabler.home', null]]);
+});
+
+it('masks the comment in an @php block whose code starts with a parenthesis on its next line', function () {
+    expect(scannedNames("@php\n    (\$a ?? \$b)->x(); // 'tabler.dead'\n@endphp\n<flux:icon.tabler.kept />"))->toBe(['tabler.kept']);
+});

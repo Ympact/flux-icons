@@ -23,7 +23,7 @@ Upgrading from 1.x? See [UPGRADE.md](UPGRADE.md).
 | Flowbite     | `flowbite`  | [Preview](https://flowbite.com/icons/) |  |
 | Flags        | `flags`     |  [Repo](https://github.com/lipis/flag-icons/) | There is only one variant (solid and outline show the same flag). The 4x3 version is built. For the square version, register a subclass whose `optionDefaults()` returns `['ratio' => '1x1']`: `--options=ratio=1x1` builds it once, and `flux-icons:update` rebuilds with the class's values. |
 | Fluent UI    | `fluent`    | [Preview (unofficial)](https://fluenticons.co/) - [Repo](https://github.com/microsoft/fluentui-system-icons) | Stroke width of outline icons cannot be adjusted |
-| Font Awesome Free | `font-awesome` | [Preview](https://fontawesome.com/search?ic=free) | Solid by default, as in Font Awesome. Free draws only some icons in the regular style: `outline` shows it where it exists and solid elsewhere, so a navigation list can mix the two. See [Font Awesome](#font-awesome) for one style throughout, the licence and Pro. |
+| Font Awesome Free | `font-awesome` | [Preview](https://fontawesome.com/search?ic=free) | Solid, Font Awesome's own default, in every Flux variant: `outline`, `solid`, `mini` and `micro` all draw the solid style. The regular style is `variant="regular"`, which Free draws for 273 of its 2001 icons and which shows solid for the rest. See [Font Awesome](#font-awesome) for the licence and Pro. |
 | Font Awesome Free brands | `font-awesome-brands` | [Preview](https://fontawesome.com/search?ic=brands) | One style, shown in every variant. Brand logos are their owners' trademarks: use one only to refer to that brand. |
 | Google Material Design Icons | `material` | [Preview](https://fonts.google.com/icons) | Stroke width of outline icons cannot be adjusted |
 | Google Material Symbols (300) | `material-symbols` | [Preview](https://fonts.google.com/icons?icon.set=Material+Symbols) | Stroke width of outline icons cannot be adjusted |
@@ -36,13 +36,22 @@ Upgrading from 1.x? See [UPGRADE.md](UPGRADE.md).
 
 Font Awesome Free's icons are licensed [CC BY 4.0](https://fontawesome.com/license/free), which requires attribution. Each icon file carries a short attribution comment, and Font Awesome asks that it is not removed, so a built icon keeps it: it is in the HTML of every page that shows the icon. The header of each built component also names the package and the licence, but as a Blade comment it does not reach the page.
 
-Free draws 273 of its 2001 icons in the regular style, and `outline` falls back to solid for the others. Flux's navigation components, such as `flux:navlist.item`, `flux:sidebar.item` and `flux:navbar.item`, ask for `outline`, so a menu shows regular icons next to solid ones. To draw solid throughout, extend the vendor (`php artisan flux-icons:make-vendor FontAwesome --extends=font-awesome`) and build `outline` from the solid icons:
+Free draws 273 of its 2001 icons in the regular style, so every Flux variant draws the solid style and a menu keeps one style throughout. Flux's navigation components, such as `flux:navlist.item`, `flux:sidebar.item` and `flux:navbar.item`, ask for `outline`. The regular style is a variant of its own, which shows solid where Free has no regular drawing:
+
+```html
+<flux:icon.font-awesome.heart variant="regular" />
+```
+
+To draw the regular style as `outline` where it exists, extend the vendor (`php artisan flux-icons:make-vendor FontAwesome --extends=font-awesome`) and point `outline` at it:
 
 ```php
 public function variants(): VariantSet
 {
     return parent::variants()
-        ->variant('outline', fn ($variant) => $variant->source(Source::dir('solid')));
+        ->variant('outline', fn ($variant) => $variant
+            ->source(Source::dir('regular'))
+            ->fallback(Fallback::defaultVariant())
+        );
 }
 ```
 
@@ -90,7 +99,7 @@ or
 <flux:icon name="tabler.confetti-off"/>
 ```
 
-An icon takes Flux's variants, `outline`, `solid`, `mini` and `micro`, and any variant its vendor adds, such as Phosphor's `duotone` (`Ympact\FluxIcons\Vendors\Phosphor`, which the default config does not register). The header of each built component lists the variants it has. Without a `variant`, an icon draws its vendor's default variant, which is `outline` for every bundled vendor except Font Awesome, whose default is `solid`.
+An icon takes Flux's variants, `outline`, `solid`, `mini` and `micro`, and any variant its vendor adds, such as Font Awesome's `regular` or Phosphor's `duotone` (`Ympact\FluxIcons\Vendors\Phosphor`, which the default config does not register). The header of each built component lists the variants it has. Without a `variant`, an icon draws its vendor's default variant, which is `outline` for every bundled vendor except Font Awesome, whose default is `solid`.
 
 ```html
 <flux:icon.tabler.confetti variant="mini" />
@@ -128,9 +137,13 @@ of this package's business; `icon="tabler.check"` is. References are found where
 written: the tag form, the `name` attribute, any `icon`-like attribute, and inside a bound
 expression. They all fail the same way.
 
-In PHP files only string literals are read, so an icon name kept in an enum, a menu builder
-or a config array counts, and one in a comment does not. In Blade templates, `{{-- --}}`
-comments and the PHP comments in `@php` and `<?php` blocks are skipped. An HTML comment
+In PHP files a reference is a string literal that holds nothing but the name, so an icon
+name kept in an enum, a menu builder or a config array counts, and one in a comment does not.
+A key handed to `config()`, `__()`, `trans()`, `view()` or `route()`, or to `Config::get()`
+and its kind, is not read as one, although `config('flags.new_checkout')` looks like it.
+
+In Blade templates, `{{-- --}}` comments and the PHP comments in `@php` and `<?php` blocks
+are skipped. An HTML comment
 still counts: Blade renders the components inside one. The icons the builder wrote are not
 scanned, so they do not count as references to themselves.
 
@@ -146,7 +159,7 @@ than failing, which is easy to miss. A bound `:variant` is only known when the p
 | Option | Description |
 | --- | --- |
 | `vendor` | Only check icons of this vendor, given by its config key |
-| `--path=` | Directories to scan, repeatable. Defaults to the registered view paths and the application's `app` and `config` directories |
+| `--path=` | Directories to scan, repeatable. Defaults to the registered view paths and the application's `app` and `config` directories. A directory that does not exist fails the check. |
 | `--build` | Also print the `flux-icons:build` command that would add the missing icons |
 | `--json` | Print the result as JSON instead, for CI and agents. It exits non-zero in the same cases. |
 
@@ -224,7 +237,7 @@ php artisan vendor:publish --tag=flux-icons-config
 | `request_npm_dev` | `bool` | For a build of more than 100 icons, ask whether `npm run dev` is running, and if so pause a third of a second between icons and remind you to start it again afterwards. Without a terminal the answer is no. |
 | `vendors`         | `['vendor-key' => VendorClass::class]` | The vendors icons can be built from. The key is what you pass to the commands. The icons are published under the key as a slug (`tabler_icons` to `tabler-icons`), unless the class names another namespace (Material Icons publishes to `material`). |
 
-A published config from version 1 describes vendors as arrays. Version 2 stops with a message naming the vendor. Replace the config with `php artisan vendor:publish --tag=flux-icons-config --force`, which overwrites `config/flux-icons.php`, then copy your changes over.
+A published config from version 1 describes vendors as arrays. The build, update and check commands, and `make-vendor --extends`, stop with a message naming the vendor. Keep a copy of `config/flux-icons.php`, replace it with `php artisan vendor:publish --tag=flux-icons-config --force`, then copy your changes over from the copy. [UPGRADE.md](UPGRADE.md) maps each version 1 setting to version 2.
 
 ### Adjusting a vendor
 
