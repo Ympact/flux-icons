@@ -192,6 +192,12 @@ $result->skipped; // icon => why it was not built
 $result->missing; // requested icons the vendor does not ship
 ```
 
+The builder never runs npm. `flux-icons:build` and `flux-icons:update` install or
+update the package first through `Services\NpmManager`, which runs npm in the
+application's directory, so its `.npmrc` applies, and throws with npm's own output
+when npm fails. Both commands resolve it and the `Builder` from the container: an
+application whose packages live elsewhere, such as a workspace root, binds both.
+
 Every icon of the default variant becomes one component. For each Flux variant
 the builder looks for the icon's own file, then follows the variant's fallbacks
 until one has it; a fallback that leads back to a variant already tried ends the
@@ -292,11 +298,12 @@ Present and tested:
 - `Build\{Builder, SourceResolver, IconRenderer, ComponentWriter, Credits,
   BuildResult}`, which build from those classes
 - the artisan commands and `config/flux-icons.php`, which map vendor keys to classes
+- `Services\NpmManager`, which installs and updates vendor packages through
+  Symfony Process ([#23](https://github.com/Ympact/flux-icons/issues/23))
 
 Not yet done, tracked on the v2 milestone:
 
 - `Types\Icon` still reads a v1 config array, which the build no longer passes it
 - `flux-icons:check` reporting a literal `variant="..."` an icon was not built with
   ([#47](https://github.com/Ympact/flux-icons/issues/47))
-- npm is still driven with `exec()` ([#23](https://github.com/Ympact/flux-icons/issues/23))
 - the upgrade guide ([#20](https://github.com/Ympact/flux-icons/issues/20))

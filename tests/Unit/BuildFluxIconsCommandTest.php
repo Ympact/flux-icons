@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Contracts\Console\Kernel;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\File;
@@ -8,6 +9,7 @@ use Illuminate\Support\Str;
 use Ympact\FluxIcons\Build\Builder;
 use Ympact\FluxIcons\Console\BuildFluxIconsCommand;
 use Ympact\FluxIcons\Events\IconsBuilt;
+use Ympact\FluxIcons\Services\NpmManager;
 use Ympact\FluxIcons\Tests\Fixtures\Vendors\Alpha;
 use Ympact\FluxIcons\Tests\Fixtures\Vendors\AlphaStyled;
 use Ympact\FluxIcons\Tests\Fixtures\Vendors\AlphaUnstyled;
@@ -171,6 +173,59 @@ describe('building', function () {
         $this->artisan('flux-icons:build', ['vendor' => 'alpha', '--icons' => 'home', '--no-interaction' => true])
             ->expectsOutputToContain('The npm package alpha is not installed')
             ->assertExitCode(1);
+    });
+
+    it('installs the vendor\'s package first when node_modules lacks it', function () {
+        File::delete("{$this->root}/node_modules/alpha/package.json");
+        $this->app->bind(NpmManager::class, fn () => new NpmManager(binary: fakeNpm($this->root)));
+
+        $this->artisan('flux-icons:build', ['vendor' => 'alpha', '--icons' => 'home', '--no-interaction' => true])
+            ->assertExitCode(0);
+
+        expect(fakeNpmCalls($this->root))->toBe(["{$this->root} install alpha --save --loglevel=error"]);
+    });
+
+    it('fails with what npm said when it cannot install the package', function () {
+        File::delete("{$this->root}/node_modules/alpha/package.json");
+        $this->app->bind(NpmManager::class, fn () => new NpmManager(binary: fakeNpm($this->root, exitCode: 1, stderr: 'E404 Not Found')));
+
+        $this->artisan('flux-icons:build', ['vendor' => 'alpha', '--icons' => 'home', '--no-interaction' => true])
+            ->expectsOutputToContain('npm could not install alpha: E404 Not Found')
+            ->assertExitCode(1);
+
+        expect(builtIcons($this->root, 'alpha'))->toBe([]);
+    });
+
+    it('neither pauses nor starts npm after a large build without a terminal', function () {
+        $iconsAboveThreshold = 101;
+        $secondsWithoutPause = 15;
+
+        foreach (range(1, $iconsAboveThreshold) as $number) {
+            foreach (['outline', 'filled', 'duotone'] as $directory) {
+                File::copy("{$this->root}/node_modules/alpha/icons/{$directory}/home.svg", "{$this->root}/node_modules/alpha/icons/{$directory}/copy-{$number}.svg");
+            }
+        }
+
+        Config::set('flux-icons.request_npm_dev', true);
+        // an `npm run dev` started through the shell would find this stand-in first
+        fakeNpm($this->root);
+        $path = (string) getenv('PATH');
+        putenv("PATH={$this->root}:{$path}");
+        $start = microtime(true);
+
+        // unlike $this->artisan(), which answers prompts from a mock, a prompt here takes its default
+        try {
+            $exitCode = Artisan::call('flux-icons:build', ['vendor' => 'alpha', '--all' => true, '--no-interaction' => true]);
+        } finally {
+            putenv("PATH={$path}");
+        }
+
+        // the pause is a third of a second per icon, so about 34 seconds here
+        expect($exitCode)->toBe(0)
+            ->and(Artisan::output())->not->toContain('start it again')
+            ->and(microtime(true) - $start)->toBeLessThan($secondsWithoutPause)
+            ->and(count(builtIcons($this->root, 'alpha')))->toBeGreaterThan($iconsAboveThreshold)
+            ->and(fakeNpmCalls($this->root))->toBe([]);
     });
 
     it('fails for a vendor that is not registered', function () {

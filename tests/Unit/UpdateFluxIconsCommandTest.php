@@ -7,8 +7,8 @@ use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
 use Ympact\FluxIcons\Build\Builder;
 use Ympact\FluxIcons\Console\UpdateFluxIconsCommand;
-use Ympact\FluxIcons\Contracts\Vendor;
 use Ympact\FluxIcons\Events\IconsBuilt;
+use Ympact\FluxIcons\Services\NpmManager;
 use Ympact\FluxIcons\Support\VendorRegistry;
 use Ympact\FluxIcons\Tests\Fixtures\Vendors\AlphaMisstyled;
 use Ympact\FluxIcons\Vendors\MaterialIcons;
@@ -28,22 +28,6 @@ class UpdateCommandProbe extends UpdateFluxIconsCommand
         $registry = new VendorRegistry(['material-icons' => MaterialIcons::class, 'tabler' => Tabler::class]);
 
         return $this->onlyRequested($registry, $directories, $option);
-    }
-}
-
-/**
- * Leaves npm alone, so an update can run in a test: the package update succeeds or fails as told.
- */
-class OfflineUpdateCommand extends UpdateFluxIconsCommand
-{
-    public function __construct(protected bool $packageUpdates = true)
-    {
-        parent::__construct();
-    }
-
-    protected function updatePackage(Vendor $vendor, bool $verbose): bool
-    {
-        return $this->packageUpdates;
     }
 }
 
@@ -95,22 +79,22 @@ describe('updating built icons', function () {
         $this->app->setBasePath($this->root);
         Config::set('flux-icons', fixtureConfig());
         Event::fake([IconsBuilt::class]);
+        $this->app[Kernel::class]->registerCommand(new UpdateFluxIconsCommand);
+        $this->app->bind(NpmManager::class, fn () => new NpmManager(binary: fakeNpm($this->root)));
     });
 
     afterEach(fn () => File::deleteDirectory($this->root));
 
-    it('rebuilds the icons that were built', function () {
-        $this->app[Kernel::class]->registerCommand(new OfflineUpdateCommand);
-
+    it('updates the package of the icons that were built, and rebuilds them', function () {
         $this->artisan('flux-icons:update')->assertExitCode(0);
 
-        expect((string) file_get_contents("{$this->root}/resources/views/flux/icon/alpha/home.blade.php"))->toContain('<flux:icon.alpha.home />');
+        expect(fakeNpmCalls($this->root))->toBe(["{$this->root} update alpha --loglevel=error"])
+            ->and((string) file_get_contents("{$this->root}/resources/views/flux/icon/alpha/home.blade.php"))->toContain('<flux:icon.alpha.home />');
     });
 
     it('rebuilds with the builder the application binds, and fails when that cannot build', function () {
         // an npm workspace can hoist the package out of the application's own node_modules
         $this->app->bind(Builder::class, fn () => new Builder("{$this->root}/elsewhere", "{$this->root}/resources/views/flux/icon"));
-        $this->app[Kernel::class]->registerCommand(new OfflineUpdateCommand);
 
         $this->artisan('flux-icons:update')
             ->expectsOutputToContain("The npm package alpha is not installed in {$this->root}/elsewhere")
@@ -118,10 +102,11 @@ describe('updating built icons', function () {
             ->assertExitCode(1);
     });
 
-    it('fails when a package could not be updated', function () {
-        $this->app[Kernel::class]->registerCommand(new OfflineUpdateCommand(packageUpdates: false));
+    it('fails when a package could not be updated, saying what npm said', function () {
+        $this->app->bind(NpmManager::class, fn () => new NpmManager(binary: fakeNpm($this->root, exitCode: 1, stderr: 'E404 Not Found')));
 
         $this->artisan('flux-icons:update')
+            ->expectsOutputToContain('npm could not update alpha: E404 Not Found')
             ->expectsOutputToContain('The update failed for: alpha.')
             ->assertExitCode(1);
     });

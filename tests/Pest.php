@@ -122,3 +122,42 @@ function writeComposerLock(string $dir, array $data): void
 {
     file_put_contents($dir.'/composer.lock', json_encode($data, JSON_PRETTY_PRINT));
 }
+
+/**
+ * Writes a stand-in npm executable into the directory: it appends its working directory and
+ * arguments to npm.log there, prints the given output to stderr and exits with the given code.
+ * Like npm, it prints nothing under --silent.
+ *
+ * @param  int  $seconds  How long it runs before it exits.
+ * @return string The executable's path, to hand to NpmManager as its binary.
+ */
+function fakeNpm(string $dir, int $exitCode = 0, string $stderr = '', int $seconds = 0): string
+{
+    $binary = $dir.'/npm';
+
+    file_put_contents($binary, implode("\n", [
+        '#!/bin/sh',
+        'echo "$(pwd -P) $*" >> '.escapeshellarg($dir.'/npm.log'),
+        'case " $* " in *" --silent "*) ;; *) printf %s '.escapeshellarg($stderr).' >&2 ;; esac',
+        $seconds > 0 ? "sleep {$seconds}" : '',
+        "exit {$exitCode}",
+        '',
+    ]));
+    chmod($binary, 0755);
+
+    return $binary;
+}
+
+/**
+ * The calls the stand-in npm of fakeNpm() received, one "working-directory arguments" line each.
+ * The directory is the temp path the tests use, also where it is a link, as on macOS.
+ *
+ * @return list<string>
+ */
+function fakeNpmCalls(string $dir): array
+{
+    $calls = is_file($dir.'/npm.log') ? file($dir.'/npm.log', FILE_IGNORE_NEW_LINES) ?: [] : [];
+    $temp = rtrim(sys_get_temp_dir(), '/');
+
+    return array_map(fn (string $call) => str_replace((string) realpath($temp), $temp, $call), $calls);
+}

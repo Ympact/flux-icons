@@ -44,8 +44,10 @@ Please do not report these as problems.
 - `Types\Icon` still accepts a v1 config array that the build no longer passes it.
   Removing that code touches most of `Icon` and its tests, so it is left for a
   change of its own; do not report it as dead code to remove piecemeal.
-- npm is still driven with `exec()` in `Services\PackageManager` until #23 brings
-  an NpmManager. The package names it runs come from vendor classes, not input.
+- npm runs through `Services\NpmManager` on Symfony Process, with its arguments
+  as a list, which Process escapes where it goes through a shell (as on Windows).
+  The commands resolve it from the container, so tests bind one whose binary is
+  the stand-in from `fakeNpm()` in `tests/Pest.php`.
 - `Build\IconRenderer` draws an icon the way its vendor does: it keeps the caps,
   joins, fill rule and clip rule of the vendor's own `<svg>` root, which is why
   Lucide, flags and Tabler's fallback slots depart from v1 on purpose. MDI departs

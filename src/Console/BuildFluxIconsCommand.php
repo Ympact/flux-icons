@@ -10,7 +10,7 @@ use Ympact\FluxIcons\Build\Builder;
 use Ympact\FluxIcons\Build\BuildResult;
 use Ympact\FluxIcons\Console\Concerns\ReportsBuildResult;
 use Ympact\FluxIcons\Contracts\Vendor;
-use Ympact\FluxIcons\Services\PackageManager;
+use Ympact\FluxIcons\Services\NpmManager;
 use Ympact\FluxIcons\Support\VendorRegistry;
 
 use function Laravel\Prompts\confirm;
@@ -100,7 +100,7 @@ class BuildFluxIconsCommand extends Command
         $this->info("Checking if vendor: {$key} is installed");
 
         try {
-            PackageManager::requirePackage($vendor, $verbose);
+            $this->laravel->make(NpmManager::class)->require($vendor, $verbose);
         } catch (\RuntimeException $exception) {
             $this->error($exception->getMessage());
 
@@ -297,8 +297,8 @@ class BuildFluxIconsCommand extends Command
         $bar?->finish();
         $this->newLine();
 
-        if ($npmDevRunning && confirm('Do you want to start `npm run dev`?')) {
-            exec('npm run dev');
+        if ($npmDevRunning) {
+            info('In case `npm run dev` stopped during the build, start it again.');
         }
 
         return $result;
@@ -310,7 +310,8 @@ class BuildFluxIconsCommand extends Command
 
         info("In case npm run dev is running, we'll introduce a timeout between processing icons to prevent memory issues. \nThis will make this script take {$seconds} seconds. \nIt is better to stop `npm run dev` first before continuing.");
 
-        return confirm('Is `npm run dev` running?');
+        // defaults to no, so a run without a terminal does not pause
+        return confirm('Is `npm run dev` running?', default: false);
     }
 
     /**

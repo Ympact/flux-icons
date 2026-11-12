@@ -8,7 +8,7 @@ use Ympact\FluxIcons\Build\Builder;
 use Ympact\FluxIcons\Console\Concerns\ReportsBuildResult;
 use Ympact\FluxIcons\Contracts\Vendor;
 use Ympact\FluxIcons\Services\IconManager;
-use Ympact\FluxIcons\Services\PackageManager;
+use Ympact\FluxIcons\Services\NpmManager;
 use Ympact\FluxIcons\Support\VendorRegistry;
 
 use function Laravel\Prompts\error;
@@ -58,6 +58,7 @@ class UpdateFluxIconsCommand extends Command
         // resolved like the build command's, so an application that binds the builder to another
         // node_modules updates from there too
         $builder = $this->laravel->make(Builder::class);
+        $npm = $this->laravel->make(NpmManager::class);
         $failed = [];
 
         info('Updating the packages');
@@ -76,8 +77,8 @@ class UpdateFluxIconsCommand extends Command
             $updated = false;
             $this->components->task(
                 "Updating package {$vendor->key()}",
-                function () use ($vendor, $verbose, &$updated) {
-                    return $updated = $this->updatePackage($vendor, $verbose);
+                function () use ($npm, $vendor, $verbose, &$updated) {
+                    return $updated = $this->updatePackage($npm, $vendor, $verbose);
                 }
             );
 
@@ -88,7 +89,7 @@ class UpdateFluxIconsCommand extends Command
             info('Updating '.count($icons)." icons for {$vendor->key()}");
 
             try {
-                PackageManager::requirePackage($vendor, $verbose);
+                $npm->require($vendor, $verbose);
                 // a component whose icon left the package is reported as not found, and kept
                 $this->report($builder->build($vendor, $icons->all()), $verbose);
             } catch (\RuntimeException $exception) {
@@ -109,10 +110,12 @@ class UpdateFluxIconsCommand extends Command
     /**
      * Update the vendor's npm package, saying why when that fails.
      */
-    protected function updatePackage(Vendor $vendor, bool $verbose): bool
+    protected function updatePackage(NpmManager $npm, Vendor $vendor, bool $verbose): bool
     {
         try {
-            return PackageManager::updateVendorPackage($vendor, $verbose);
+            $npm->update($vendor, $verbose);
+
+            return true;
         } catch (\RuntimeException $exception) {
             error("Failed to update the package for: {$vendor->key()}. ".$exception->getMessage());
 
