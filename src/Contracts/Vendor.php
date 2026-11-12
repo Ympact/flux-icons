@@ -90,8 +90,9 @@ abstract class Vendor
     }
 
     /**
-     * The licence the icons are published under, as an SPDX identifier, recorded
-     * in the credits of a built icon.
+     * The licence the icons are published under, as an SPDX identifier or expression,
+     * recorded in the credits of a built icon. A licence SPDX does not list takes the
+     * form `LicenseRef-...`.
      */
     public function license(): ?string
     {
