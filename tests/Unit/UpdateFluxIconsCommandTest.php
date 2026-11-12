@@ -88,7 +88,7 @@ describe('updating built icons', function () {
     it('updates the package of the icons that were built, and rebuilds them', function () {
         $this->artisan('flux-icons:update')->assertExitCode(0);
 
-        expect(fakeNpmCalls($this->root))->toBe(["{$this->root} update alpha --silent"])
+        expect(fakeNpmCalls($this->root))->toBe(["{$this->root} update alpha --loglevel=error"])
             ->and((string) file_get_contents("{$this->root}/resources/views/flux/icon/alpha/home.blade.php"))->toContain('<flux:icon.alpha.home />');
     });
 

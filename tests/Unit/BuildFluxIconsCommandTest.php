@@ -182,7 +182,7 @@ describe('building', function () {
         $this->artisan('flux-icons:build', ['vendor' => 'alpha', '--icons' => 'home', '--no-interaction' => true])
             ->assertExitCode(0);
 
-        expect(fakeNpmCalls($this->root))->toBe(["{$this->root} install alpha --save --silent"]);
+        expect(fakeNpmCalls($this->root))->toBe(["{$this->root} install alpha --save --loglevel=error"]);
     });
 
     it('fails with what npm said when it cannot install the package', function () {
