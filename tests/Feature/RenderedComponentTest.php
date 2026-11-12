@@ -85,3 +85,53 @@ it('escapes the variant it marks', function (bool $blaze) {
         ->toContain('data-flux-icon-fallback="&quot;&gt;&lt;script&gt;"')
         ->not->toContain('<script>');
 })->with(['plain' => false, 'blaze' => true]);
+
+// Font Awesome's licence asks that the attribution comment in its icons is kept
+it('keeps a vendor\'s attribution comment in the page', function (bool $blaze) {
+    $variants = VariantSet::make()->variant('solid', fn (Variant $variant) => $variant->default());
+    $markup = ['solid' => '<svg viewBox="0 0 640 640"><!--! Font Awesome Free 7.3.1 by @fontawesome --><path d="M1 0h1"></path></svg>'];
+
+    (new ComponentWriter)->write($this->directory, 'probe', 'icon', $variants->resolve(), $markup, '', '', $blaze);
+    Blade::anonymousComponentPath($this->directory, $this->prefix);
+
+    expect(renderIcon($this))->toContain('<!--! Font Awesome Free 7.3.1 by @fontawesome -->');
+})->with(['plain' => false, 'blaze' => true]);
+
+/**
+ * Write a component whose one variant draws the given markup, and render it.
+ */
+function renderMarkup(object $test, string $markup, bool $blaze, string $credits = ''): string
+{
+    $variants = VariantSet::make()->variant('solid', fn (Variant $variant) => $variant->default());
+
+    (new ComponentWriter)->write($test->directory, 'probe', 'icon', $variants->resolve(), ['solid' => $markup], $credits, '', $blaze);
+    Blade::anonymousComponentPath($test->directory, $test->prefix);
+
+    return renderIcon($test);
+}
+
+// a compromised or careless icon package must not run code on every render
+it('renders what an icon package wrote as text, never as blade or php', function (bool $blaze) {
+    Blade::directive('fontawesome', fn () => '<script src="https://evil.example/x.js"></script>');
+
+    $rendered = renderMarkup($this, '<svg viewBox="0 0 24 24" data-sum="{{ 6*7 }}" data-raw="{!! 6*7 !!}" data-gone="{{--x--}}" data-mail="team@example.com">'
+        .'<!--! by @fontawesome <?php echo strrev(\'denwp\'); ?> @php echo strrev(\'denwp\'); @endphp -->'
+        .'<g><x-probe-missing /><flux:icon.probe /></g><path d="M1 0h1"></path></svg>', $blaze);
+
+    expect($rendered)->not->toContain('evil.example')
+        ->and($rendered)->not->toContain('pwned')
+        ->and($rendered)->not->toContain('42')
+        ->and($rendered)->toContain('by @fontawesome')
+        ->and($rendered)->toContain('data-sum="{&#123; 6*7 }}"')
+        ->and($rendered)->toContain('data-raw="{&#33;! 6*7 !!}"')
+        ->and($rendered)->toContain('data-gone="{&#123;--x--}}"')
+        ->and($rendered)->toContain('data-mail="team@example.com"')
+        ->and($rendered)->toContain('&lt;x-probe-missing');
+})->with(['plain' => false, 'blaze' => true]);
+
+it('keeps the credits inside the header comment, whatever the package calls itself', function (bool $blaze) {
+    $rendered = renderMarkup($this, '<svg viewBox="0 0 24 24"><path d="M1 0h1"></path></svg>', $blaze, credits: 'evil (1.0.0) by --}} @php echo strrev(\'denwp\'); @endphp {{--');
+
+    expect($rendered)->not->toContain('pwned')
+        ->and($rendered)->not->toContain('evil');
+})->with(['plain' => false, 'blaze' => true]);

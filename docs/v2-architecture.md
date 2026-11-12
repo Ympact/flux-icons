@@ -294,7 +294,8 @@ Present and tested:
 - `Sources\Source`
 - every v1 vendor as a class: `Vendors\{Bootstrap, Codicons, Flags, Flowbite,
   Fluent, Healthicons, Lucide, MaterialIcons, MaterialSymbols, Mdi, Tabler}`, plus
-  `Vendors\Phosphor` (duotone + weights)
+  `Vendors\Phosphor` (duotone + weights) and `Vendors\{FontAwesome,
+  FontAwesomeBrands}` (Font Awesome Free, [#14](https://github.com/Ympact/flux-icons/issues/14))
 - `Build\{Builder, SourceResolver, IconRenderer, ComponentWriter, Credits,
   BuildResult}`, which build from those classes
 - the artisan commands and `config/flux-icons.php`, which map vendor keys to classes

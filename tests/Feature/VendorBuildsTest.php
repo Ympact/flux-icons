@@ -11,6 +11,8 @@ use Ympact\FluxIcons\Vendors\Codicons;
 use Ympact\FluxIcons\Vendors\Flags;
 use Ympact\FluxIcons\Vendors\Flowbite;
 use Ympact\FluxIcons\Vendors\Fluent;
+use Ympact\FluxIcons\Vendors\FontAwesome;
+use Ympact\FluxIcons\Vendors\FontAwesomeBrands;
 use Ympact\FluxIcons\Vendors\Healthicons;
 use Ympact\FluxIcons\Vendors\Lucide;
 use Ympact\FluxIcons\Vendors\MaterialIcons;
@@ -340,6 +342,77 @@ describe('Fluent', function () {
                 'mini' => 'home_24_regular.svg',
                 'micro' => 'home_24_regular.svg',
             ]);
+    });
+});
+
+describe('FontAwesome', function () {
+    beforeEach(function () {
+        $svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640"><!--! Font Awesome Free 7.3.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2026 Fonticons, Inc. --><path fill="currentColor" d="{d}"/></svg>';
+
+        // svgs holds the same icons in boxes as wide as each one, which flux would draw off square
+        $this->drawings = writeIconPackage($this->packages, '@fortawesome/fontawesome-free', [
+            'svgs-full/brands/github.svg' => $svg,
+            'svgs-full/regular/heart.svg' => $svg,
+            'svgs-full/solid/heart.svg' => $svg,
+            'svgs-full/solid/house.svg' => $svg,
+            'svgs/solid/house.svg' => str_replace('0 0 640 640', '0 0 512 512', $svg),
+        ]);
+        File::put("{$this->packages}/@fortawesome/fontawesome-free/package.json", '{"name": "@fortawesome/fontawesome-free", "version": "7.3.1", "author": "The Font Awesome Team (https://github.com/orgs/FortAwesome/people)"}');
+    });
+
+    // flux's menus ask for outline, and a free outline would mix regular and solid there
+    it('draws every flux variant solid, and the regular style as a variant that falls back to solid', function () {
+        $result = $this->builder->build(new FontAwesome);
+
+        expect($result->built)->toBe(['heart', 'house'])
+            ->and($result->skipped)->toBe([])
+            ->and(slotSources("{$this->output}/font-awesome/heart.blade.php", $this->drawings))->toBe([
+                ...eachSlot('svgs-full/solid/heart.svg'),
+                'regular' => 'svgs-full/regular/heart.svg',
+            ])
+            ->and(slotSources("{$this->output}/font-awesome/house.blade.php", $this->drawings))->toBe([
+                ...eachSlot('svgs-full/solid/house.svg'),
+                'regular' => 'svgs-full/solid/house.svg',
+            ]);
+    });
+
+    it('draws every slot as a filled shape in the square box', function () {
+        $this->builder->build(new FontAwesome);
+
+        expect(slotRoots("{$this->output}/font-awesome/house.blade.php"))->toBe([...eachSlot(['fill' => 'currentColor', 'viewBox' => '0 0 640 640']), 'regular' => ['fill' => 'currentColor', 'viewBox' => '0 0 640 640']])
+            ->and(slotPathAttributes("{$this->output}/font-awesome/house.blade.php"))->toBe([...eachSlot([['fill' => 'currentColor']]), 'regular' => [['fill' => 'currentColor']]]);
+    });
+
+    it('draws solid when no variant is asked for, as font awesome does', function () {
+        $this->builder->build(new FontAwesome, ['heart']);
+
+        expect((string) file_get_contents("{$this->output}/font-awesome/heart.blade.php"))->toContain("'variant' => 'solid',");
+    });
+
+    it('credits font awesome and the licence of its icons, which asks for that attribution', function () {
+        $this->builder->build(new FontAwesome, ['heart']);
+
+        expect((string) file_get_contents("{$this->output}/font-awesome/heart.blade.php"))
+            ->toContain('Credits:  @fortawesome/fontawesome-free (7.3.1) by The Font Awesome Team (https://github.com/orgs/FortAwesome/people), licensed under CC-BY-4.0');
+    });
+
+    it('keeps the attribution font awesome embeds in each icon, and drops other comments', function () {
+        File::put("{$this->packages}/@fortawesome/fontawesome-free/svgs-full/solid/house.svg", '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640"><!-- an editor note --><!--! Font Awesome Free 7.3.1 by @fontawesome --><path fill="currentColor" d="M1 0h1"/></svg>');
+
+        $this->builder->build(new FontAwesome, ['house']);
+
+        foreach (componentSlots("{$this->output}/font-awesome/house.blade.php") as $slot) {
+            // Blade renders the escaped @@ as the @ font awesome wrote
+            expect($slot)->toContain('viewBox="0 0 640 640"><!--! Font Awesome Free 7.3.1 by @@fontawesome --><path')
+                ->and($slot)->not->toContain('an editor note');
+        }
+    });
+
+    it('builds the brand icons as a vendor of their own, in every slot', function () {
+        $result = $this->builder->build(new FontAwesomeBrands);
+
+        expect($result->built)->toBe(['github'])
+            ->and(slotSources("{$this->output}/font-awesome-brands/github.blade.php", $this->drawings))->toBe(eachSlot('svgs-full/brands/github.svg'));
     });
 });
 
