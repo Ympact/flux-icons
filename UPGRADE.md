@@ -2,7 +2,7 @@
 
 Version 2 supports Flux 2 only. To keep using Flux 1, stay on the 1.x releases of this package.
 
-In version 1, each vendor was an array in `config/flux-icons.php` plus callbacks in a separate class. In version 2, each vendor is one class, and the config only maps keys to those classes. Nothing changes in your views: an icon is still `<flux:icon.tabler.confetti />`.
+In version 1, each vendor was an array in `config/flux-icons.php` plus callbacks in a separate class. In version 2, each vendor is one class, and the config only maps keys to those classes. Icon references in your views stay as they are: an icon is still `<flux:icon.tabler.confetti />`. What one draws can change; [What looks different](#what-looks-different) lists how.
 
 ## Steps
 
@@ -12,7 +12,7 @@ In version 1, each vendor was an array in `config/flux-icons.php` plus callbacks
    composer require --dev ympact/flux-icons:^2.0
    ```
 
-2. If you published `config/flux-icons.php`, publish it again and copy your own settings back in. A version 1 config stops every command with a message naming the first vendor array it finds.
+2. If you published `config/flux-icons.php`, keep a copy of it, publish it again, and copy your own settings back in from the copy. `--force` overwrites the file. A version 1 config stops the build, update and check commands, and `make-vendor --extends`, with a message naming the first vendor array it finds.
 
    ```cmd
    php artisan vendor:publish --tag=flux-icons-config --force
@@ -127,7 +127,7 @@ class HouseStyle extends Vendor
             ->variant('outline', fn ($variant) => $variant
                 ->template(Template::Outline)
                 ->source(Source::dir('line'))
-                ->stroke(new Stroke(2))
+                ->stroke(new Stroke(2, linecap: null, linejoin: null))
                 ->default()
             )
             ->variant('solid', fn ($variant) => $variant
@@ -153,7 +153,7 @@ class HouseStyle extends Vendor
 | `package` | `package()` |
 | `vendor_name` | `name()`, which defaults to the class name as words |
 | `namespace` | `namespace()`, which defaults to the registered key as a slug |
-| `baseVariant` | `->default()` on that variant |
+| `baseVariant` | `->default()` on that variant. It is also what an icon draws without a `variant`: version 1 drew `outline` then, whatever `baseVariant` said, so a vendor whose `baseVariant` was `solid` now draws solid. |
 | `icon_name` callback, given the `Icon` | `iconName(string $name): string`, given the name |
 | `attributes` callback | `attributes(Icon $icon): array` |
 | `transform` callback | `transform(Collection $paths, Icon $icon): Collection` |
@@ -165,14 +165,21 @@ class HouseStyle extends Vendor
 |-----------|-----------|
 | `template` `'outline'` or `'solid'` | `->template(Template::Outline)` or `->template(Template::Solid)` |
 | `raw => true` | `->template(Template::Raw)` |
-| `stroke_width` as a number, or `false` | `->stroke(new Stroke(1.5))`, or `->stroke(false)` |
-| `size` | `->size(20)` |
+| `stroke_width` as a number, or `false` | `->stroke(new Stroke(1.5, linecap: null, linejoin: null))`, or `->stroke(false)`. Without the two `null`s, a `Stroke` draws round line ends and corners; with them, the vendor's own stay, as in version 1. |
+| `size` | Nothing to port: Flux sizes an icon with classes, which each Flux variant sets to Flux's own. `->classes('[:where(&)]:size-5')` changes them. |
 | `attributes` | `->attributes([...])`; a `null` value still removes an attribute |
+| `path_attributes.{variant}` | None. Change a path's attributes in the vendor's `transform()`. |
 | `base` | `->basedOn('solid')` |
 | `fallback` `'default'`, a variant name, or `false` | `->fallback(Fallback::defaultVariant())`, `Fallback::variant('outline')`, or `Fallback::skip()` |
 | `fallback` callback | None. Pick one fallback per variant. |
 
-Version 1 gave mini and micro the solid settings without being asked. In version 2 a component has only the variants its vendor declares, so add `->basedOn('solid')` for them, as above. Without them, `variant="mini"` draws the default variant, marked as a fallback.
+Version 1 filled in settings a vendor did not write, and version 2 fills in none of them. Write each one a vendor relied on, as the example above does and as `flux-icons:make-vendor` does for a new vendor:
+
+- outline drew a stroke of 1.5: `->stroke(new Stroke(1.5, linecap: null, linejoin: null))`
+- solid, mini and micro used the solid template: `->template(Template::Solid)` on solid, and `->basedOn('solid')` on mini and micro
+- solid, mini and micro fell back to the default variant: `->fallback(Fallback::defaultVariant())` on solid, which mini and micro inherit
+
+A component has only the variants its vendor declares. Without mini and micro, `variant="mini"` draws the default variant, marked as a fallback.
 
 ### Sources
 
@@ -181,7 +188,7 @@ Version 1 gave mini and micro the solid settings without being asked. In version
 | `'dir' => 'node_modules/@acme/icons/svg/line'` | `basePath()` returns `'svg'`, and the variant uses `Source::dir('line')`. The package path is no longer repeated. |
 | A glob such as `'.../outline/*/'` | `Source::dir('outline/*')` |
 | `prefix`, `suffix` | `Source::dir(...)->prefix('...')->suffix('...')` |
-| `filter` callback, given `$file`, `&$icons` and `$variant` | `Source::dir(...)->filter(fn (string $file): bool => ...)`, given the file only |
+| `filter` callback, given `$file`, `&$icons` and `$variant` | `Source::dir(...)->filter(fn (string $file): bool => ...)`, given the file only. It takes a closure; a `[Class::class, 'method']` array no longer works. |
 | `dir`, `prefix` or `suffix` as a callback per variant | A `Source` of its own on each variant |
 
 ## What looks different
@@ -192,11 +199,11 @@ Built components also behave differently in a few ways:
 
 - A component asked for a variant it was not built with draws its default variant and marks itself with `data-flux-icon-fallback`. Version 1 threw an error.
 - A vendor can add variants beyond Flux's four, such as Phosphor's `duotone`, and choose its default variant: Font Awesome's is `solid`.
-- The header of each component lists its variants and names the licence of its icons.
+- The header of each component lists its variants, and names the licence of its icons when the vendor's `license()` returns one.
 
 ## New in version 2
 
 - `flux-icons:check` lists the icon references in your views and PHP that have not been built, or that ask for a variant an icon lacks.
 - `flux-icons:build --options=` picks a vendor's build options for one build, such as `ratio=1x1` for square flags. A vendor subclass's `optionDefaults()` keeps them for `flux-icons:update`.
-- The `IconsBuilt` event fires after each build, for packages that keep a registry of icons.
+- The `IconsBuilt` event fires after each build that writes an icon, for packages that keep a registry of icons.
 - Font Awesome Free and Phosphor are available as vendors. Phosphor is not registered in the default config.
