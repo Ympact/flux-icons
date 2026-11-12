@@ -69,3 +69,11 @@ it('finds composer\'s vendor directory where COMPOSER_VENDOR_DIR puts it', funct
         putenv('COMPOSER_VENDOR_DIR');
     }
 });
+
+it('leaves out a declared name that could not be an icon, and trims the rest as the build does', function () {
+    writeInstalledPackages($this->root, [
+        'acme/odd' => ['tabler' => ['x$(touch /tmp/pwned)', 'a,b', 'pin ok', "\e[2Jclear", ' dots ', 'map-pin'], 'bad space' => ['home']],
+    ]);
+
+    expect((new DeclaredIcons)->all())->toBe(['acme/odd' => ['tabler' => ['dots', 'map-pin']]]);
+});

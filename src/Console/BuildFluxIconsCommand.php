@@ -122,7 +122,7 @@ class BuildFluxIconsCommand extends Command
 
             // building every icon already includes the configured ones
             if ($merge && $icons !== null) {
-                $icons = $this->mergeWithConfiguredIcons($icons, $this->configuredIcons($vendor));
+                $icons = $this->mergeWithConfiguredIcons($icons, $this->configuredIcons($vendor, merging: true));
             }
 
             $this->info("Building icons for vendor: {$key}".$this->describeOptions($vendor));
@@ -278,14 +278,22 @@ class BuildFluxIconsCommand extends Command
 
     /**
      * The icons the config lists for the vendor, followed by those installed packages declare
-     * they need from its namespace.
+     * they need from its namespace. Without icons in the config, a build without --icons builds
+     * every icon, which holds the declared ones, so only --merge adds them then: a package's
+     * declaration must not turn a build of everything into a build of its few icons.
      *
      * @return array<int, string>
      */
-    protected function configuredIcons(Vendor $vendor): array
+    protected function configuredIcons(Vendor $vendor, bool $merging = false): array
     {
+        $configured = $this->normalizeIcons(config("flux-icons.icons.{$vendor->key()}"));
+
+        if ($configured === [] && ! $merging) {
+            return [];
+        }
+
         return $this->mergeWithConfiguredIcons(
-            config("flux-icons.icons.{$vendor->key()}"),
+            $configured,
             $this->laravel->make(DeclaredIcons::class)->forNamespace($vendor->namespace())
         );
     }

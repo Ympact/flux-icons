@@ -138,6 +138,16 @@ describe('building', function () {
         expect(builtIcons($this->root, 'alpha'))->toBe(['arrow-left', 'dots', 'home']);
     });
 
+    it('still builds every icon when the config lists none, whatever packages declare', function () {
+        writeInstalledPackages($this->root, ['acme/shop' => ['alpha' => ['dots']]]);
+        Config::set('flux-icons.icons', null);
+
+        $this->artisan('flux-icons:build', ['vendor' => 'alpha', '--no-interaction' => true])
+            ->assertExitCode(0);
+
+        expect(builtIcons($this->root, 'alpha'))->toBe(['arrow-left', 'dots', 'home']);
+    });
+
     it('adds the declared icons to the ones asked for when merging', function () {
         writeInstalledPackages($this->root, ['acme/shop' => ['alpha' => ['dots']]]);
         Config::set('flux-icons.icons', null);

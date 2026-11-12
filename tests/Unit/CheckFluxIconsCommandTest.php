@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\View;
 use Illuminate\Support\Str;
 use Ympact\FluxIcons\Console\CheckFluxIconsCommand;
 use Ympact\FluxIcons\Tests\Fixtures\Vendors\AlphaMisstyled;
+use Ympact\FluxIcons\Vendors\Healthicons;
 use Ympact\FluxIcons\Vendors\MaterialIcons;
 use Ympact\FluxIcons\Vendors\Mdi;
 use Ympact\FluxIcons\Vendors\Tabler;
@@ -235,6 +236,38 @@ describe('icons packages declare', function () {
             ->assertExitCode(0);
     });
 
+    it('looks for a declared file name under the name the vendor publishes it as', function () {
+        $root = fakeApp('', ['healthicons/foo-bar']);
+        writeInstalledPackages($root, ['acme/clinic' => ['healthicons' => ['Foo_Bar']]]);
+        app()->setBasePath($root);
+        config()->set('flux-icons.vendors', ['healthicons' => Healthicons::class]);
+
+        $this->artisan('flux-icons:check', ['--path' => [$root.'/resources/views']])
+            ->expectsOutputToContain('All 1 icon references resolve')
+            ->assertExitCode(0);
+    });
+
+    it('gives an icon declared for an unknown namespace no vendor in json', function () {
+        $root = fakeApp('', []);
+        writeInstalledPackages($root, ['acme/shop' => ['material-icons' => ['zap']]]);
+        app()->setBasePath($root);
+        config()->set('flux-icons.vendors', ['material-icons' => MaterialIcons::class]);
+
+        Artisan::call('flux-icons:check', ['--path' => [$root.'/resources/views'], '--json' => true]);
+
+        expect(json_decode(Artisan::output(), true)['unresolved'][0])->toMatchArray(['name' => 'material-icons.zap', 'vendor' => null, 'reason' => 'unknown-vendor']);
+    });
+
+    it('keeps a package name from styling or escaping the console', function () {
+        $root = fakeApp('', []);
+        writeInstalledPackages($root, ["acme/</><fg=green>ok\e[2J" => ['tabler' => ['map-pin']]]);
+        app()->setBasePath($root);
+
+        $this->artisan('flux-icons:check', ['--path' => [$root.'/resources/views']])
+            ->expectsOutputToContain('acme/</><fg=green>ok?[2J')
+            ->assertExitCode(1);
+    });
+
     it('names the package in json, where a scanned reference has a file and line', function () {
         $root = fakeApp('<flux:icon.tabler.home />', ['tabler/home']);
         writeInstalledPackages($root, ['acme/shop' => ['tabler' => ['map-pin']]]);
@@ -280,4 +313,18 @@ it('fails for a directory to scan that does not exist, rather than passing on no
     $this->artisan('flux-icons:check', ['--path' => ['/no/such/directory']])
         ->expectsOutputToContain('No such directory to scan: /no/such/directory.')
         ->assertExitCode(1);
+});
+
+it('quotes an argument of the suggested build command that holds more than a name', function () {
+    $command = new class extends CheckFluxIconsCommand
+    {
+        public function quoted(string $argument): string
+        {
+            return $this->shellArgument($argument);
+        }
+    };
+
+    expect($command->quoted('tabler'))->toBe('tabler')
+        ->and($command->quoted('home,map-pin'))->toBe('home,map-pin')
+        ->and($command->quoted('x$(touch /tmp/pwned)'))->toBe("'x$(touch /tmp/pwned)'");
 });

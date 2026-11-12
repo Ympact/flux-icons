@@ -84,7 +84,7 @@ In case you did not provide any arguments, the script will walk you through all 
 | Option          | Description                                                                                        |
 |-----------------|----------------------------------------------------------------------------------------------------|
 | `-I\|--icons=`  | The icons to build (single or comma separated list). Cannot be used in combination with `--all`. |
-| `-M\|--merge`   | Merge the icons listed in the `--icons` option with the icons defined in the config. Cannot be used in combination with `--all`. |
+| `-M\|--merge`   | Merge the icons listed in the `--icons` option with the icons the config lists for the vendor and the ones [installed packages declare](#icons-a-package-needs). Cannot be used in combination with `--all`. |
 | `-O\|--options=` | Options of the vendor for this build, as `name=value`, repeatable or comma separated: `--options=ratio=1x1`. They override the values the vendor class builds with, for this build only: `flux-icons:update` and later builds use the class's values again, so set a value that must last in a subclass's `optionDefaults()`. Without it, an interactive build asks for each option. |
 | `-A\|--all`     | Build all icons from the vendor. **Note:** this might generate over thousands of files and cause `npm run dev` to crash due to memory issues. |
 | `-v\|--verbose` | Show additional messages during build. |
@@ -167,8 +167,11 @@ than failing, which is easy to miss. A bound `:variant` is only known when the p
 php artisan flux-icons:check tabler --build
 ```
 
-With `--json`, each unresolved reference carries its `reason`: `not-built`, `malformed` or
-`unknown-variant`. `build` holds the command per vendor for the icons that are not built.
+With `--json`, each unresolved reference carries its `reason`: `not-built`, `malformed`,
+`unknown-variant`, or `unknown-vendor` for an icon a package declares for a namespace no
+configured vendor publishes to. A reference found in a file has its `file` and `line`; one a
+package declares has `package` instead, and `null` for the other two. `vendor` is `null` for
+`unknown-vendor`. `build` holds the command per vendor for the icons that are not built.
 A problem that stops the check, such as an unknown vendor, prints `{"error": "..."}`.
 
 ```json
@@ -178,6 +181,7 @@ A problem that stops the check, such as an unknown vendor, prints `{"error": "..
         {
             "file": "resources/views/dashboard.blade.php",
             "line": 14,
+            "package": null,
             "name": "tabler.chart-histogram",
             "vendor": "tabler",
             "variant": null,
@@ -217,7 +221,8 @@ of every installed package from `vendor/composer/installed.json`, as Laravel's p
 discovery does:
 
 - `flux-icons:build tabler`, without `--icons`, builds the declared icons along with the ones
-  in the `icons` config, and `--merge` adds them to the icons asked for.
+  the `icons` config lists for the vendor. When it lists none, the build takes every icon, the
+  declared ones included. `--merge` adds them to the icons asked for.
 - `flux-icons:check` reports a declared icon that has not been built under the package that
   declared it. It also reports an icon declared for a namespace that no configured vendor
   publishes to, unless you check a single vendor.

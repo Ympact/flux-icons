@@ -7,6 +7,7 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\View;
 use Illuminate\View\FileViewFinder;
 use InvalidArgumentException;
+use Symfony\Component\Console\Formatter\OutputFormatter;
 use Symfony\Component\Console\Output\OutputInterface;
 use Ympact\FluxIcons\Build\Builder;
 use Ympact\FluxIcons\Contracts\Vendor;
@@ -113,7 +114,7 @@ class CheckFluxIconsCommand extends Command
         $this->newLine();
 
         foreach ($unresolved->groupBy(fn (IconReference $reference) => $reference->relativeFile()) as $file => $inFile) {
-            $this->line("  <fg=yellow>{$file}</>");
+            $this->line('  <fg=yellow>'.$this->printable((string) $file).'</>');
 
             foreach ($inFile as $reference) {
                 $reason = match ($reference->reason()) {
@@ -125,7 +126,7 @@ class CheckFluxIconsCommand extends Command
 
                 $where = $reference->package !== null ? 'needs' : $reference->line;
 
-                $this->line("    <fg=gray>{$where}</>  <fg=red>{$reference->name()}</> {$reason}");
+                $this->line("    <fg=gray>{$where}</>  <fg=red>".$this->printable($reference->name()).'</> '.$this->printable($reason));
             }
 
             $this->newLine();
@@ -174,11 +175,29 @@ class CheckFluxIconsCommand extends Command
             $commands[] = [
                 'vendor' => $key,
                 'icons' => $icons,
-                'command' => "php artisan flux-icons:build {$key} --icons=".implode(',', $icons).' --merge',
+                'command' => 'php artisan flux-icons:build '.$this->shellArgument($key).' --icons='.$this->shellArgument(implode(',', $icons)).' --merge',
             ];
         }
 
         return $commands;
+    }
+
+    /**
+     * Text from a file or package name, as the console shows it: its `<` is not a style, and a
+     * control character such as an escape sequence is not sent to the terminal.
+     */
+    protected function printable(string $text): string
+    {
+        return OutputFormatter::escape((string) preg_replace('/[\x00-\x1F\x7F]/', '?', $text));
+    }
+
+    /**
+     * An argument of the suggested command, quoted when it holds more than a name can: the command
+     * is meant to be copied into a shell, or run by an agent from the JSON.
+     */
+    protected function shellArgument(string $argument): string
+    {
+        return preg_match('/^[A-Za-z0-9._,-]+$/', $argument) === 1 ? $argument : escapeshellarg($argument);
     }
 
     /**
@@ -203,7 +222,8 @@ class CheckFluxIconsCommand extends Command
                 'line' => $reference->package === null ? $reference->line : null,
                 'package' => $reference->package,
                 'name' => $reference->name(),
-                'vendor' => $this->vendorKey($registry, $reference->namespace),
+                // no configured vendor publishes to an unknown vendor's namespace, so it has no key
+                'vendor' => $reference->reason() === IconReference::UNKNOWN_VENDOR ? null : $this->vendorKey($registry, $reference->namespace),
                 'variant' => $reference->variant,
                 'reason' => $reference->reason(),
             ])->all()),
@@ -226,9 +246,9 @@ class CheckFluxIconsCommand extends Command
 
         foreach ($installed->all() as $package => $declared) {
             foreach ($declared as $namespace => $icons) {
-                $configured = $registry->findByNamespace($namespace) !== null;
+                $vendor = $registry->findByNamespace($namespace);
 
-                if ($configured ? ! in_array($namespace, $namespaces, true) : $oneVendor) {
+                if ($vendor !== null ? ! in_array($namespace, $namespaces, true) : $oneVendor) {
                     continue;
                 }
 
@@ -237,10 +257,11 @@ class CheckFluxIconsCommand extends Command
                         file: $package,
                         line: 0,
                         namespace: $namespace,
-                        icon: $icon,
+                        // the build takes a file name too, and publishes it under the vendor's name for it
+                        icon: $vendor?->iconName($icon) ?? $icon,
                         iconsPath: $iconsPath,
                         package: $package,
-                        vendorConfigured: $configured,
+                        vendorConfigured: $vendor !== null,
                     ));
                 }
             }

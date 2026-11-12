@@ -18,12 +18,19 @@ use Illuminate\Support\Env;
 class DeclaredIcons
 {
     /**
+     * What a namespace or an icon name can be: the declarations reach the console and the build
+     * command check suggests, so anything else, such as `x$(touch pwned)`, is left out.
+     */
+    protected const NAME = '/^[A-Za-z0-9][A-Za-z0-9_-]*$/';
+
+    /**
      * @param  string|null  $vendorPath  Composer's vendor directory; COMPOSER_VENDOR_DIR, else vendor/ in the application.
      */
     public function __construct(protected ?string $vendorPath = null) {}
 
     /**
-     * The declared icons per package and namespace, leaving out anything that is not a name.
+     * The declared icons per package and namespace, trimmed as the build trims them, leaving
+     * out anything that is not a name.
      *
      * @return array<string, array<string, list<string>>> Package name => namespace => icon names.
      */
@@ -39,9 +46,12 @@ class DeclaredIcons
             }
 
             foreach ($icons as $namespace => $names) {
-                $names = is_array($names) ? array_values(array_unique(array_filter($names, fn ($name) => is_string($name) && $name !== ''))) : [];
+                $names = array_values(array_unique(array_filter(
+                    array_map(fn ($name) => is_string($name) ? trim($name) : '', is_array($names) ? $names : []),
+                    fn (string $name) => preg_match(self::NAME, $name) === 1
+                )));
 
-                if (is_string($namespace) && $names !== []) {
+                if (is_string($namespace) && preg_match(self::NAME, $namespace) === 1 && $names !== []) {
                     $declared[$package['name']][$namespace] = $names;
                 }
             }
