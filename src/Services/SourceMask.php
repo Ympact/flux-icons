@@ -13,22 +13,6 @@ class SourceMask
     protected const OPEN_TAG = '<?php ';
 
     /**
-     * A PHP file, of which only the string literals and any inline HTML are kept.
-     */
-    public static function php(string $contents): string
-    {
-        $kept = [T_CONSTANT_ENCAPSED_STRING, T_ENCAPSED_AND_WHITESPACE, T_INLINE_HTML];
-        $masked = '';
-
-        foreach (token_get_all($contents) as $token) {
-            $text = is_array($token) ? $token[1] : $token;
-            $masked .= is_array($token) && in_array($token[0], $kept, true) ? $text : static::blank($text);
-        }
-
-        return $masked;
-    }
-
-    /**
      * A Blade template without its `{{-- --}}` comments, nor the PHP comments in its
      * `<?php ?>` and `@php @endphp` blocks. An HTML comment stays: Blade still renders
      * the components inside one.
@@ -38,7 +22,7 @@ class SourceMask
         $contents = (string) preg_replace_callback('/\{\{--.*?--\}\}/s', fn (array $comment) => static::blank($comment[0]), $contents);
         $contents = static::phpComments($contents, $contents, 0);
 
-        preg_match_all('/@php(?!\s*\()(.*?)@endphp/s', $contents, $blocks, PREG_OFFSET_CAPTURE);
+        preg_match_all('/@php(?![ \t]*\()(.*?)@endphp/s', $contents, $blocks, PREG_OFFSET_CAPTURE);
 
         foreach ($blocks[1] as [$body, $offset]) {
             $contents = static::phpComments($contents, static::OPEN_TAG.$body, $offset - strlen(static::OPEN_TAG));

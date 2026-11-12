@@ -137,9 +137,13 @@ of this package's business; `icon="tabler.check"` is. References are found where
 written: the tag form, the `name` attribute, any `icon`-like attribute, and inside a bound
 expression. They all fail the same way.
 
-In PHP files only string literals are read, so an icon name kept in an enum, a menu builder
-or a config array counts, and one in a comment does not. In Blade templates, `{{-- --}}`
-comments and the PHP comments in `@php` and `<?php` blocks are skipped. An HTML comment
+In PHP files a reference is a string literal that holds nothing but the name, so an icon
+name kept in an enum, a menu builder or a config array counts, and one in a comment does not.
+A key handed to `config()`, `__()`, `trans()`, `view()` or `route()`, or to `Config::get()`
+and its kind, is not read as one, although `config('flags.new_checkout')` looks like it.
+
+In Blade templates, `{{-- --}}` comments and the PHP comments in `@php` and `<?php` blocks
+are skipped. An HTML comment
 still counts: Blade renders the components inside one. The icons the builder wrote are not
 scanned, so they do not count as references to themselves.
 
@@ -155,7 +159,7 @@ than failing, which is easy to miss. A bound `:variant` is only known when the p
 | Option | Description |
 | --- | --- |
 | `vendor` | Only check icons of this vendor, given by its config key |
-| `--path=` | Directories to scan, repeatable. Defaults to the registered view paths and the application's `app` and `config` directories |
+| `--path=` | Directories to scan, repeatable. Defaults to the registered view paths and the application's `app` and `config` directories. A directory that does not exist fails the check. |
 | `--build` | Also print the `flux-icons:build` command that would add the missing icons |
 | `--json` | Print the result as JSON instead, for CI and agents. It exits non-zero in the same cases. |
 

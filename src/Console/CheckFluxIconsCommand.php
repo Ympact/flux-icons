@@ -7,6 +7,7 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\View;
 use Illuminate\View\FileViewFinder;
 use InvalidArgumentException;
+use Symfony\Component\Console\Output\OutputInterface;
 use Ympact\FluxIcons\Build\Builder;
 use Ympact\FluxIcons\Contracts\Vendor;
 use Ympact\FluxIcons\Services\IconReference;
@@ -64,6 +65,13 @@ class CheckFluxIconsCommand extends Command
             return $this->failWith('No directories to scan.');
         }
 
+        // a directory named on the command line that is not there would check nothing and pass
+        $missing = array_filter((array) $this->option('path'), fn ($path) => ! is_dir((string) $path));
+
+        if ($missing !== []) {
+            return $this->failWith('No such directory to scan: '.implode(', ', $missing).'.');
+        }
+
         $namespaces = $vendors->map(fn (Vendor $vendor) => $vendor->namespace())->values();
         // resolved like the build command's, so the check looks where the icons are built
         $iconsPath = $this->laravel->make(Builder::class)->outputPath();
@@ -71,7 +79,7 @@ class CheckFluxIconsCommand extends Command
         $unresolved = $references->filter(fn (IconReference $reference) => $reference->reason() !== null)->values();
 
         if ($this->option('json')) {
-            $this->line((string) json_encode($this->toJson($references, $unresolved, $registry), JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
+            $this->writeJson($this->toJson($references, $unresolved, $registry));
 
             return $unresolved->isEmpty() ? self::SUCCESS : self::FAILURE;
         }
@@ -196,12 +204,26 @@ class CheckFluxIconsCommand extends Command
     }
 
     /**
+     * JSON as it is, past the console's formatter, which would read `<info>` in a name as a
+     * style. A name that is not valid UTF-8, such as a file name, gets a replacement character.
+     *
+     * @param  array<string, mixed>  $data
+     */
+    protected function writeJson(array $data): void
+    {
+        $this->output->writeln(
+            json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_INVALID_UTF8_SUBSTITUTE | JSON_THROW_ON_ERROR),
+            OutputInterface::OUTPUT_RAW
+        );
+    }
+
+    /**
      * Report a problem that stops the check, as JSON when that was asked for.
      */
     protected function failWith(string $message, ?string $detail = null): int
     {
         if ($this->option('json')) {
-            $this->line((string) json_encode(['error' => trim($message.' '.$detail)], JSON_UNESCAPED_SLASHES));
+            $this->writeJson(['error' => trim($message.' '.$detail)]);
 
             return self::FAILURE;
         }
