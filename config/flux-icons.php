@@ -26,6 +26,14 @@ return [
     'request_npm_dev' => true,
 
     /**
+     * What flux-icons:build uses when the command line does not say.
+     * 'vendor': the vendor key to build from when none is given, or null to be asked
+     */
+    'defaults' => [
+        'vendor' => null,
+    ],
+
+    /**
      * Default icons to be used in the project
      * Listing icons here will make them auto buildable and updatable through flux-icons:build and flux-icons:update commands
      * null or array ['vendor' => ['icon-name', ...] ]
@@ -37,9 +45,11 @@ return [
      * A vendor's icons are published under that key unless its class names another namespace
      * (Material Icons publishes to `material`).
      *
-     * To adjust a vendor, extend its class and register the subclass here. A vendor of your
-     * own extends Ympact\FluxIcons\Contracts\Vendor. `php artisan flux-icons:make-vendor`
-     * generates either.
+     * To adjust a vendor, extend its class and register the subclass here. That includes the
+     * options it builds with: the square flags are a subclass whose optionDefaults() returns
+     * ['ratio' => '1x1']. flux-icons:build --options changes them for one build only; flux-icons:update
+     * rebuilds with the class's values. A vendor of your own extends Ympact\FluxIcons\Contracts\Vendor.
+     * `php artisan flux-icons:make-vendor` generates either.
      */
     'vendors' => [
         // https://icons.getbootstrap.com/

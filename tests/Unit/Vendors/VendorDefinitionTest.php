@@ -90,7 +90,7 @@ it('leaves the original vendor untouched when options are selected', function ()
     $bold = $vendor->withOptions(['weight' => 'bold']);
 
     expect($bold)->not->toBe($vendor)
-        ->and($vendor->option('weight'))->toBeNull()
+        ->and($vendor->option('weight'))->toBe('regular')
         ->and($bold->option('weight'))->toBe('bold')
         ->and($vendor->variants()->get('outline')->getSource()->directory())->toBe('regular');
 });
@@ -100,7 +100,7 @@ it('does not leak selected options into the instance the registry hands out', fu
 
     $registry->get('phosphor')->withOptions(['weight' => 'bold']);
 
-    expect($registry->get('phosphor')->option('weight'))->toBeNull();
+    expect($registry->get('phosphor')->option('weight'))->toBe('regular');
 });
 
 it('accumulates options across successive calls', function () {
@@ -121,4 +121,16 @@ it('exposes the allowed values of its options', function () {
     expect((new Phosphor)->options())->toBe([
         'weight' => ['thin', 'light', 'regular', 'bold'],
     ]);
+});
+
+it('gives every option of a bundled vendor a default it allows', function () {
+    foreach (glob(dirname(__DIR__, 3).'/src/Vendors/*.php') ?: [] as $file) {
+        $class = 'Ympact\\FluxIcons\\Vendors\\'.basename($file, '.php');
+        $vendor = new $class;
+
+        foreach ($vendor->options() as $name => $values) {
+            expect(in_array($vendor->optionDefaults()[$name] ?? null, $values, true))
+                ->toBeTrue("{$class}::optionDefaults() must give option [{$name}] one of its values: ".implode(', ', $values).'. The build command offers it as the default.');
+        }
+    }
 });

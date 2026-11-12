@@ -62,7 +62,7 @@ class VendorRegistry
     {
         if ($vendor instanceof Vendor) {
             // a copy, so one instance registered under two keys answers to each
-            $this->resolved[$key] = (clone $vendor)->registerAs($key);
+            $this->resolved[$key] = $this->configure($key, clone $vendor);
             $this->vendors[$key] = $vendor::class;
 
             return $this;
@@ -96,7 +96,30 @@ class VendorRegistry
             );
         }
 
-        return $this->resolved[$key] ??= (new $this->vendors[$key])->registerAs($key);
+        return $this->resolved[$key] ??= $this->configure($key, new $this->vendors[$key]);
+    }
+
+    /**
+     * Applying the vendor's own option defaults checks them, so a subclass that names a value
+     * the vendor does not take fails as it is resolved, with the values it does take. Every
+     * option needs one: without it the vendor would build with none, such as a source
+     * directory of ''.
+     *
+     * @throws InvalidArgumentException When an option has no default, or one it does not take.
+     */
+    protected function configure(string $key, Vendor $vendor): Vendor
+    {
+        $vendor = $vendor->registerAs($key);
+
+        foreach ($vendor->options() as $name => $values) {
+            if (! array_key_exists($name, $vendor->optionDefaults())) {
+                throw new InvalidArgumentException(
+                    'Vendor ['.$key.'] has no default for option ['.$name.']. Return one of '.implode(', ', $values).' for it from '.$vendor::class.'::optionDefaults().'
+                );
+            }
+        }
+
+        return $vendor->withOptions($vendor->optionDefaults());
     }
 
     /**

@@ -152,11 +152,22 @@ abstract class Vendor
      * Build options this vendor exposes, such as a weight or an aspect ratio.
      *
      * Returned as an option name mapped to its allowed values, so the build
-     * command can offer them and the config can set a default.
+     * command can offer them.
      *
      * @return array<string, array<int, string|int>>
      */
     public function options(): array
+    {
+        return [];
+    }
+
+    /**
+     * The value of each option this vendor builds with unless a build asks for another.
+     * A subclass overrides it to build with other values everywhere, updates included.
+     *
+     * @return array<string, string|int>
+     */
+    public function optionDefaults(): array
     {
         return [];
     }
@@ -205,11 +216,23 @@ abstract class Vendor
     }
 
     /**
+     * The value of an option for this build: the one asked for, else the vendor's default.
+     *
      * @return string|int|null
      */
     public function option(string $name, string|int|null $default = null)
     {
-        return $this->selectedOptions[$name] ?? $default;
+        return $this->selectedOptions[$name] ?? $this->optionDefaults()[$name] ?? $default;
+    }
+
+    /**
+     * The value of every option for this build, by name.
+     *
+     * @return array<string, string|int>
+     */
+    public function optionValues(): array
+    {
+        return array_merge($this->optionDefaults(), $this->selectedOptions);
     }
 
     /**

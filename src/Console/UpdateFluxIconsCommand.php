@@ -3,6 +3,7 @@
 namespace Ympact\FluxIcons\Console;
 
 use Illuminate\Console\Command;
+use InvalidArgumentException;
 use Ympact\FluxIcons\Build\Builder;
 use Ympact\FluxIcons\Console\Concerns\ReportsBuildResult;
 use Ympact\FluxIcons\Contracts\Vendor;
@@ -28,7 +29,17 @@ class UpdateFluxIconsCommand extends Command
     public function handle(): int
     {
         $verbose = (bool) $this->option('verbose');
-        $registry = VendorRegistry::fromConfig();
+
+        // an update looks through every vendor, and resolving one checks its option defaults,
+        // which a subclass may get wrong
+        try {
+            $registry = VendorRegistry::fromConfig();
+            $registry->all();
+        } catch (InvalidArgumentException $exception) {
+            error($exception->getMessage());
+
+            return self::FAILURE;
+        }
 
         /** @var list<string> $directories */
         $directories = IconManager::currentVendors()->values()->all();

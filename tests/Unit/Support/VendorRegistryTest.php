@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Config;
 use Ympact\FluxIcons\Contracts\Vendor;
 use Ympact\FluxIcons\Sources\Source;
 use Ympact\FluxIcons\Support\VendorRegistry;
+use Ympact\FluxIcons\Tests\Fixtures\Vendors\AlphaStyled;
 use Ympact\FluxIcons\Variants\VariantSet;
 use Ympact\FluxIcons\Vendors\Phosphor;
 use Ympact\FluxIcons\Vendors\Tabler;
@@ -204,3 +205,22 @@ it('stops resolving vendors once the namespace matches', function () {
 it('tells a v1 user the publish command that actually replaces the config', function () {
     new VendorRegistry(['tabler' => ['package' => '@tabler/icons']]);
 })->throws(InvalidArgumentException::class, 'php artisan vendor:publish --tag=flux-icons-config --force');
+
+it('hands out a vendor building with the option values its class declares', function () {
+    $registry = new VendorRegistry(['alpha' => AlphaStyled::class]);
+
+    expect($registry->get('alpha')->option('style'))->toBe('outline')
+        ->and($registry->get('alpha')->optionValues())->toBe(['style' => 'outline']);
+});
+
+it('refuses a vendor class whose option default is not one of the option values', function () {
+    $registry = new VendorRegistry(['alpha' => new class extends AlphaStyled
+    {
+        public function optionDefaults(): array
+        {
+            return ['style' => 'bold'];
+        }
+    }]);
+
+    $registry->get('alpha');
+})->throws(InvalidArgumentException::class, '[bold] is not a valid value for option [style] of vendor [alpha]. Allowed: outline, filled.');

@@ -6,6 +6,7 @@ use Illuminate\Console\Command;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\View;
 use Illuminate\View\FileViewFinder;
+use InvalidArgumentException;
 use Ympact\FluxIcons\Contracts\Vendor;
 use Ympact\FluxIcons\Services\IconReference;
 use Ympact\FluxIcons\Services\IconReferenceScanner;
@@ -30,8 +31,15 @@ class CheckFluxIconsCommand extends Command
 
     public function handle(): int
     {
-        $registry = VendorRegistry::fromConfig();
-        $vendors = $registry->all();
+        // resolving every vendor checks its option defaults, which a subclass may get wrong
+        try {
+            $registry = VendorRegistry::fromConfig();
+            $vendors = $registry->all();
+        } catch (InvalidArgumentException $exception) {
+            $this->components->error($exception->getMessage());
+
+            return self::FAILURE;
+        }
 
         if ($vendors->isEmpty()) {
             $this->components->error('No vendors are configured, so there is nothing to check.');
