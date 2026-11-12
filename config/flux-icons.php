@@ -44,6 +44,17 @@ return [
     'icons' => null,
 
     /**
+     * Leave out icons that installed packages declare, by package name:
+     * ['optional' => false] leaves out its optional icons;
+     * ['required' => false] its required ones too, for views of the package you override;
+     * ['except' => ['tabler.map-pin']] single icons; false the whole package.
+     * flux-icons:check warns about a required icon left out that has not been built.
+     */
+    'packages' => [
+        // 'acme/shop' => ['optional' => false],
+    ],
+
+    /**
      * The vendors icons can be built from, by the key they are addressed by on the command line.
      * A vendor's icons are published under that key unless its class names another namespace
      * (Material Icons publishes to `material`).

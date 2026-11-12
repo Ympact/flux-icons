@@ -179,3 +179,21 @@ function writeInstalledPackages(string $root, array $declared): void
     @mkdir("{$root}/vendor/composer", 0777, true);
     file_put_contents("{$root}/vendor/composer/installed.json", json_encode(['packages' => $packages, 'dev' => true]));
 }
+
+/**
+ * Writes vendor/composer/installed.json with each package's whole extra.flux-icons block, for
+ * declarations with optional icons.
+ *
+ * @param  array<string, array<string, mixed>>  $blocks  The extra.flux-icons block, by package name.
+ */
+function writeInstalledPackagesBlock(string $root, array $blocks): void
+{
+    $packages = [];
+
+    foreach ($blocks as $name => $block) {
+        $packages[] = ['name' => $name, 'version' => '1.0.0', 'extra' => ['flux-icons' => $block]];
+    }
+
+    @mkdir("{$root}/vendor/composer", 0777, true);
+    file_put_contents("{$root}/vendor/composer/installed.json", json_encode(['packages' => $packages, 'dev' => true]));
+}

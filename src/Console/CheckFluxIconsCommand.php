@@ -82,11 +82,18 @@ class CheckFluxIconsCommand extends Command
             ->merge($this->declared($registry, array_values($namespaces->all()), filled($this->argument('vendor')), $iconsPath))
             ->values();
         $unresolved = $references->filter(fn (IconReference $reference) => $reference->reason() !== null)->values();
+        $leftOut = $this->leftOut($registry, array_values($namespaces->all()), filled($this->argument('vendor')), $iconsPath);
 
         if ($this->option('json')) {
-            $this->writeJson($this->toJson($references, $unresolved, $registry));
+            $this->writeJson($this->toJson($references, $unresolved, $leftOut, $registry));
 
             return $unresolved->isEmpty() ? self::SUCCESS : self::FAILURE;
+        }
+
+        foreach ($leftOut as $reference) {
+            $this->components->warn(
+                $this->printable("{$reference->package} requires {$reference->name()}, which the packages config leaves out and which has not been built. Its views fail where they use it, unless you override them.")
+            );
         }
 
         if ($unresolved->isEmpty()) {
@@ -211,9 +218,10 @@ class CheckFluxIconsCommand extends Command
     /**
      * @param  Collection<int, IconReference>  $references
      * @param  Collection<int, IconReference>  $unresolved
-     * @return array{references: int, unresolved: list<array<string, mixed>>, build: list<array{vendor: string, icons: list<string>, command: string}>}
+     * @param  Collection<int, IconReference>  $leftOut
+     * @return array{references: int, unresolved: list<array<string, mixed>>, build: list<array{vendor: string, icons: list<string>, command: string}>, left_out: list<array{package: string|null, name: string}>}
      */
-    protected function toJson(Collection $references, Collection $unresolved, VendorRegistry $registry): array
+    protected function toJson(Collection $references, Collection $unresolved, Collection $leftOut, VendorRegistry $registry): array
     {
         return [
             'references' => $references->count(),
@@ -228,7 +236,35 @@ class CheckFluxIconsCommand extends Command
                 'reason' => $reference->reason(),
             ])->all()),
             'build' => $this->buildCommands($unresolved, $registry),
+            'left_out' => array_values($leftOut->map(fn (IconReference $reference) => [
+                'package' => $reference->package,
+                'name' => $reference->name(),
+            ])->all()),
         ];
+    }
+
+    /**
+     * The icons a package requires that the packages config leaves out and that have not been
+     * built: not a failure, since the application may override the views that use them, but
+     * worth a warning. Checking one vendor leaves the other namespaces alone.
+     *
+     * @param  list<string>  $namespaces  The namespaces of the vendors being checked.
+     * @return Collection<int, IconReference>
+     */
+    protected function leftOut(VendorRegistry $registry, array $namespaces, bool $oneVendor, string $iconsPath): Collection
+    {
+        return collect($this->laravel->make(DeclaredIcons::class)->leftOutRequired())
+            ->filter(fn (array $icon) => in_array($icon['namespace'], $namespaces, true) || ! $oneVendor)
+            ->map(fn (array $icon) => new IconReference(
+                file: $icon['package'],
+                line: 0,
+                namespace: $icon['namespace'],
+                icon: $registry->findByNamespace($icon['namespace'])?->iconName($icon['icon']) ?? $icon['icon'],
+                iconsPath: $iconsPath,
+                package: $icon['package'],
+            ))
+            ->reject(fn (IconReference $reference) => $reference->exists())
+            ->values();
     }
 
     /**

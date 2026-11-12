@@ -189,6 +189,7 @@ it('reports as json for ci and agents', function () {
             'build' => [
                 ['vendor' => 'tabler', 'icons' => ['missing'], 'command' => 'php artisan flux-icons:build tabler --icons=missing --merge'],
             ],
+            'left_out' => [],
         ]);
 });
 
@@ -266,6 +267,33 @@ describe('icons packages declare', function () {
         $this->artisan('flux-icons:check', ['--path' => [$root.'/resources/views']])
             ->expectsOutputToContain('acme/</><fg=green>ok?[2J')
             ->assertExitCode(1);
+    });
+
+    it('checks the optional icons a package declares as it checks the required ones', function () {
+        $root = fakeApp('', ['tabler/key']);
+        writeInstalledPackagesBlock($root, ['acme/shop' => ['icons' => ['tabler' => ['key']], 'optional' => ['tabler' => ['chart-bar']]]]);
+        app()->setBasePath($root);
+
+        $this->artisan('flux-icons:check', ['--path' => [$root.'/resources/views']])
+            ->expectsOutputToContain('tabler.chart-bar has not been built')
+            ->assertExitCode(1);
+    });
+
+    it('leaves out the icons the packages config opts out of, and warns about the required ones', function () {
+        $root = fakeApp('', []);
+        writeInstalledPackagesBlock($root, ['acme/shop' => ['icons' => ['tabler' => ['key']], 'optional' => ['tabler' => ['chart-bar']]]]);
+        app()->setBasePath($root);
+        config()->set('flux-icons.packages', ['acme/shop' => false]);
+
+        $this->artisan('flux-icons:check', ['--path' => [$root.'/resources/views']])
+            ->expectsOutputToContain('acme/shop requires tabler.key, which the packages config leaves out and which has not been built')
+            ->doesntExpectOutputToContain('chart-bar')
+            ->expectsOutputToContain('All 0 icon references resolve')
+            ->assertExitCode(0);
+
+        Artisan::call('flux-icons:check', ['--path' => [$root.'/resources/views'], '--json' => true]);
+
+        expect(json_decode(Artisan::output(), true)['left_out'])->toBe([['package' => 'acme/shop', 'name' => 'tabler.key']]);
     });
 
     it('names the package in json, where a scanned reference has a file and line', function () {
