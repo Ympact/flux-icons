@@ -400,7 +400,8 @@ describe('FontAwesome', function () {
         $this->builder->build(new FontAwesome, ['house']);
 
         foreach (componentSlots("{$this->output}/font-awesome/house.blade.php") as $slot) {
-            expect($slot)->toContain('viewBox="0 0 640 640"><!--! Font Awesome Free 7.3.1 by @fontawesome --><path')
+            // Blade renders the escaped @@ as the @ font awesome wrote
+            expect($slot)->toContain('viewBox="0 0 640 640"><!--! Font Awesome Free 7.3.1 by @@fontawesome --><path')
                 ->and($slot)->not->toContain('an editor note');
         }
     });

@@ -33,13 +33,13 @@ class CheckFluxIconsCommand extends Command
 
     public function handle(): int
     {
+        // resolving every vendor checks its option defaults, which a subclass may get wrong
         try {
             $registry = VendorRegistry::fromConfig();
+            $vendors = $registry->all();
         } catch (InvalidArgumentException $exception) {
             return $this->failWith($exception->getMessage());
         }
-
-        $vendors = $registry->all();
 
         if ($vendors->isEmpty()) {
             return $this->failWith('No vendors are configured, so there is nothing to check.');

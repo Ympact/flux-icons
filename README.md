@@ -19,11 +19,11 @@ Upgrading from 1.x? See [UPGRADE.md](UPGRADE.md).
 | Vendor       | Namespace   | Preview / Repo | Notes |
 |--------------|-------------|----------------|-------|
 | Bootstrap    | `bootstrap` | [Preview](https://icons.getbootstrap.com/#icons) | Stroke width of outline icons cannot be adjusted |
-| VSC Codicons | `codicons`  | [Repo](https://github.com/microsoft/vscode-codicons/) | Only outline icons available, but stroke width cannot be adjusted |
+| VSC Codicons | `codicons`  | [Repo](https://github.com/microsoft/vscode-codicons/) | Only outline icons available, but stroke width cannot be adjusted. The icons are licensed CC BY 4.0, which requires attribution, and a built icon carries none on the page: credit Microsoft where your application credits the work it uses, such as an about page. |
 | Flowbite     | `flowbite`  | [Preview](https://flowbite.com/icons/) |  |
-| Flags        | `flags`     |  [Repo](https://github.com/lipis/flag-icons/) | There is only one variant (solid and outline show the same flag). The 4x3 version is built; for the square version build with `--options=ratio=1x1`, or register a subclass whose `optionDefaults()` returns `['ratio' => '1x1']`. |
+| Flags        | `flags`     |  [Repo](https://github.com/lipis/flag-icons/) | There is only one variant (solid and outline show the same flag). The 4x3 version is built. For the square version, register a subclass whose `optionDefaults()` returns `['ratio' => '1x1']`: `--options=ratio=1x1` builds it once, and `flux-icons:update` rebuilds with the class's values. |
 | Fluent UI    | `fluent`    | [Preview (unofficial)](https://fluenticons.co/) - [Repo](https://github.com/microsoft/fluentui-system-icons) | Stroke width of outline icons cannot be adjusted |
-| Font Awesome Free | `font-awesome` | [Preview](https://fontawesome.com/search?ic=free) | Solid by default, as in Font Awesome. Free draws only some icons in the regular style: `outline` shows it where it exists and solid elsewhere. See [Font Awesome](#font-awesome) for the licence and for Pro. |
+| Font Awesome Free | `font-awesome` | [Preview](https://fontawesome.com/search?ic=free) | Solid by default, as in Font Awesome. Free draws only some icons in the regular style: `outline` shows it where it exists and solid elsewhere, so a navigation list can mix the two. See [Font Awesome](#font-awesome) for one style throughout, the licence and Pro. |
 | Font Awesome Free brands | `font-awesome-brands` | [Preview](https://fontawesome.com/search?ic=brands) | One style, shown in every variant. Brand logos are their owners' trademarks: use one only to refer to that brand. |
 | Google Material Design Icons | `material` | [Preview](https://fonts.google.com/icons) | Stroke width of outline icons cannot be adjusted |
 | Google Material Symbols (300) | `material-symbols` | [Preview](https://fonts.google.com/icons?icon.set=Material+Symbols) | Stroke width of outline icons cannot be adjusted |
@@ -34,7 +34,17 @@ Upgrading from 1.x? See [UPGRADE.md](UPGRADE.md).
 
 ### Font Awesome
 
-Font Awesome Free's icons are licensed [CC BY 4.0](https://fontawesome.com/license/free), which requires attribution. Each icon file carries a short attribution comment, and Font Awesome asks that it is not removed, so a built icon keeps it: it is in the HTML of every page that shows the icon. The header of each built component also names the package and the licence.
+Font Awesome Free's icons are licensed [CC BY 4.0](https://fontawesome.com/license/free), which requires attribution. Each icon file carries a short attribution comment, and Font Awesome asks that it is not removed, so a built icon keeps it: it is in the HTML of every page that shows the icon. The header of each built component also names the package and the licence, but as a Blade comment it does not reach the page.
+
+Free draws 273 of its 2001 icons in the regular style, and `outline` falls back to solid for the others. Flux's navigation components, such as `flux:navlist.item`, `flux:sidebar.item` and `flux:navbar.item`, ask for `outline`, so a menu shows regular icons next to solid ones. To draw solid throughout, extend the vendor (`php artisan flux-icons:make-vendor FontAwesome --extends=font-awesome`) and build `outline` from the solid icons:
+
+```php
+public function variants(): VariantSet
+{
+    return parent::variants()
+        ->variant('outline', fn ($variant) => $variant->source(Source::dir('solid')));
+}
+```
 
 Font Awesome Pro installs from Font Awesome's own registry. Configure it in your application's `.npmrc`, with the token from your environment rather than in the file ([Font Awesome's guide](https://docs.fontawesome.com/web/setup/packages)):
 
@@ -43,7 +53,9 @@ Font Awesome Pro installs from Font Awesome's own registry. Configure it in your
 //npm.fontawesome.com/:_authToken=${FONTAWESOME_PACKAGE_TOKEN}
 ```
 
-Then extend the vendor with `php artisan flux-icons:make-vendor FontAwesomePro --extends=font-awesome`, return `'@fortawesome/fontawesome-pro'` from its `package()` and your plan's licence from `license()`, and register it. Pro's other styles, such as light, thin and duotone, need variants of their own (see [Adjusting a vendor](#adjusting-a-vendor)). This package is not tested against Pro.
+Then extend the vendor with `php artisan flux-icons:make-vendor FontAwesomePro --extends=font-awesome`, return `'@fortawesome/fontawesome-pro'` from its `package()` and a reference to your plan's licence from `license()`, such as `'LicenseRef-FontAwesome-Pro'` (SPDX's form for a licence it does not list), and register it. Pro's other styles, such as light, thin and duotone, need variants of their own (see [Adjusting a vendor](#adjusting-a-vendor)). This package is not tested against Pro.
+
+Font Awesome Pro is a paid licence, and built Pro icons are copies of its files: keep them out of a public repository, and check [the Pro licence](https://fontawesome.com/license) for your case.
 
 ## Building icons
 
@@ -64,7 +76,7 @@ In case you did not provide any arguments, the script will walk you through all 
 |-----------------|----------------------------------------------------------------------------------------------------|
 | `-I\|--icons=`  | The icons to build (single or comma separated list). Cannot be used in combination with `--all`. |
 | `-M\|--merge`   | Merge the icons listed in the `--icons` option with the icons defined in the config. Cannot be used in combination with `--all`. |
-| `-O\|--options=` | Options of the vendor for this build, as `name=value`, repeatable or comma separated: `--options=ratio=1x1`. They override the values the vendor class builds with. Without it, an interactive build asks for each option. |
+| `-O\|--options=` | Options of the vendor for this build, as `name=value`, repeatable or comma separated: `--options=ratio=1x1`. They override the values the vendor class builds with, for this build only: `flux-icons:update` and later builds use the class's values again, so set a value that must last in a subclass's `optionDefaults()`. Without it, an interactive build asks for each option. |
 | `-A\|--all`     | Build all icons from the vendor. **Note:** this might generate over thousands of files and cause `npm run dev` to crash due to memory issues. |
 | `-v\|--verbose` | Show additional messages during build. |
 
@@ -198,6 +210,8 @@ This writes `app/FluxIcons/Vendors/Tabler.php`, a subclass of the registered ven
 
 | Method | Adjusts |
 |--------|---------|
+| `package()` | The npm package the icons are installed from. |
+| `license()` | The licence of the icons, as an SPDX identifier, named in the header of each built icon. |
 | `variants()` | The variants: their source files, template, stroke, fallback and attributes. |
 | `transform()` | The paths of an icon before it is written. |
 | `attributes()` | The attributes on an icon's `<svg>` element. |

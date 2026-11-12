@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\Str;
 use Ympact\FluxIcons\Console\CheckFluxIconsCommand;
+use Ympact\FluxIcons\Tests\Fixtures\Vendors\AlphaMisstyled;
 use Ympact\FluxIcons\Vendors\MaterialIcons;
 use Ympact\FluxIcons\Vendors\Mdi;
 use Ympact\FluxIcons\Vendors\Tabler;
@@ -195,4 +196,11 @@ it('reports a problem that stops the check as json too', function () {
 
     expect($exitCode)->toBe(1)
         ->and(json_decode(Artisan::output(), true))->toBe(['error' => "Vendor configuration for 'nope' not found. Configured vendors: tabler"]);
+});
+it('reports a vendor class whose option default it does not take, rather than throwing', function () {
+    config()->set('flux-icons.vendors', ['tabler' => Tabler::class, 'alpha' => AlphaMisstyled::class]);
+
+    $this->artisan('flux-icons:check', ['tabler'])
+        ->expectsOutputToContain('[bold] is not a valid value for option [style] of vendor [alpha]')
+        ->assertExitCode(1);
 });
