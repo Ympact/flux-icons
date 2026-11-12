@@ -63,7 +63,9 @@ class BuildFluxIconsCommand extends Command
         }
 
         if (! $registry->has($key)) {
-            $this->error("Vendor configuration for '{$key}' not found.");
+            $this->error(filled($this->argument('vendor'))
+                ? "Vendor configuration for '{$key}' not found."
+                : "defaults.vendor in config/flux-icons.php is '{$key}', which is not a registered vendor key. Registered: ".implode(', ', $registry->keys()).'.');
 
             return self::FAILURE;
         }
@@ -149,9 +151,14 @@ class BuildFluxIconsCommand extends Command
      */
     protected function vendorKey(VendorRegistry $registry, bool $noInteraction): ?string
     {
-        $key = $this->argument('vendor') ?? config('flux-icons.defaults.vendor');
+        $key = $this->argument('vendor');
 
-        if ($key === null && ! $noInteraction) {
+        // an empty default is as good as none
+        if (! filled($key)) {
+            $key = config('flux-icons.defaults.vendor');
+        }
+
+        if (! filled($key) && ! $noInteraction) {
             $key = select(
                 label: 'From which vendor do you want to build icons?',
                 options: collect($registry->keys())->sort()->values()->all(),
