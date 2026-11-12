@@ -30,8 +30,11 @@ class UpdateFluxIconsCommand extends Command
     {
         $verbose = (bool) $this->option('verbose');
 
+        // an update looks through every vendor, and resolving one checks its option defaults,
+        // which a subclass may get wrong
         try {
             $registry = VendorRegistry::fromConfig();
+            $registry->all();
         } catch (InvalidArgumentException $exception) {
             error($exception->getMessage());
 

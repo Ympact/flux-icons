@@ -29,9 +29,12 @@ class Lucide extends Vendor
         return 'icons';
     }
 
+    /**
+     * Lucide is ISC, and the icons it took from Feather stay MIT, as its LICENSE lists them.
+     */
     public function license(): string
     {
-        return 'ISC';
+        return 'ISC AND MIT';
     }
 
     public function variants(): VariantSet
