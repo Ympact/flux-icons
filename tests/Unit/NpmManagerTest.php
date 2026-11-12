@@ -30,7 +30,7 @@ it('installs a missing package from the application directory, quietly unless ve
     $npm->require(new Tabler, verbose: true);
 
     expect(fakeNpmCalls($this->tempDir))->toBe([
-        "{$this->tempDir} install @tabler/icons --save --silent",
+        "{$this->tempDir} install @tabler/icons --save --loglevel=error",
         "{$this->tempDir} install @tabler/icons --save",
     ]);
 });
@@ -41,10 +41,10 @@ it('updates the package in the directory it was given', function () {
 
     (new NpmManager($project, fakeNpm($this->tempDir)))->update(new Tabler);
 
-    expect(fakeNpmCalls($this->tempDir))->toBe(["{$project} update @tabler/icons --silent"]);
+    expect(fakeNpmCalls($this->tempDir))->toBe(["{$project} update @tabler/icons --loglevel=error"]);
 });
 
-it('passes the package to npm as one argument, without a shell', function () {
+it('passes the package to npm as one argument, so it cannot add a command', function () {
     $vendor = new class extends Tabler
     {
         public function package(): string
@@ -55,7 +55,7 @@ it('passes the package to npm as one argument, without a shell', function () {
 
     (new NpmManager(binary: fakeNpm($this->tempDir)))->update($vendor);
 
-    expect(fakeNpmCalls($this->tempDir))->toBe(["{$this->tempDir} update icons; touch pwned --silent"])
+    expect(fakeNpmCalls($this->tempDir))->toBe(["{$this->tempDir} update icons; touch pwned --loglevel=error"])
         ->and(file_exists($this->tempDir.'/pwned'))->toBeFalse();
 });
 
@@ -71,4 +71,18 @@ it('reports a missing npm executable', function () {
 
     expect(fn () => $npm->require(new Tabler))
         ->toThrow(RuntimeException::class, 'npm could not install @tabler/icons');
+});
+
+it('reports a timeout as npm failing, with what it said by then', function () {
+    $npm = new NpmManager(binary: fakeNpm($this->tempDir, stderr: 'fetching', seconds: 5), timeout: 1);
+
+    expect(fn () => $npm->update(new Tabler))
+        ->toThrow(RuntimeException::class, 'npm could not update @tabler/icons within 1 seconds: fetching');
+});
+
+it('says npm failed when it printed nothing', function () {
+    $npm = new NpmManager(binary: fakeNpm($this->tempDir, exitCode: 1));
+
+    expect(fn () => $npm->update(new Tabler))
+        ->toThrow(RuntimeException::class, 'npm could not update @tabler/icons.');
 });
