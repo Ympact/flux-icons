@@ -129,7 +129,7 @@ class Tabler extends Vendor
     /**
      * icons.json gives the search terms of each icon as its `tags`.
      *
-     * @return array<string, list<string>>
+     * @return array<array-key, list<string>>
      */
     public function tags(string $packageRoot): array
     {

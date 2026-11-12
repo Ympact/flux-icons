@@ -77,7 +77,7 @@ class Healthicons extends Vendor
      * `dhis2:ambulance` are identifiers in DHIS2, the health software the icons were first drawn for,
      * rather than search terms.
      *
-     * @return array<string, list<string>>
+     * @return array<array-key, list<string>>
      */
     public function tags(string $packageRoot): array
     {

@@ -76,7 +76,7 @@ class Flags extends Vendor
     /**
      * country.json names the country each flag code stands for.
      *
-     * @return array<string, list<string>>
+     * @return array<array-key, list<string>>
      */
     public function tags(string $packageRoot): array
     {

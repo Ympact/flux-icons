@@ -7,6 +7,7 @@ use RuntimeException;
 use Ympact\FluxIcons\Contracts\Vendor;
 use Ympact\FluxIcons\Events\IconsBuilt;
 use Ympact\FluxIcons\Services\PackageManager;
+use Ympact\FluxIcons\Types\InvalidMetadata;
 use Ympact\FluxIcons\Types\InvalidSvg;
 use Ympact\FluxIcons\Variants\Variant;
 use Ympact\FluxIcons\Variants\VariantSet;
@@ -78,6 +79,8 @@ class Builder
         $directory = $this->outputPath.'/'.$vendor->namespace();
         $header = [$this->credits->package($packageRoot, $vendor->license()), $this->credits->flux(), PackageManager::fluxVersionAtLeast(self::BLAZE_SINCE)];
         $publishedFrom = [];
+        $publishedFile = [];
+        $warnings = [];
         $skipped = [];
         $handled = 0;
 
@@ -94,6 +97,7 @@ class Builder
             } else {
                 $this->writer->write($directory, $vendor->namespace(), $published, $variants, $markup, ...$header);
                 $publishedFrom[$published] = $name;
+                $publishedFile[$published] = $file;
             }
 
             if ($progress !== null) {
@@ -104,26 +108,40 @@ class Builder
         $built = array_map('strval', array_keys($publishedFrom));
 
         if ($built !== []) {
-            IconsBuilt::dispatch($vendor->key(), $vendor->namespace(), $directory, $built, $this->tags($vendor, $packageRoot, $publishedFrom));
+            try {
+                $tags = $this->tags($vendor, $packageRoot, $publishedFrom, $publishedFile);
+            } catch (InvalidMetadata $invalid) {
+                $tags = [];
+                $warnings[] = 'No search terms: '.$invalid->getMessage();
+            }
+
+            IconsBuilt::dispatch($vendor->key(), $vendor->namespace(), $directory, $built, $tags);
         }
 
-        return new BuildResult($built, $skipped, $missing);
+        return new BuildResult($built, $skipped, $missing, $warnings);
     }
 
     /**
-     * The vendor's search terms for the icons written, by the name each was published under.
+     * The vendor's search terms for the icons written, by the name each was published under. An
+     * icon listed under another name than its file's, such as an MDI icon that only has an
+     * `-outline` file, is also looked up by that file's name.
      *
-     * @param  array<string, string>  $publishedFrom  The icon each published name was built from.
-     * @return array<string, list<string>>
+     * @param  array<array-key, string>  $publishedFrom  The icon each published name was built from.
+     * @param  array<array-key, string>  $publishedFile  The file each published name was built from.
+     * @return array<array-key, list<string>>
+     *
+     * @throws InvalidMetadata When the vendor's file of terms cannot be read.
      */
-    protected function tags(Vendor $vendor, string $packageRoot, array $publishedFrom): array
+    protected function tags(Vendor $vendor, string $packageRoot, array $publishedFrom, array $publishedFile): array
     {
         $tags = $vendor->tags($packageRoot);
         $published = [];
 
         foreach ($publishedFrom as $name => $icon) {
-            if (($tags[$icon] ?? []) !== []) {
-                $published[(string) $name] = $tags[$icon];
+            $terms = $tags[$icon] ?? $tags[pathinfo($publishedFile[$name], PATHINFO_FILENAME)] ?? [];
+
+            if ($terms !== []) {
+                $published[$name] = $terms;
             }
         }
 

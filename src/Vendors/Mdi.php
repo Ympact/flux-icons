@@ -67,7 +67,7 @@ class Mdi extends Vendor
      * meta.json lists each icon with its `aliases`, the names it is also searched by. Its `tags`
      * are categories, such as "Developer / Languages", rather than search terms.
      *
-     * @return array<string, list<string>>
+     * @return array<array-key, list<string>>
      */
     public function tags(string $packageRoot): array
     {

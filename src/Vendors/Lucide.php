@@ -59,7 +59,7 @@ class Lucide extends Vendor
     /**
      * tags.json maps each icon to its search terms.
      *
-     * @return array<string, list<string>>
+     * @return array<array-key, list<string>>
      */
     public function tags(string $packageRoot): array
     {

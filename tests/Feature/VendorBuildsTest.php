@@ -804,6 +804,44 @@ describe('search terms', function () {
         expect(builtTags())->toBe(['house' => ['abode', 'home', 'home-alt']]);
     });
 
+    it('hands on the terms of a font awesome icon for the file it ships under a former name', function () {
+        writeIconPackage($this->packages, '@fortawesome/fontawesome-free/svgs-full', ['solid/house.svg' => $this->svg, 'solid/home.svg' => $this->svg]);
+        File::ensureDirectoryExists("{$this->packages}/@fortawesome/fontawesome-free/metadata");
+        File::put("{$this->packages}/@fortawesome/fontawesome-free/metadata/icon-families.json", json_encode([
+            'house' => ['search' => ['terms' => ['abode', 'home']], 'aliases' => ['names' => ['home', 'home-alt']]],
+        ]));
+
+        $this->builder->build(new FontAwesome);
+
+        expect(builtTags())->toBe([
+            'home' => ['abode', 'home-alt', 'house'],
+            'house' => ['abode', 'home', 'home-alt'],
+        ]);
+    });
+
+    it('hands on the terms of an mdi icon by its file, when meta.json lists it only under that name', function () {
+        writeIconPackage($this->packages, '@mdi/svg/svg', ['tag-text-outline.svg' => $this->svg]);
+        File::put("{$this->packages}/@mdi/svg/meta.json", json_encode([
+            ['name' => 'tag-text-outline', 'aliases' => ['label-outline']],
+        ]));
+
+        $this->builder->build(new Mdi);
+
+        expect(builtTags())->toBe(['tag-text' => ['label-outline']]);
+    });
+
+    it('keeps building, without terms, when the file of terms is not JSON, and says so', function () {
+        writeIconPackage($this->packages, '@tabler/icons/icons', ['outline/home.svg' => $this->svg]);
+        File::put("{$this->packages}/@tabler/icons/icons.json", '{"home": ');
+
+        $result = $this->builder->build(new Tabler);
+
+        expect($result->built)->toBe(['home'])
+            ->and(builtTags())->toBe([])
+            ->and($result->warnings)->toHaveCount(1)
+            ->and($result->warnings[0])->toContain('icons.json')->toContain('Syntax error');
+    });
+
     it('hands on the title and tags healthicons lists, by the name each icon is published under', function () {
         writeIconPackage($this->packages, 'healthicons/public/icons/svg', ['outline/vehicles/war_tank.svg' => $this->svg]);
         File::put("{$this->packages}/healthicons/public/icons/meta-data.json", json_encode([

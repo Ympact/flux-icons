@@ -206,5 +206,5 @@ Built components also behave differently in a few ways:
 - `flux-icons:check` lists the icon references in your views and PHP that have not been built, or that ask for a variant an icon lacks.
 - `flux-icons:build --options=` picks a vendor's build options for one build, such as `ratio=1x1` for square flags. A vendor subclass's `optionDefaults()` keeps them for `flux-icons:update`.
 - A package can declare the icons it requires and the ones it can do without in its `composer.json`, and the build and check commands include them. The `packages` config leaves out what you do not want.
-- The `IconsBuilt` event fires after each build that writes an icon, for packages that keep a registry of icons.
+- The `IconsBuilt` event fires after each build that writes an icon, for packages that keep a registry of icons. Its `tags` hold the search terms the vendor's package publishes for those icons.
 - Font Awesome Free and Phosphor are available as vendors. Phosphor is not registered in the default config.
