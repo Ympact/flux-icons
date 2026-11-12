@@ -217,6 +217,19 @@ file declares itself are expanded, which is how an Illustrator export names the 
 namespace. A file declaring an external entity is skipped without reading it. A vendor whose package is not installed, or whose default
 variant lists no icons (a wrong `basePath()` or source directory), throws a
 `RuntimeException` instead of building nothing.
+
+A built component is inlined into the page and compiled by Blade, so the builder
+treats each source as untrusted on both ends. Before rendering, it removes what
+would run script in the browser, from every source and from `Raw` icons too:
+`<script>`, `<handler>` and `<foreignObject>`; the HTML elements that load a
+document (`iframe`, `frame`, `frameset`, `embed`, `object`, `applet`, `meta`,
+`link`, `base`); `on*` attributes; and any attribute whose value holds a
+`javascript:`, `vbscript:` or `data:text/html` URL, which covers an `<animate>`
+that sets `href`. Styles are kept: they run no script, but a `<style>` element
+applies to the whole page, and a `url()` in a style can load from another site.
+None of the bundled packages ships any of these, nor a `<style>`. When writing, it escapes what Blade or
+PHP would run: `<?`, component tags, `{{`, `{!!` and directives.
+
 `IconsBuilt` is dispatched once per build, with the published names, when
 anything was written. It carries the search terms `Vendor::tags()` reads from the
 package, keyed by those published names and limited to the icons written.

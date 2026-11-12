@@ -314,3 +314,50 @@ it('merges default and configured svg attributes', function () {
         ->toHaveKey('aria-hidden')
         ->and($icon->getAttributes()['data-vendor'])->toBe('alpha');
 });
+
+describe('script in a source', function () {
+    /**
+     * The component markup an icon becomes, as a drawn icon and as a raw one.
+     *
+     * @return array{drawn: string, raw: string}
+     */
+    function renderedFrom(string $svg): array
+    {
+        $render = function (bool $raw) use ($svg): string {
+            $icon = new Icon(alphaIconConfig(), 'outline', alphaOutlineFile());
+            $icon->setContent($svg, 'hostile');
+
+            return $icon->process()->setRaw($raw)->toHtml();
+        };
+
+        return ['drawn' => $render(false), 'raw' => $render(true)];
+    }
+
+    it('is left out of the built icon', function (string $inner, string $script, string $root = '') {
+        $svg = '<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 24 24"'.$root.'>'.$inner.'</svg>';
+
+        foreach (renderedFrom($svg) as $form => $html) {
+            expect(str_contains($html, 'M1 1h2'))->toBeTrue("the {$form} icon lost its shape: {$html}")
+                ->and(stripos($html, $script))->toBeFalse("the {$form} icon kept {$script}: {$html}");
+        }
+    })->with([
+        'a script element' => ['<g><script>alert(1)</script><path d="M1 1h2"/></g>', 'alert'],
+        'a foreignObject, whose HTML a browser renders' => ['<g><foreignObject><div xmlns="http://www.w3.org/1999/xhtml"><img src="x"/></div></foreignObject><path d="M1 1h2"/></g>', 'foreignObject'],
+        'an event handler, in any case' => ['<g onclick="alert(1)"><path d="M1 1h2" ONMOUSEOVER="alert(2)"/></g>', 'alert'],
+        'an event handler on the root' => ['<path d="M1 1h2"/>', 'alert', ' onload="alert(1)"'],
+        'a javascript: link' => ['<g><a href="javascript:alert(1)"><path d="M1 1h2"/></a></g>', 'alert'],
+        'a javascript: xlink:href' => ['<g><a xlink:href="javascript:alert(1)"><path d="M1 1h2"/></a></g>', 'alert'],
+        'a scheme split by whitespace' => ['<g><a href=" JaVa&#9;script:alert(1)"><path d="M1 1h2"/></a></g>', 'alert'],
+        'an HTML data: URL' => ['<g><a href="data:text/html;base64,PHNjcmlwdD4="><path d="M1 1h2"/></a></g>', 'data:text/html'],
+        'an animation that sets a javascript: href' => ['<g><a><animate attributeName="href" values="#;javascript:alert(1)"/><path d="M1 1h2"/></a></g>', 'alert'],
+        'HTML elements that load a document' => ['<g><iframe src="https://example.com"/><embed src="https://example.com"/><meta http-equiv="refresh" content="0;url=https://example.com"/><path d="M1 1h2"/></g>', 'example.com'],
+    ]);
+
+    it('keeps links, references and styles that run nothing', function () {
+        $svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g style="fill:red"><a href="https://example.com/x"><path id="p" d="M1 1h2"/></a><use href="#p"/></g></svg>';
+
+        foreach (renderedFrom($svg) as $html) {
+            expect($html)->toContain('href="https://example.com/x"')->toContain('href="#p"')->toContain('style="fill:red"');
+        }
+    });
+});
