@@ -12,7 +12,9 @@ class Credits
 {
     /**
      * Name, version and author of the npm package the icons come from, and the licence of its
-     * icons: a licence such as CC-BY-4.0 asks for this attribution wherever the icons are used.
+     * icons. It goes into the header of the built component, a Blade comment that never reaches
+     * the page: it records where the icons came from, and is not the attribution a licence
+     * such as CC-BY-4.0 asks for where the icons are shown.
      */
     public function package(string $packageRoot, ?string $license = null): string
     {
