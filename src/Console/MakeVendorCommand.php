@@ -66,7 +66,13 @@ class MakeVendorCommand extends GeneratorCommand
                 return false;
             }
 
-            $this->parent = $registry->get($extends)::class;
+            try {
+                $this->parent = $registry->get($extends)::class;
+            } catch (InvalidArgumentException $exception) {
+                $this->components->error($exception->getMessage());
+
+                return false;
+            }
 
             // with --force this would replace the registered class with one that extends itself
             if ($this->parent === $this->qualifyClass($class)) {
