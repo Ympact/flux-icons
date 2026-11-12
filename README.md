@@ -84,7 +84,7 @@ In case you did not provide any arguments, the script will walk you through all 
 | Option          | Description                                                                                        |
 |-----------------|----------------------------------------------------------------------------------------------------|
 | `-I\|--icons=`  | The icons to build (single or comma separated list). Cannot be used in combination with `--all`. |
-| `-M\|--merge`   | Merge the icons listed in the `--icons` option with the icons defined in the config. Cannot be used in combination with `--all`. |
+| `-M\|--merge`   | Merge the icons listed in the `--icons` option with the icons the config lists for the vendor and the ones [installed packages declare](#icons-a-package-needs). Cannot be used in combination with `--all`. |
 | `-O\|--options=` | Options of the vendor for this build, as `name=value`, repeatable or comma separated: `--options=ratio=1x1`. They override the values the vendor class builds with, for this build only: `flux-icons:update` and later builds use the class's values again, so set a value that must last in a subclass's `optionDefaults()`. Without it, an interactive build asks for each option. |
 | `-A\|--all`     | Build all icons from the vendor. **Note:** this might generate over thousands of files and cause `npm run dev` to crash due to memory issues. |
 | `-v\|--verbose` | Show additional messages during build. |
@@ -167,8 +167,13 @@ than failing, which is easy to miss. A bound `:variant` is only known when the p
 php artisan flux-icons:check tabler --build
 ```
 
-With `--json`, each unresolved reference carries its `reason`: `not-built`, `malformed` or
-`unknown-variant`. `build` holds the command per vendor for the icons that are not built.
+With `--json`, each unresolved reference carries its `reason`: `not-built`, `malformed`,
+`unknown-variant`, or `unknown-vendor` for an icon a package declares for a namespace no
+configured vendor publishes to. A reference found in a file has its `file` and `line`; one a
+package declares has `package` instead, and `null` for the other two. `vendor` is `null` for
+`unknown-vendor`. `build` holds the command per vendor for the icons that are not built.
+`left_out` holds the icons a package requires that the `packages` config leaves out and that
+have not been built; they warn, and do not fail the check.
 A problem that stops the check, such as an unknown vendor, prints `{"error": "..."}`.
 
 ```json
@@ -178,6 +183,7 @@ A problem that stops the check, such as an unknown vendor, prints `{"error": "..
         {
             "file": "resources/views/dashboard.blade.php",
             "line": 14,
+            "package": null,
             "name": "tabler.chart-histogram",
             "vendor": "tabler",
             "variant": null,
@@ -190,9 +196,69 @@ A problem that stops the check, such as an unknown vendor, prints `{"error": "..
             "icons": ["chart-histogram"],
             "command": "php artisan flux-icons:build tabler --icons=chart-histogram --merge"
         }
+    ],
+    "left_out": [
+        {
+            "package": "acme/shop",
+            "name": "tabler.map-pin"
+        }
     ]
 }
 ```
+
+### Icons a package needs
+
+A package that uses icons keeps their names in its own PHP, under `vendor/`, where
+`flux-icons:check` does not look. It can declare them in its `composer.json` instead, by the
+namespace its references use: under `icons` the ones its views require, and under `optional`
+ones it can do without, such as icons a user may pick.
+
+```json
+{
+    "extra": {
+        "flux-icons": {
+            "icons": {
+                "tabler": ["calendar-month", "map-pin"]
+            },
+            "optional": {
+                "tabler": ["chart-bar"]
+            }
+        }
+    }
+}
+```
+
+The application does not repeat them in its own config. Both commands read the declarations
+of every installed package from `vendor/composer/installed.json`, as Laravel's package
+discovery does, and take the required and the optional icons alike:
+
+- `flux-icons:build tabler`, without `--icons`, builds the declared icons along with the ones
+  the `icons` config lists for the vendor. When it lists none, the build takes every icon, the
+  declared ones included. `--merge` adds them to the icons asked for.
+- `flux-icons:check` reports a declared icon that has not been built under the package that
+  declared it. It also reports an icon declared for a namespace that no configured vendor
+  publishes to, unless you check a single vendor.
+
+A name that is not an icon name, such as one with a space or a `$`, is left out.
+
+To leave declared icons out, name the package in the `packages` config:
+
+```php
+'packages' => [
+    // leave out the optional icons of acme/shop
+    'acme/shop' => ['optional' => false],
+    // also leave out the ones its views require, because you override those views
+    'acme/blog' => ['required' => false],
+    // leave out single icons
+    'acme/crm' => ['except' => ['tabler.map-pin']],
+    // leave out everything a package declares
+    'acme/legacy' => false,
+],
+```
+
+Leaving out a required icon is allowed, since you may have replaced the views that use it,
+but `flux-icons:check` warns about each one that has not been built: the package's own views
+fail where they use it. `--json` lists them under `left_out`.
 
 ## Configuration
 
@@ -205,7 +271,8 @@ php artisan vendor:publish --tag=flux-icons-config
 | Option            | Value | Description |
 |-------------------|-------|-------------|
 | `defaults.vendor` | `null` or a vendor key | The vendor `flux-icons:build` builds from when none is passed to it. |
-| `icons`           | `null` or `['vendor-key' => ['icon-name', ...]]` | The icons `flux-icons:build` builds when no icons are passed to it. |
+| `icons`           | `null` or `['vendor-key' => ['icon-name', ...]]` | The icons `flux-icons:build` builds when no icons are passed to it, together with the ones [installed packages declare](#icons-a-package-needs). |
+| `packages`        | `['vendor/package' => false or ['optional' => false, 'required' => false, 'except' => ['tabler.map-pin']]]` | The icons [installed packages declare](#icons-a-package-needs) to leave out, by package. |
 | `request_npm_dev` | `bool` | For a build of more than 100 icons, ask whether `npm run dev` is running, and if so pause a third of a second between icons and remind you to start it again afterwards. Without a terminal the answer is no. |
 | `vendors`         | `['vendor-key' => VendorClass::class]` | The vendors icons can be built from. The key is what you pass to the commands. The icons are published under the key as a slug (`tabler_icons` to `tabler-icons`), unless the class names another namespace (Material Icons publishes to `material`). |
 

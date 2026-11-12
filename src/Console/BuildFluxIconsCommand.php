@@ -10,6 +10,7 @@ use Ympact\FluxIcons\Build\Builder;
 use Ympact\FluxIcons\Build\BuildResult;
 use Ympact\FluxIcons\Console\Concerns\ReportsBuildResult;
 use Ympact\FluxIcons\Contracts\Vendor;
+use Ympact\FluxIcons\Services\DeclaredIcons;
 use Ympact\FluxIcons\Services\NpmManager;
 use Ympact\FluxIcons\Support\VendorRegistry;
 
@@ -121,7 +122,7 @@ class BuildFluxIconsCommand extends Command
 
             // building every icon already includes the configured ones
             if ($merge && $icons !== null) {
-                $icons = $this->mergeWithConfiguredIcons($icons, config("flux-icons.icons.{$key}"));
+                $icons = $this->mergeWithConfiguredIcons($icons, $this->configuredIcons($vendor, merging: true));
             }
 
             $this->info("Building icons for vendor: {$key}".$this->describeOptions($vendor));
@@ -241,7 +242,7 @@ class BuildFluxIconsCommand extends Command
         }
 
         $requested = $this->normalizeIcons($this->option('icons'));
-        $configured = $this->normalizeIcons(config("flux-icons.icons.{$vendor->key()}"));
+        $configured = $this->configuredIcons($vendor);
 
         if ($requested !== [] || $noInteraction) {
             return $requested ?: ($configured ?: null);
@@ -250,7 +251,7 @@ class BuildFluxIconsCommand extends Command
         $available = array_keys($builder->available($vendor));
 
         $options = array_filter([
-            'config' => $configured !== [] ? "Configured icons for {$vendor->key()}" : null,
+            'config' => $configured !== [] ? 'The '.count($configured)." icons configured for {$vendor->key()} or declared by packages" : null,
             'select' => 'Let me choose',
             'all' => 'All '.count($available).' icons',
         ]);
@@ -273,6 +274,28 @@ class BuildFluxIconsCommand extends Command
                 scroll: 10
             ))),
         };
+    }
+
+    /**
+     * The icons the config lists for the vendor, followed by those installed packages declare
+     * they need from its namespace. Without icons in the config, a build without --icons builds
+     * every icon, which holds the declared ones, so only --merge adds them then: a package's
+     * declaration must not turn a build of everything into a build of its few icons.
+     *
+     * @return array<int, string>
+     */
+    protected function configuredIcons(Vendor $vendor, bool $merging = false): array
+    {
+        $configured = $this->normalizeIcons(config("flux-icons.icons.{$vendor->key()}"));
+
+        if ($configured === [] && ! $merging) {
+            return [];
+        }
+
+        return $this->mergeWithConfiguredIcons(
+            $configured,
+            $this->laravel->make(DeclaredIcons::class)->forNamespace($vendor->namespace())
+        );
     }
 
     /**

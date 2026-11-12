@@ -37,10 +37,22 @@ return [
 
     /**
      * Default icons to be used in the project
-     * Listing icons here will make them auto buildable and updatable through flux-icons:build and flux-icons:update commands
+     * Listing icons here will make them auto buildable and updatable through flux-icons:build and flux-icons:update commands.
+     * flux-icons:build adds the icons installed packages declare in the extra.flux-icons block of their composer.json
      * null or array ['vendor' => ['icon-name', ...] ]
      */
     'icons' => null,
+
+    /**
+     * Leave out icons that installed packages declare, by package name:
+     * ['optional' => false] leaves out its optional icons;
+     * ['required' => false] its required ones too, for views of the package you override;
+     * ['except' => ['tabler.map-pin']] single icons; false the whole package.
+     * flux-icons:check warns about a required icon left out that has not been built.
+     */
+    'packages' => [
+        // 'acme/shop' => ['optional' => false],
+    ],
 
     /**
      * The vendors icons can be built from, by the key they are addressed by on the command line.

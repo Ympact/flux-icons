@@ -161,3 +161,39 @@ function fakeNpmCalls(string $dir): array
 
     return array_map(fn (string $call) => str_replace((string) realpath($temp), $temp, $call), $calls);
 }
+
+/**
+ * Writes vendor/composer/installed.json as Composer 2 does, with each package declaring the
+ * icons it needs in its extra.flux-icons block.
+ *
+ * @param  array<string, array<string, mixed>>  $declared  Icons per namespace, by package name.
+ */
+function writeInstalledPackages(string $root, array $declared): void
+{
+    $packages = [];
+
+    foreach ($declared as $name => $icons) {
+        $packages[] = ['name' => $name, 'version' => '1.0.0', 'extra' => ['flux-icons' => ['icons' => $icons]]];
+    }
+
+    @mkdir("{$root}/vendor/composer", 0777, true);
+    file_put_contents("{$root}/vendor/composer/installed.json", json_encode(['packages' => $packages, 'dev' => true]));
+}
+
+/**
+ * Writes vendor/composer/installed.json with each package's whole extra.flux-icons block, for
+ * declarations with optional icons.
+ *
+ * @param  array<string, array<string, mixed>>  $blocks  The extra.flux-icons block, by package name.
+ */
+function writeInstalledPackagesBlock(string $root, array $blocks): void
+{
+    $packages = [];
+
+    foreach ($blocks as $name => $block) {
+        $packages[] = ['name' => $name, 'version' => '1.0.0', 'extra' => ['flux-icons' => $block]];
+    }
+
+    @mkdir("{$root}/vendor/composer", 0777, true);
+    file_put_contents("{$root}/vendor/composer/installed.json", json_encode(['packages' => $packages, 'dev' => true]));
+}

@@ -5,7 +5,8 @@ namespace Ympact\FluxIcons\Services;
 use Illuminate\Support\Str;
 
 /**
- * One `namespace.icon` reference found in a Blade template or a PHP source.
+ * One `namespace.icon` reference: found in a Blade template or a PHP source, or declared by an
+ * installed package.
  */
 class IconReference
 {
@@ -16,9 +17,13 @@ class IconReference
 
     public const UNKNOWN_VARIANT = 'unknown-variant';
 
+    public const UNKNOWN_VENDOR = 'unknown-vendor';
+
     /**
      * @param  string|null  $variant  The variant a `<flux:icon>` tag asks for, when it is written as a literal.
      * @param  string|null  $iconsPath  Where the icons are built; resources/views/flux/icon when null.
+     * @param  string|null  $package  The Composer package that declared it, for a declared icon.
+     * @param  bool  $vendorConfigured  Whether a configured vendor publishes to the namespace.
      */
     public function __construct(
         public readonly string $file,
@@ -27,6 +32,8 @@ class IconReference
         public readonly string $icon,
         public readonly ?string $variant = null,
         public readonly ?string $iconsPath = null,
+        public readonly ?string $package = null,
+        public readonly bool $vendorConfigured = true,
     ) {}
 
     /**
@@ -69,12 +76,13 @@ class IconReference
      * A variant the icon was not built with renders the default variant rather than failing,
      * but it is still not what the template asked for.
      *
-     * @return self::MALFORMED|self::NOT_BUILT|self::UNKNOWN_VARIANT|null
+     * @return self::MALFORMED|self::UNKNOWN_VENDOR|self::NOT_BUILT|self::UNKNOWN_VARIANT|null
      */
     public function reason(): ?string
     {
         return match (true) {
             $this->isMalformed() => self::MALFORMED,
+            ! $this->vendorConfigured => self::UNKNOWN_VENDOR,
             ! $this->exists() => self::NOT_BUILT,
             $this->variant !== null && ! $this->builtWithVariant($this->variant) => self::UNKNOWN_VARIANT,
             default => null,
@@ -95,10 +103,11 @@ class IconReference
     }
 
     /**
-     * The file this was found in, relative to the application root when it sits under it.
+     * The file this was found in, relative to the application root when it sits under it, or
+     * the package that declared it.
      */
     public function relativeFile(): string
     {
-        return Str::after($this->file, base_path().DIRECTORY_SEPARATOR);
+        return $this->package ?? Str::after($this->file, base_path().DIRECTORY_SEPARATOR);
     }
 }
