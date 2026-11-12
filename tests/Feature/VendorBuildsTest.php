@@ -360,25 +360,27 @@ describe('FontAwesome', function () {
         File::put("{$this->packages}/@fortawesome/fontawesome-free/package.json", '{"name": "@fortawesome/fontawesome-free", "version": "7.3.1", "author": "The Font Awesome Team (https://github.com/orgs/FortAwesome/people)"}');
     });
 
-    it('builds the outline from the regular drawing, and from the solid one where free has none', function () {
+    // flux's menus ask for outline, and a free outline would mix regular and solid there
+    it('draws every flux variant solid, and the regular style as a variant that falls back to solid', function () {
         $result = $this->builder->build(new FontAwesome);
 
         expect($result->built)->toBe(['heart', 'house'])
             ->and($result->skipped)->toBe([])
             ->and(slotSources("{$this->output}/font-awesome/heart.blade.php", $this->drawings))->toBe([
-                'outline' => 'svgs-full/regular/heart.svg',
-                'solid' => 'svgs-full/solid/heart.svg',
-                'mini' => 'svgs-full/solid/heart.svg',
-                'micro' => 'svgs-full/solid/heart.svg',
+                ...eachSlot('svgs-full/solid/heart.svg'),
+                'regular' => 'svgs-full/regular/heart.svg',
             ])
-            ->and(slotSources("{$this->output}/font-awesome/house.blade.php", $this->drawings))->toBe(eachSlot('svgs-full/solid/house.svg'));
+            ->and(slotSources("{$this->output}/font-awesome/house.blade.php", $this->drawings))->toBe([
+                ...eachSlot('svgs-full/solid/house.svg'),
+                'regular' => 'svgs-full/solid/house.svg',
+            ]);
     });
 
     it('draws every slot as a filled shape in the square box', function () {
         $this->builder->build(new FontAwesome);
 
-        expect(slotRoots("{$this->output}/font-awesome/house.blade.php"))->toBe(eachSlot(['fill' => 'currentColor', 'viewBox' => '0 0 640 640']))
-            ->and(slotPathAttributes("{$this->output}/font-awesome/house.blade.php"))->toBe(eachSlot([['fill' => 'currentColor']]));
+        expect(slotRoots("{$this->output}/font-awesome/house.blade.php"))->toBe([...eachSlot(['fill' => 'currentColor', 'viewBox' => '0 0 640 640']), 'regular' => ['fill' => 'currentColor', 'viewBox' => '0 0 640 640']])
+            ->and(slotPathAttributes("{$this->output}/font-awesome/house.blade.php"))->toBe([...eachSlot([['fill' => 'currentColor']]), 'regular' => [['fill' => 'currentColor']]]);
     });
 
     it('draws solid when no variant is asked for, as font awesome does', function () {
