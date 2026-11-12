@@ -17,11 +17,14 @@ class IconsBuilt
      * @param  string  $namespace  The directory the icons were written to, and their prefix in `<flux:icon.{namespace}.{name}>`.
      * @param  string  $directory  The absolute path of that directory.
      * @param  list<string>  $icons  The names of the icons written, as used in `<flux:icon.{namespace}.{name}>`.
+     * @param  array<string, list<string>>  $tags  The search terms the vendor's package publishes for the
+     *                                             icons written, by name as in $icons; an icon without any is absent.
      */
     public function __construct(
         public readonly string $vendor,
         public readonly string $namespace,
         public readonly string $directory,
         public readonly array $icons,
+        public readonly array $tags = [],
     ) {}
 }

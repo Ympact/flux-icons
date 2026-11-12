@@ -231,6 +231,7 @@ This writes `app/FluxIcons/Vendors/Tabler.php`, a subclass of the registered ven
 | `attributes()` | The attributes on an icon's `<svg>` element. |
 | `strokeWidth()` | The stroke width of a single icon. |
 | `iconName()` | The name an icon is published under. |
+| `tags()` | The search terms of each icon, read from the package, which the `IconsBuilt` event hands on. |
 | `optionDefaults()` | The option values the vendor builds with, such as `['ratio' => '1x1']` for the square flags. `options()` lists the values each option takes. |
 | `namespace()` | The directory and Flux namespace the icons are published under, `<flux:icon.{namespace}.home />`. Defaults to the registered key as a slug; Material Icons returns `material`. A v1 `namespace` setting moves here. |
 
@@ -295,8 +296,15 @@ After a build has written at least one icon, `Ympact\FluxIcons\Events\IconsBuilt
 | `namespace` | The directory the icons were written to, and their prefix: `<flux:icon.{namespace}.{name} />`. |
 | `directory` | The absolute path of that directory. |
 | `icons` | The names of the icons written. |
+| `tags` | The search terms the vendor's package publishes for those icons, by name, such as `['home' => ['house', 'dashboard']]`. An icon without any is left out. Tabler, MDI, Lucide, Font Awesome, Healthicons and Flags publish them. |
 
 A build that writes nothing, for example because no requested icon exists, dispatches nothing.
+
+### With laravel-icon-registry
+
+[ympact/laravel-icon-registry](https://github.com/Ympact/laravel-icon-registry) makes the icons of an application searchable, and finds the icons built here by itself. The search terms a vendor publishes can only be read from its npm package, which only this package reads, so they reach the registry through the `tags` of this event. Adding them to the registry's aliases is on the registry's roadmap.
+
+This package is a `--dev` dependency: the event fires while you build in development, and what a listener records goes into your repository like the built icons do.
 
 ## Roadmap
 

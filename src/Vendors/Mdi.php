@@ -62,4 +62,18 @@ class Mdi extends Vendor
         return str_contains(pathinfo($file, PATHINFO_FILENAME), '-outline')
             || ! is_file(Str::beforeLast($file, '.svg').'-outline.svg');
     }
+
+    /**
+     * meta.json lists each icon with its `aliases`, the names it is also searched by. Its `tags`
+     * are categories, such as "Developer / Languages", rather than search terms.
+     *
+     * @return array<string, list<string>>
+     */
+    public function tags(string $packageRoot): array
+    {
+        return collect($this->readJson("{$packageRoot}/meta.json"))
+            ->filter(fn ($icon) => is_array($icon) && is_string($icon['name'] ?? null))
+            ->mapWithKeys(fn (array $icon) => [$icon['name'] => $this->terms($icon['aliases'] ?? null)])
+            ->all();
+    }
 }

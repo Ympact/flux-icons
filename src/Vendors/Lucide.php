@@ -52,4 +52,14 @@ class Lucide extends Vendor
             ->variant('mini', fn ($variant) => $variant->basedOn('solid'))
             ->variant('micro', fn ($variant) => $variant->basedOn('solid'));
     }
+
+    /**
+     * tags.json maps each icon to its search terms.
+     *
+     * @return array<string, list<string>>
+     */
+    public function tags(string $packageRoot): array
+    {
+        return array_map(fn ($terms) => $this->terms($terms), $this->readJson("{$packageRoot}/tags.json"));
+    }
 }

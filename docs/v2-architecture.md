@@ -218,7 +218,8 @@ namespace. A file declaring an external entity is skipped without reading it. A 
 variant lists no icons (a wrong `basePath()` or source directory), throws a
 `RuntimeException` instead of building nothing.
 `IconsBuilt` is dispatched once per build, with the published names, when
-anything was written.
+anything was written. It carries the search terms `Vendor::tags()` reads from the
+package, keyed by those published names and limited to the icons written.
 
 Vendor variants are built after the four Flux variants, the same way. An icon
 with no file for a vendor variant, and no fallback that has one, is still built;

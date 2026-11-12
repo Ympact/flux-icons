@@ -71,4 +71,22 @@ class Healthicons extends Vendor
 
         return Str::of($name)->replace('_', '-')->lower()->toString();
     }
+
+    /**
+     * meta-data.json gives each icon a title and tags, by its file name as `id`. Tags such as
+     * `dhis2:ambulance` are identifiers in DHIS2, the health software the icons were first drawn for,
+     * rather than search terms.
+     *
+     * @return array<string, list<string>>
+     */
+    public function tags(string $packageRoot): array
+    {
+        return collect($this->readJson("{$packageRoot}/public/icons/meta-data.json"))
+            ->filter(fn ($icon) => is_array($icon) && is_string($icon['id'] ?? null))
+            ->mapWithKeys(fn (array $icon) => [$icon['id'] => array_values(array_filter(
+                $this->terms([$icon['title'] ?? null, ...(array) ($icon['tags'] ?? [])]),
+                fn (string $term) => ! str_starts_with($term, 'dhis2:')
+            ))])
+            ->all();
+    }
 }

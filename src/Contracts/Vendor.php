@@ -142,6 +142,40 @@ abstract class Vendor
         return $default;
     }
 
+    /**
+     * The search terms the package publishes for its icons, which a build hands on with its
+     * IconsBuilt event. None by default: only some packages publish them.
+     *
+     * @param  string  $packageRoot  The package's installed directory.
+     * @return array<string, list<string>> Terms by icon name, as the default variant lists it.
+     */
+    public function tags(string $packageRoot): array
+    {
+        return [];
+    }
+
+    /**
+     * A JSON file of the package, decoded; empty when it is missing or not JSON.
+     *
+     * @return array<array-key, mixed>
+     */
+    protected function readJson(string $file): array
+    {
+        $decoded = is_file($file) ? json_decode((string) file_get_contents($file), true) : null;
+
+        return is_array($decoded) ? $decoded : [];
+    }
+
+    /**
+     * Only the strings of a list a package published, each once.
+     *
+     * @return list<string>
+     */
+    protected function terms(mixed $terms): array
+    {
+        return is_array($terms) ? array_values(array_unique(array_filter($terms, fn ($term) => is_string($term) && $term !== ''))) : [];
+    }
+
     /*
     |--------------------------------------------------------------------------
     | Options

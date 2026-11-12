@@ -52,4 +52,20 @@ class FontAwesome extends Vendor
             ->variant('mini', fn ($variant) => $variant->basedOn('solid'))
             ->variant('micro', fn ($variant) => $variant->basedOn('solid'));
     }
+
+    /**
+     * metadata/icon-families.json gives each icon its search terms and the names it had before.
+     *
+     * @return array<string, list<string>>
+     */
+    public function tags(string $packageRoot): array
+    {
+        return collect($this->readJson("{$packageRoot}/metadata/icon-families.json"))
+            ->filter(fn ($icon) => is_array($icon))
+            ->map(fn (array $icon) => $this->terms(array_merge(
+                (array) ($icon['search']['terms'] ?? []),
+                (array) ($icon['aliases']['names'] ?? []),
+            )))
+            ->all();
+    }
 }

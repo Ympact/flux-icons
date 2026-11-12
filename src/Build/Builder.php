@@ -104,10 +104,30 @@ class Builder
         $built = array_map('strval', array_keys($publishedFrom));
 
         if ($built !== []) {
-            IconsBuilt::dispatch($vendor->key(), $vendor->namespace(), $directory, $built);
+            IconsBuilt::dispatch($vendor->key(), $vendor->namespace(), $directory, $built, $this->tags($vendor, $packageRoot, $publishedFrom));
         }
 
         return new BuildResult($built, $skipped, $missing);
+    }
+
+    /**
+     * The vendor's search terms for the icons written, by the name each was published under.
+     *
+     * @param  array<string, string>  $publishedFrom  The icon each published name was built from.
+     * @return array<string, list<string>>
+     */
+    protected function tags(Vendor $vendor, string $packageRoot, array $publishedFrom): array
+    {
+        $tags = $vendor->tags($packageRoot);
+        $published = [];
+
+        foreach ($publishedFrom as $name => $icon) {
+            if (($tags[$icon] ?? []) !== []) {
+                $published[(string) $name] = $tags[$icon];
+            }
+        }
+
+        return $published;
     }
 
     /**
