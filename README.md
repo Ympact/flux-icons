@@ -166,7 +166,7 @@ php artisan vendor:publish --tag=flux-icons-config
 | `request_npm_dev` | `bool` | For a build of more than 100 icons, ask whether `npm run dev` is running, and if so pause a third of a second between icons and remind you to start it again afterwards. Without a terminal the answer is no. |
 | `vendors`         | `['vendor-key' => VendorClass::class]` | The vendors icons can be built from. The key is what you pass to the commands. The icons are published under the key as a slug (`tabler_icons` to `tabler-icons`), unless the class names another namespace (Material Icons publishes to `material`). |
 
-A published config from version 1 describes vendors as arrays. Version 2 stops with a message naming the vendor. Replace the config with `php artisan vendor:publish --tag=flux-icons-config --force`, which overwrites `config/flux-icons.php`, then copy your changes over.
+A published config from version 1 describes vendors as arrays. The build, update and check commands, and `make-vendor --extends`, stop with a message naming the vendor. Keep a copy of `config/flux-icons.php`, replace it with `php artisan vendor:publish --tag=flux-icons-config --force`, then copy your changes over from the copy. [UPGRADE.md](UPGRADE.md) maps each version 1 setting to version 2.
 
 ### Adjusting a vendor
 
