@@ -5,6 +5,7 @@ namespace Ympact\FluxIcons\Contracts;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 use Ympact\FluxIcons\Types\Icon;
+use Ympact\FluxIcons\Types\InvalidMetadata;
 use Ympact\FluxIcons\Types\SvgPath;
 use Ympact\FluxIcons\Variants\VariantSet;
 
@@ -141,6 +142,53 @@ abstract class Vendor
     public function strokeWidth(Icon $icon, float $default): float
     {
         return $default;
+    }
+
+    /**
+     * The search terms the package publishes for its icons, which a build hands on with its
+     * IconsBuilt event. None by default: only some packages publish them.
+     *
+     * @param  string  $packageRoot  The package's installed directory.
+     * @return array<array-key, list<string>> Terms by icon name, as the default variant lists it or
+     *                                        as its file is named.
+     *
+     * @throws InvalidMetadata When the file the terms come from cannot be read.
+     */
+    public function tags(string $packageRoot): array
+    {
+        return [];
+    }
+
+    /**
+     * A JSON file of the package, decoded; empty when the package has no such file.
+     *
+     * @return array<array-key, mixed>
+     *
+     * @throws InvalidMetadata When the file is there but holds no JSON object or list.
+     */
+    protected function readJson(string $file): array
+    {
+        if (! is_file($file)) {
+            return [];
+        }
+
+        $decoded = json_decode((string) file_get_contents($file), true);
+
+        if (! is_array($decoded)) {
+            throw new InvalidMetadata("{$file} is not the JSON this vendor reads: ".(json_last_error() !== JSON_ERROR_NONE ? json_last_error_msg() : 'no object or list').'.');
+        }
+
+        return $decoded;
+    }
+
+    /**
+     * Only the strings of a list a package published, each once.
+     *
+     * @return list<string>
+     */
+    protected function terms(mixed $terms): array
+    {
+        return is_array($terms) ? array_values(array_unique(array_filter($terms, fn ($term) => is_string($term) && $term !== ''))) : [];
     }
 
     /*

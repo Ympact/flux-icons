@@ -72,4 +72,17 @@ class Flags extends Vendor
             ->variant('mini', fn ($variant) => $variant->basedOn('solid'))
             ->variant('micro', fn ($variant) => $variant->basedOn('solid'));
     }
+
+    /**
+     * country.json names the country each flag code stands for.
+     *
+     * @return array<array-key, list<string>>
+     */
+    public function tags(string $packageRoot): array
+    {
+        return collect($this->readJson("{$packageRoot}/country.json"))
+            ->filter(fn ($flag) => is_array($flag) && is_string($flag['code'] ?? null))
+            ->mapWithKeys(fn (array $flag) => [$flag['code'] => $this->terms([$flag['name'] ?? null])])
+            ->all();
+    }
 }

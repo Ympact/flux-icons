@@ -12,6 +12,7 @@ use Ympact\FluxIcons\Events\IconsBuilt;
 use Ympact\FluxIcons\Services\NpmManager;
 use Ympact\FluxIcons\Tests\Fixtures\Vendors\Alpha;
 use Ympact\FluxIcons\Tests\Fixtures\Vendors\AlphaStyled;
+use Ympact\FluxIcons\Tests\Fixtures\Vendors\AlphaTagged;
 use Ympact\FluxIcons\Tests\Fixtures\Vendors\AlphaUnstyled;
 
 /**
@@ -195,6 +196,16 @@ describe('building', function () {
     it('names the icons the vendor does not ship', function () {
         $this->artisan('flux-icons:build', ['vendor' => 'alpha', '--icons' => 'home,nope', '--no-interaction' => true])
             ->expectsOutputToContain('Icons not found: nope')
+            ->assertExitCode(0);
+    });
+
+    it('warns that it built without search terms when their file is not JSON', function () {
+        Config::set('flux-icons.vendors', ['alpha' => AlphaTagged::class]);
+        File::put("{$this->root}/node_modules/alpha/tags.json", '{"home": [');
+
+        $this->artisan('flux-icons:build', ['vendor' => 'alpha', '--icons' => 'home', '--no-interaction' => true])
+            ->expectsOutputToContain('No search terms: ')
+            ->expectsOutputToContain('Icons built successfully')
             ->assertExitCode(0);
     });
 

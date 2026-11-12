@@ -125,4 +125,17 @@ class Tabler extends Vendor
             return $path;
         });
     }
+
+    /**
+     * icons.json gives the search terms of each icon as its `tags`.
+     *
+     * @return array<array-key, list<string>>
+     */
+    public function tags(string $packageRoot): array
+    {
+        return collect($this->readJson("{$packageRoot}/icons.json"))
+            ->filter(fn ($icon) => is_array($icon))
+            ->map(fn (array $icon) => $this->terms($icon['tags'] ?? null))
+            ->all();
+    }
 }

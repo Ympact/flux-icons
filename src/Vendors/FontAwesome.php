@@ -54,4 +54,31 @@ class FontAwesome extends Vendor
                 ->fallback(Fallback::defaultVariant())
             );
     }
+
+    /**
+     * metadata/icon-families.json gives each icon its search terms and the names it had before,
+     * under which svgs-full ships it too: those get its terms and its current name.
+     *
+     * @return array<array-key, list<string>>
+     */
+    public function tags(string $packageRoot): array
+    {
+        $tags = [];
+
+        foreach ($this->readJson("{$packageRoot}/metadata/icon-families.json") as $name => $icon) {
+            if (! is_array($icon)) {
+                continue;
+            }
+
+            $aliases = $this->terms($icon['aliases']['names'] ?? null);
+            $tags[$name] = $this->terms([...(array) ($icon['search']['terms'] ?? []), ...$aliases]);
+
+            // svgs-full also ships each icon under its former names, which the metadata only lists as aliases
+            foreach ($aliases as $alias) {
+                $tags[$alias] ??= $this->terms(array_diff([...$tags[$name], (string) $name], [$alias]));
+            }
+        }
+
+        return $tags;
+    }
 }

@@ -740,3 +740,138 @@ describe('Tabler', function () {
         'an arrow with a filled drawing, which has no stroke' => ['arrow-autofit-left', ['outline' => '1.5', 'solid' => null, 'mini' => null, 'micro' => null]],
     ]);
 });
+
+/**
+ * The search terms the last build handed on with its IconsBuilt event.
+ *
+ * @return array<string, list<string>>
+ */
+function builtTags(): array
+{
+    $event = Event::dispatched(IconsBuilt::class)->last()[0] ?? null;
+
+    return $event instanceof IconsBuilt ? $event->tags : [];
+}
+
+describe('search terms', function () {
+    beforeEach(function () {
+        $this->svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="{d}"/></svg>';
+    });
+
+    it('hands on the tags tabler lists in icons.json', function () {
+        writeIconPackage($this->packages, '@tabler/icons/icons', ['outline/home.svg' => $this->svg, 'outline/bell.svg' => $this->svg]);
+        File::put("{$this->packages}/@tabler/icons/icons.json", json_encode([
+            'home' => ['name' => 'home', 'category' => 'Buildings', 'tags' => ['house', 'dashboard', 'house', 4]],
+            'bell' => ['name' => 'bell', 'tags' => []],
+            'gone' => ['name' => 'gone', 'tags' => ['not built']],
+        ]));
+
+        $this->builder->build(new Tabler);
+
+        expect(builtTags())->toBe(['home' => ['house', 'dashboard']]);
+    });
+
+    it('hands on the aliases mdi lists in meta.json, not its categories', function () {
+        writeIconPackage($this->packages, '@mdi/svg/svg', ['home.svg' => $this->svg, 'home-outline.svg' => $this->svg]);
+        File::put("{$this->packages}/@mdi/svg/meta.json", json_encode([
+            ['name' => 'home', 'aliases' => ['house'], 'tags' => ['Home Automation']],
+            ['name' => 'home-outline', 'aliases' => ['house-outline'], 'tags' => ['Home Automation']],
+        ]));
+
+        $this->builder->build(new Mdi);
+
+        expect(builtTags())->toBe(['home' => ['house']]);
+    });
+
+    it('hands on the terms lucide lists in tags.json', function () {
+        writeIconPackage($this->packages, 'lucide-static/icons', ['house.svg' => $this->svg]);
+        File::put("{$this->packages}/lucide-static/tags.json", json_encode(['house' => ['home', 'living']]));
+
+        $this->builder->build(new Lucide);
+
+        expect(builtTags())->toBe(['house' => ['home', 'living']]);
+    });
+
+    it('hands on the search terms and former names font awesome lists', function () {
+        writeIconPackage($this->packages, '@fortawesome/fontawesome-free/svgs-full', ['solid/house.svg' => $this->svg]);
+        File::ensureDirectoryExists("{$this->packages}/@fortawesome/fontawesome-free/metadata");
+        File::put("{$this->packages}/@fortawesome/fontawesome-free/metadata/icon-families.json", json_encode([
+            'house' => ['search' => ['terms' => ['abode', 'home']], 'aliases' => ['names' => ['home', 'home-alt']], 'label' => 'House'],
+        ]));
+
+        $this->builder->build(new FontAwesome);
+
+        expect(builtTags())->toBe(['house' => ['abode', 'home', 'home-alt']]);
+    });
+
+    it('hands on the terms of a font awesome icon for the file it ships under a former name', function () {
+        writeIconPackage($this->packages, '@fortawesome/fontawesome-free/svgs-full', ['solid/house.svg' => $this->svg, 'solid/home.svg' => $this->svg]);
+        File::ensureDirectoryExists("{$this->packages}/@fortawesome/fontawesome-free/metadata");
+        File::put("{$this->packages}/@fortawesome/fontawesome-free/metadata/icon-families.json", json_encode([
+            'house' => ['search' => ['terms' => ['abode', 'home']], 'aliases' => ['names' => ['home', 'home-alt']]],
+        ]));
+
+        $this->builder->build(new FontAwesome);
+
+        expect(builtTags())->toBe([
+            'home' => ['abode', 'home-alt', 'house'],
+            'house' => ['abode', 'home', 'home-alt'],
+        ]);
+    });
+
+    it('hands on the terms of an mdi icon by its file, when meta.json lists it only under that name', function () {
+        writeIconPackage($this->packages, '@mdi/svg/svg', ['tag-text-outline.svg' => $this->svg]);
+        File::put("{$this->packages}/@mdi/svg/meta.json", json_encode([
+            ['name' => 'tag-text-outline', 'aliases' => ['label-outline']],
+        ]));
+
+        $this->builder->build(new Mdi);
+
+        expect(builtTags())->toBe(['tag-text' => ['label-outline']]);
+    });
+
+    it('keeps building, without terms, when the file of terms is not JSON, and says so', function () {
+        writeIconPackage($this->packages, '@tabler/icons/icons', ['outline/home.svg' => $this->svg]);
+        File::put("{$this->packages}/@tabler/icons/icons.json", '{"home": ');
+
+        $result = $this->builder->build(new Tabler);
+
+        expect($result->built)->toBe(['home'])
+            ->and(builtTags())->toBe([])
+            ->and($result->warnings)->toHaveCount(1)
+            ->and($result->warnings[0])->toContain('icons.json')->toContain('Syntax error');
+    });
+
+    it('hands on the title and tags healthicons lists, by the name each icon is published under', function () {
+        writeIconPackage($this->packages, 'healthicons/public/icons/svg', ['outline/vehicles/war_tank.svg' => $this->svg]);
+        File::put("{$this->packages}/healthicons/public/icons/meta-data.json", json_encode([
+            ['id' => 'war_tank', 'title' => 'Tank', 'tags' => ['Army', 'dhis2:war', 'Tank']],
+        ]));
+
+        $this->builder->build(new Healthicons);
+
+        expect(builtTags())->toBe(['war-tank' => ['Tank', 'Army']]);
+    });
+
+    it('hands on the country each flag stands for', function () {
+        writeIconPackage($this->packages, 'flag-icons/flags', ['4x3/nl.svg' => $this->svg]);
+        File::put("{$this->packages}/flag-icons/country.json", json_encode([
+            ['code' => 'nl', 'name' => 'Netherlands', 'capital' => 'Amsterdam'],
+        ]));
+
+        $this->builder->build(new Flags);
+
+        expect(builtTags())->toBe(['nl' => ['Netherlands']]);
+    });
+
+    it('hands on nothing for a package without the file, or a vendor that reads none', function () {
+        writeIconPackage($this->packages, '@tabler/icons/icons', ['outline/home.svg' => $this->svg]);
+        writeIconPackage($this->packages, 'bootstrap-icons/icons', ['alarm.svg' => $this->svg]);
+
+        $this->builder->build(new Tabler);
+        expect(builtTags())->toBe([]);
+
+        $this->builder->build(new Bootstrap);
+        expect(builtTags())->toBe([]);
+    });
+});

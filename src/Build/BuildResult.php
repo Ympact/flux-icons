@@ -11,10 +11,12 @@ final class BuildResult
      * @param  list<string>  $built  The names of the components written.
      * @param  array<string, string>  $skipped  Icons that were not written, with the reason.
      * @param  list<string>  $missing  Requested icons the vendor does not ship.
+     * @param  list<string>  $warnings  What went wrong without stopping the build, such as search terms it could not read.
      */
     public function __construct(
         public readonly array $built = [],
         public readonly array $skipped = [],
         public readonly array $missing = [],
+        public readonly array $warnings = [],
     ) {}
 }
