@@ -301,10 +301,11 @@ Present and tested:
 - the artisan commands and `config/flux-icons.php`, which map vendor keys to classes
 - `Services\NpmManager`, which installs and updates vendor packages through
   Symfony Process ([#23](https://github.com/Ympact/flux-icons/issues/23))
+- the upgrade guide from 1.x, [`UPGRADE.md`](../UPGRADE.md)
+  ([#20](https://github.com/Ympact/flux-icons/issues/20))
 
 Not yet done, tracked on the v2 milestone:
 
 - `Types\Icon` still reads a v1 config array, which the build no longer passes it
 - `flux-icons:check` reporting a literal `variant="..."` an icon was not built with
   ([#47](https://github.com/Ympact/flux-icons/issues/47))
-- the upgrade guide ([#20](https://github.com/Ympact/flux-icons/issues/20))
