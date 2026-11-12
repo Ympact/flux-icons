@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\View;
 use Illuminate\Support\Str;
 use Ympact\FluxIcons\Console\CheckFluxIconsCommand;
 use Ympact\FluxIcons\Tests\Fixtures\Vendors\AlphaMisstyled;
+use Ympact\FluxIcons\Vendors\Healthicons;
 use Ympact\FluxIcons\Vendors\MaterialIcons;
 use Ympact\FluxIcons\Vendors\Mdi;
 use Ympact\FluxIcons\Vendors\Tabler;
@@ -188,6 +189,7 @@ it('reports as json for ci and agents', function () {
             'build' => [
                 ['vendor' => 'tabler', 'icons' => ['missing'], 'command' => 'php artisan flux-icons:build tabler --icons=missing --merge'],
             ],
+            'left_out' => [],
         ]);
 });
 
@@ -235,6 +237,65 @@ describe('icons packages declare', function () {
             ->assertExitCode(0);
     });
 
+    it('looks for a declared file name under the name the vendor publishes it as', function () {
+        $root = fakeApp('', ['healthicons/foo-bar']);
+        writeInstalledPackages($root, ['acme/clinic' => ['healthicons' => ['Foo_Bar']]]);
+        app()->setBasePath($root);
+        config()->set('flux-icons.vendors', ['healthicons' => Healthicons::class]);
+
+        $this->artisan('flux-icons:check', ['--path' => [$root.'/resources/views']])
+            ->expectsOutputToContain('All 1 icon references resolve')
+            ->assertExitCode(0);
+    });
+
+    it('gives an icon declared for an unknown namespace no vendor in json', function () {
+        $root = fakeApp('', []);
+        writeInstalledPackages($root, ['acme/shop' => ['material-icons' => ['zap']]]);
+        app()->setBasePath($root);
+        config()->set('flux-icons.vendors', ['material-icons' => MaterialIcons::class]);
+
+        Artisan::call('flux-icons:check', ['--path' => [$root.'/resources/views'], '--json' => true]);
+
+        expect(json_decode(Artisan::output(), true)['unresolved'][0])->toMatchArray(['name' => 'material-icons.zap', 'vendor' => null, 'reason' => 'unknown-vendor']);
+    });
+
+    it('keeps a package name from styling or escaping the console', function () {
+        $root = fakeApp('', []);
+        writeInstalledPackages($root, ["acme/</><fg=green>ok\e[2J" => ['tabler' => ['map-pin']]]);
+        app()->setBasePath($root);
+
+        $this->artisan('flux-icons:check', ['--path' => [$root.'/resources/views']])
+            ->expectsOutputToContain('acme/</><fg=green>ok?[2J')
+            ->assertExitCode(1);
+    });
+
+    it('checks the optional icons a package declares as it checks the required ones', function () {
+        $root = fakeApp('', ['tabler/key']);
+        writeInstalledPackagesBlock($root, ['acme/shop' => ['icons' => ['tabler' => ['key']], 'optional' => ['tabler' => ['chart-bar']]]]);
+        app()->setBasePath($root);
+
+        $this->artisan('flux-icons:check', ['--path' => [$root.'/resources/views']])
+            ->expectsOutputToContain('tabler.chart-bar has not been built')
+            ->assertExitCode(1);
+    });
+
+    it('leaves out the icons the packages config opts out of, and warns about the required ones', function () {
+        $root = fakeApp('', []);
+        writeInstalledPackagesBlock($root, ['acme/shop' => ['icons' => ['tabler' => ['key']], 'optional' => ['tabler' => ['chart-bar']]]]);
+        app()->setBasePath($root);
+        config()->set('flux-icons.packages', ['acme/shop' => false]);
+
+        $this->artisan('flux-icons:check', ['--path' => [$root.'/resources/views']])
+            ->expectsOutputToContain('acme/shop requires tabler.key, which the packages config leaves out and which has not been built')
+            ->doesntExpectOutputToContain('chart-bar')
+            ->expectsOutputToContain('All 0 icon references resolve')
+            ->assertExitCode(0);
+
+        Artisan::call('flux-icons:check', ['--path' => [$root.'/resources/views'], '--json' => true]);
+
+        expect(json_decode(Artisan::output(), true)['left_out'])->toBe([['package' => 'acme/shop', 'name' => 'tabler.key']]);
+    });
+
     it('names the package in json, where a scanned reference has a file and line', function () {
         $root = fakeApp('<flux:icon.tabler.home />', ['tabler/home']);
         writeInstalledPackages($root, ['acme/shop' => ['tabler' => ['map-pin']]]);
@@ -254,4 +315,44 @@ it('reports a vendor class whose option default it does not take, rather than th
     $this->artisan('flux-icons:check', ['tabler'])
         ->expectsOutputToContain('[bold] is not a valid value for option [style] of vendor [alpha]')
         ->assertExitCode(1);
+});
+
+it('writes json as it is, past the console formatter', function () {
+    $exitCode = Artisan::call('flux-icons:check', ['vendor' => '<info>x</info>', '--json' => true]);
+
+    expect($exitCode)->toBe(1)
+        ->and(json_decode(Artisan::output(), true)['error'] ?? null)->toStartWith("Vendor configuration for '<info>x</info>' not found.");
+});
+
+it('writes valid json for a file name that is not utf-8', function () {
+    $root = fakeApp('');
+    file_put_contents($root."/resources/views/caf\xE9.blade.php", '<flux:icon.tabler.missing />');
+    app()->setBasePath($root);
+
+    $exitCode = Artisan::call('flux-icons:check', ['--path' => [$root.'/resources/views'], '--json' => true]);
+    $report = json_decode(Artisan::output(), true);
+
+    expect($exitCode)->toBe(1)
+        ->and($report['unresolved'][0]['name'] ?? null)->toBe('tabler.missing')
+        ->and($report['unresolved'][0]['file'] ?? null)->toBe("resources/views/caf\u{FFFD}.blade.php");
+});
+
+it('fails for a directory to scan that does not exist, rather than passing on nothing', function () {
+    $this->artisan('flux-icons:check', ['--path' => ['/no/such/directory']])
+        ->expectsOutputToContain('No such directory to scan: /no/such/directory.')
+        ->assertExitCode(1);
+});
+
+it('quotes an argument of the suggested build command that holds more than a name', function () {
+    $command = new class extends CheckFluxIconsCommand
+    {
+        public function quoted(string $argument): string
+        {
+            return $this->shellArgument($argument);
+        }
+    };
+
+    expect($command->quoted('tabler'))->toBe('tabler')
+        ->and($command->quoted('home,map-pin'))->toBe('home,map-pin')
+        ->and($command->quoted('x$(touch /tmp/pwned)'))->toBe("'x$(touch /tmp/pwned)'");
 });

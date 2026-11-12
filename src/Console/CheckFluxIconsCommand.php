@@ -7,6 +7,8 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\View;
 use Illuminate\View\FileViewFinder;
 use InvalidArgumentException;
+use Symfony\Component\Console\Formatter\OutputFormatter;
+use Symfony\Component\Console\Output\OutputInterface;
 use Ympact\FluxIcons\Build\Builder;
 use Ympact\FluxIcons\Contracts\Vendor;
 use Ympact\FluxIcons\Services\DeclaredIcons;
@@ -66,6 +68,13 @@ class CheckFluxIconsCommand extends Command
             return $this->failWith('No directories to scan.');
         }
 
+        // a directory named on the command line that is not there would check nothing and pass
+        $missing = array_filter((array) $this->option('path'), fn ($path) => ! is_dir((string) $path));
+
+        if ($missing !== []) {
+            return $this->failWith('No such directory to scan: '.implode(', ', $missing).'.');
+        }
+
         $namespaces = $vendors->map(fn (Vendor $vendor) => $vendor->namespace())->values();
         // resolved like the build command's, so the check looks where the icons are built
         $iconsPath = $this->laravel->make(Builder::class)->outputPath();
@@ -73,11 +82,18 @@ class CheckFluxIconsCommand extends Command
             ->merge($this->declared($registry, array_values($namespaces->all()), filled($this->argument('vendor')), $iconsPath))
             ->values();
         $unresolved = $references->filter(fn (IconReference $reference) => $reference->reason() !== null)->values();
+        $leftOut = $this->leftOut($registry, array_values($namespaces->all()), filled($this->argument('vendor')), $iconsPath);
 
         if ($this->option('json')) {
-            $this->line((string) json_encode($this->toJson($references, $unresolved, $registry), JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
+            $this->writeJson($this->toJson($references, $unresolved, $leftOut, $registry));
 
             return $unresolved->isEmpty() ? self::SUCCESS : self::FAILURE;
+        }
+
+        foreach ($leftOut as $reference) {
+            $this->components->warn(
+                $this->printable("{$reference->package} requires {$reference->name()}, which the packages config leaves out and which has not been built. Its views fail where they use it, unless you override them.")
+            );
         }
 
         if ($unresolved->isEmpty()) {
@@ -105,7 +121,7 @@ class CheckFluxIconsCommand extends Command
         $this->newLine();
 
         foreach ($unresolved->groupBy(fn (IconReference $reference) => $reference->relativeFile()) as $file => $inFile) {
-            $this->line("  <fg=yellow>{$file}</>");
+            $this->line('  <fg=yellow>'.$this->printable((string) $file).'</>');
 
             foreach ($inFile as $reference) {
                 $reason = match ($reference->reason()) {
@@ -117,7 +133,7 @@ class CheckFluxIconsCommand extends Command
 
                 $where = $reference->package !== null ? 'needs' : $reference->line;
 
-                $this->line("    <fg=gray>{$where}</>  <fg=red>{$reference->name()}</> {$reason}");
+                $this->line("    <fg=gray>{$where}</>  <fg=red>".$this->printable($reference->name()).'</> '.$this->printable($reason));
             }
 
             $this->newLine();
@@ -166,11 +182,29 @@ class CheckFluxIconsCommand extends Command
             $commands[] = [
                 'vendor' => $key,
                 'icons' => $icons,
-                'command' => "php artisan flux-icons:build {$key} --icons=".implode(',', $icons).' --merge',
+                'command' => 'php artisan flux-icons:build '.$this->shellArgument($key).' --icons='.$this->shellArgument(implode(',', $icons)).' --merge',
             ];
         }
 
         return $commands;
+    }
+
+    /**
+     * Text from a file or package name, as the console shows it: its `<` is not a style, and a
+     * control character such as an escape sequence is not sent to the terminal.
+     */
+    protected function printable(string $text): string
+    {
+        return OutputFormatter::escape((string) preg_replace('/[\x00-\x1F\x7F]/', '?', $text));
+    }
+
+    /**
+     * An argument of the suggested command, quoted when it holds more than a name can: the command
+     * is meant to be copied into a shell, or run by an agent from the JSON.
+     */
+    protected function shellArgument(string $argument): string
+    {
+        return preg_match('/^[A-Za-z0-9._,-]+$/', $argument) === 1 ? $argument : escapeshellarg($argument);
     }
 
     /**
@@ -184,9 +218,10 @@ class CheckFluxIconsCommand extends Command
     /**
      * @param  Collection<int, IconReference>  $references
      * @param  Collection<int, IconReference>  $unresolved
-     * @return array{references: int, unresolved: list<array<string, mixed>>, build: list<array{vendor: string, icons: list<string>, command: string}>}
+     * @param  Collection<int, IconReference>  $leftOut
+     * @return array{references: int, unresolved: list<array<string, mixed>>, build: list<array{vendor: string, icons: list<string>, command: string}>, left_out: list<array{package: string|null, name: string}>}
      */
-    protected function toJson(Collection $references, Collection $unresolved, VendorRegistry $registry): array
+    protected function toJson(Collection $references, Collection $unresolved, Collection $leftOut, VendorRegistry $registry): array
     {
         return [
             'references' => $references->count(),
@@ -195,12 +230,41 @@ class CheckFluxIconsCommand extends Command
                 'line' => $reference->package === null ? $reference->line : null,
                 'package' => $reference->package,
                 'name' => $reference->name(),
-                'vendor' => $this->vendorKey($registry, $reference->namespace),
+                // no configured vendor publishes to an unknown vendor's namespace, so it has no key
+                'vendor' => $reference->reason() === IconReference::UNKNOWN_VENDOR ? null : $this->vendorKey($registry, $reference->namespace),
                 'variant' => $reference->variant,
                 'reason' => $reference->reason(),
             ])->all()),
             'build' => $this->buildCommands($unresolved, $registry),
+            'left_out' => array_values($leftOut->map(fn (IconReference $reference) => [
+                'package' => $reference->package,
+                'name' => $reference->name(),
+            ])->all()),
         ];
+    }
+
+    /**
+     * The icons a package requires that the packages config leaves out and that have not been
+     * built: not a failure, since the application may override the views that use them, but
+     * worth a warning. Checking one vendor leaves the other namespaces alone.
+     *
+     * @param  list<string>  $namespaces  The namespaces of the vendors being checked.
+     * @return Collection<int, IconReference>
+     */
+    protected function leftOut(VendorRegistry $registry, array $namespaces, bool $oneVendor, string $iconsPath): Collection
+    {
+        return collect($this->laravel->make(DeclaredIcons::class)->leftOutRequired())
+            ->filter(fn (array $icon) => in_array($icon['namespace'], $namespaces, true) || ! $oneVendor)
+            ->map(fn (array $icon) => new IconReference(
+                file: $icon['package'],
+                line: 0,
+                namespace: $icon['namespace'],
+                icon: $registry->findByNamespace($icon['namespace'])?->iconName($icon['icon']) ?? $icon['icon'],
+                iconsPath: $iconsPath,
+                package: $icon['package'],
+            ))
+            ->reject(fn (IconReference $reference) => $reference->exists())
+            ->values();
     }
 
     /**
@@ -218,9 +282,9 @@ class CheckFluxIconsCommand extends Command
 
         foreach ($installed->all() as $package => $declared) {
             foreach ($declared as $namespace => $icons) {
-                $configured = $registry->findByNamespace($namespace) !== null;
+                $vendor = $registry->findByNamespace($namespace);
 
-                if ($configured ? ! in_array($namespace, $namespaces, true) : $oneVendor) {
+                if ($vendor !== null ? ! in_array($namespace, $namespaces, true) : $oneVendor) {
                     continue;
                 }
 
@@ -229,10 +293,11 @@ class CheckFluxIconsCommand extends Command
                         file: $package,
                         line: 0,
                         namespace: $namespace,
-                        icon: $icon,
+                        // the build takes a file name too, and publishes it under the vendor's name for it
+                        icon: $vendor?->iconName($icon) ?? $icon,
                         iconsPath: $iconsPath,
                         package: $package,
-                        vendorConfigured: $configured,
+                        vendorConfigured: $vendor !== null,
                     ));
                 }
             }
@@ -242,12 +307,26 @@ class CheckFluxIconsCommand extends Command
     }
 
     /**
+     * JSON as it is, past the console's formatter, which would read `<info>` in a name as a
+     * style. A name that is not valid UTF-8, such as a file name, gets a replacement character.
+     *
+     * @param  array<string, mixed>  $data
+     */
+    protected function writeJson(array $data): void
+    {
+        $this->output->writeln(
+            json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_INVALID_UTF8_SUBSTITUTE | JSON_THROW_ON_ERROR),
+            OutputInterface::OUTPUT_RAW
+        );
+    }
+
+    /**
      * Report a problem that stops the check, as JSON when that was asked for.
      */
     protected function failWith(string $message, ?string $detail = null): int
     {
         if ($this->option('json')) {
-            $this->line((string) json_encode(['error' => trim($message.' '.$detail)], JSON_UNESCAPED_SLASHES));
+            $this->writeJson(['error' => trim($message.' '.$detail)]);
 
             return self::FAILURE;
         }

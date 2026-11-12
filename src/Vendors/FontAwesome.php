@@ -14,8 +14,10 @@ use Ympact\FluxIcons\Variants\VariantSet;
  * @see https://fontawesome.com/icons
  *
  * Builds from svgs-full, where every icon sits in the same square box, rather than from svgs,
- * whose boxes are as wide as each icon. Solid is the default variant, as it is Font Awesome's:
- * Free draws only some icons in the regular style, so the outline variant falls back to solid.
+ * whose boxes are as wide as each icon. Every Flux variant draws the solid style, Font Awesome's
+ * own default: Free draws only some icons in the regular style, and an outline that fell back
+ * to solid for the rest would mix the two in Flux's menus, which ask for outline. The regular
+ * style is the `regular` variant, which falls back to solid where Free has no regular drawing.
  */
 class FontAwesome extends Vendor
 {
@@ -37,20 +39,20 @@ class FontAwesome extends Vendor
     public function variants(): VariantSet
     {
         return VariantSet::make()
-            ->variant('outline', fn ($variant) => $variant
-                // regular icons are filled shapes, so there is no stroke to adjust
-                ->template(Template::Solid)
-                ->source(Source::dir('regular'))
-                ->stroke(false)
-                ->fallback(Fallback::defaultVariant())
-            )
             ->variant('solid', fn ($variant) => $variant
                 ->template(Template::Solid)
                 ->source(Source::dir('solid'))
                 ->default()
             )
+            // every style is drawn as filled shapes, so there is no stroke to adjust
+            ->variant('outline', fn ($variant) => $variant->basedOn('solid')->stroke(false))
             ->variant('mini', fn ($variant) => $variant->basedOn('solid'))
-            ->variant('micro', fn ($variant) => $variant->basedOn('solid'));
+            ->variant('micro', fn ($variant) => $variant->basedOn('solid'))
+            ->variant('regular', fn ($variant) => $variant
+                ->template(Template::Solid)
+                ->source(Source::dir('regular'))
+                ->fallback(Fallback::defaultVariant())
+            );
     }
 
     /**

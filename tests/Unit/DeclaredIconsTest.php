@@ -69,3 +69,47 @@ it('finds composer\'s vendor directory where COMPOSER_VENDOR_DIR puts it', funct
         putenv('COMPOSER_VENDOR_DIR');
     }
 });
+
+it('leaves out a declared name that could not be an icon, and trims the rest as the build does', function () {
+    writeInstalledPackages($this->root, [
+        'acme/odd' => ['tabler' => ['x$(touch /tmp/pwned)', 'a,b', 'pin ok', "\e[2Jclear", ' dots ', 'map-pin'], 'bad space' => ['home']],
+    ]);
+
+    expect((new DeclaredIcons)->all())->toBe(['acme/odd' => ['tabler' => ['dots', 'map-pin']]]);
+});
+
+describe('required and optional icons', function () {
+    beforeEach(function () {
+        writeInstalledPackagesBlock($this->root, [
+            'acme/shop' => ['icons' => ['tabler' => ['key', 'map-pin']], 'optional' => ['tabler' => ['chart-bar', 'key']]],
+            'acme/blog' => ['icons' => ['tabler' => ['pencil']]],
+        ]);
+    });
+
+    it('takes the optional icons with the required ones, a name in both lists being required', function () {
+        $declared = new DeclaredIcons(packages: []);
+
+        expect($declared->all())->toBe(['acme/blog' => ['tabler' => ['pencil']], 'acme/shop' => ['tabler' => ['key', 'map-pin', 'chart-bar']]])
+            ->and(collect($declared->declarations())->where('icon', 'key')->pluck('required')->all())->toBe([true])
+            ->and($declared->leftOutRequired())->toBe([]);
+    });
+
+    it('leaves out what the packages config opts out of', function (array|false $settings, array $shop, array $leftOut) {
+        $declared = new DeclaredIcons(packages: ['acme/shop' => $settings]);
+
+        expect($declared->all()['acme/shop']['tabler'] ?? [])->toBe($shop)
+            ->and($declared->all()['acme/blog'])->toBe(['tabler' => ['pencil']])
+            ->and(array_column($declared->leftOutRequired(), 'icon'))->toBe($leftOut);
+    })->with([
+        'optional icons' => [['optional' => false], ['key', 'map-pin'], []],
+        'required icons, for overridden views' => [['required' => false], ['chart-bar'], ['key', 'map-pin']],
+        'single icons' => [['except' => ['tabler.map-pin', 'tabler.chart-bar']], ['key'], ['map-pin']],
+        'the whole package' => [false, [], ['key', 'map-pin']],
+    ]);
+
+    it('reads the packages config when it is given none', function () {
+        config()->set('flux-icons.packages', ['acme/shop' => ['required' => false]]);
+
+        expect((new DeclaredIcons)->forNamespace('tabler'))->toBe(['pencil', 'chart-bar']);
+    });
+});
